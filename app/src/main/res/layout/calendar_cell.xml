@@ -1,18 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/dateCell"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/clean_border">
+    android:orientation="vertical">
 
     <TextView
-        tools:ignore="MissingConstraints"
-        android:id="@+id/cellDayText"
-        android:layout_width="wrap_content"
+        android:id="@+id/dateText"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="1"
-        android:textSize="18sp"
-        android:textColor="@color/black"/>
+        android:textAlignment="viewStart"
+        android:layout_marginTop="2dp"
+        android:layout_marginStart="10dp"/>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <ImageView
+        android:id="@+id/dateImg"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+</LinearLayout>
