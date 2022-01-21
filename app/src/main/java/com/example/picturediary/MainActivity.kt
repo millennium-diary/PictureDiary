@@ -1,10 +1,9 @@
-// 참고 : https://linuxtut.com/en/0993c489e7ef1c0f969d/
 package com.example.picturediary
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_main.*
-
 
 class MainActivity : AppCompatActivity() {
 
@@ -12,17 +11,14 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val mCalendarAdapter = CalendarAdapter(this)
+        drawDiary.setOnClickListener {
+            val intent = Intent(this, CalendarActivity::class.java)
+            startActivity(intent)
+        }
 
-        prevButton.setOnClickListener {
-            mCalendarAdapter.prevMonth()
-            titleText.text = mCalendarAdapter.getTitle()
+        shareDiary.setOnClickListener {
+            val intent = Intent(this, ShareActivity::class.java)
+            startActivity(intent)
         }
-        nextButton.setOnClickListener {
-            mCalendarAdapter.nextMonth()
-            titleText.text = mCalendarAdapter.getTitle()
-        }
-        calendarGridView.adapter = mCalendarAdapter
-        titleText.text = mCalendarAdapter.getTitle()
     }
 }
