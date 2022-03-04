@@ -25,7 +25,11 @@ class LoginActivity : AppCompatActivity() {
 
         // 이메일로 로그인/회원가입
         email_login_button.setOnClickListener {
-            signinAndSignup()
+            when {
+                email_edittext.text.isEmpty() -> Toast.makeText(this, "이메일을 입력해주세요", Toast.LENGTH_SHORT).show()
+                password_edittext.text.isEmpty() -> Toast.makeText(this, "비밀번호를 입력해주세요", Toast.LENGTH_SHORT).show()
+                else -> signinAndSignup()
+            }
         }
 
         // 구글로 로그인
@@ -34,6 +38,7 @@ class LoginActivity : AppCompatActivity() {
         }
 
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestIdToken("920736295527-hc69kt36ikvjf57j10d04s8j9q8930c0.apps.googleusercontent.com")
             .requestEmail()
             .build()
 
@@ -62,6 +67,7 @@ class LoginActivity : AppCompatActivity() {
                 } catch (e: ApiException) {
                     Log.w(ContentValues.TAG, "Google Sign in failed")
                 }
+                Toast.makeText(this, "GOOGLE 로그인 성공", Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -73,10 +79,10 @@ class LoginActivity : AppCompatActivity() {
                 when {
                     // 회원가입
                     task.isSuccessful -> moveMainPage(task.result?.user)
-//                    // 에러 메시지
-//                    task.exception?.message.isNullOrEmpty() -> Toast.makeText(this, task.exception?.message, Toast.LENGTH_SHORT).show()
-//                    // 로그인
-//                    else -> signinEmail()
+                    // 에러 메시지
+                    task.exception?.message.isNullOrEmpty() -> Toast.makeText(this, task.exception?.message, Toast.LENGTH_SHORT).show()
+                    // 로그인
+                    else -> signinEmail()
                 }
             }
     }
