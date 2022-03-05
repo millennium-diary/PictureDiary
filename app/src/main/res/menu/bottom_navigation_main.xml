@@ -4,17 +4,17 @@
         android:id="@+id/action_home"
         android:icon="@drawable/ic_home"
         android:enabled="true"
-        android:title="home"/>
+        android:title="그룹 목록"/>
 
     <item
         android:id="@+id/action_add_video"
         android:icon="@drawable/ic_add"
         android:enabled="true"
-        android:title="add"/>
+        android:title="그룹 추가"/>
 
     <item
         android:id="@+id/action_account"
         android:icon="@drawable/ic_account"
         android:enabled="true"
-        android:title="account"/>
+        android:title="내 계정"/>
 </menu>
