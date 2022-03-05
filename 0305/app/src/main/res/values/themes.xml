@@ -1,0 +1,8 @@
+<!--
+https://stackoverflow.com/questions/62967427/android-bottom-navigation-bar-color-changes-to-black-after-adding-com-google-and
+-->
+
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <style name="Theme.PictureDiary" parent="Theme.MaterialComponents.Light.NoActionBar">
+    </style>
+</resources>
