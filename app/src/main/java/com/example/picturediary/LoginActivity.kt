@@ -81,7 +81,9 @@ class LoginActivity : AppCompatActivity() {
         auth?.signInWithCredential(credential)
             ?.addOnCompleteListener { task ->
                 progress_bar.visibility = View.GONE
-                if (task.isSuccessful) moveMainPage(auth?.currentUser)
+                if (task.isSuccessful) {
+                    moveMainPage(auth?.currentUser)
+                }
             }
     }
 
@@ -94,26 +96,30 @@ class LoginActivity : AppCompatActivity() {
             when {
                 // 회원가입
                 task.isSuccessful -> {
-                    addUser()
-                    moveMainPage(task.result?.user)
+                    moveMainPage(auth?.currentUser)
                 }
                 // 에러 메시지
                 task.exception?.message.isNullOrEmpty() -> Toast.makeText(this, task.exception?.message, Toast.LENGTH_SHORT).show()
                 // 로그인
-                else -> signinEmail()
+                else -> {
+                    signinEmail()
+                }
             }
         }
     }
 
     // 로그인 함수
     private fun signinEmail() {
-        auth?.createUserWithEmailAndPassword(
+        auth?.signInWithEmailAndPassword(
             email_edittext.text.toString(),
             password_edittext.text.toString()
         )?.addOnCompleteListener { task ->
             progress_bar.visibility = View.GONE
             // 로그인
-            if (task.isSuccessful) moveMainPage(task.result?.user)
+            if (task.isSuccessful) {
+                addUser()
+                moveMainPage(auth?.currentUser)
+            }
             // 에러 메시지
             else Toast.makeText(this, task.exception?.message, Toast.LENGTH_SHORT).show()
         }
@@ -122,9 +128,10 @@ class LoginActivity : AppCompatActivity() {
     private fun addUser() {
         val db : FirebaseFirestore = FirebaseFirestore.getInstance()
         var userInfo = UserDTO()
+        userInfo.email = auth?.currentUser?.email
         userInfo.uid = auth?.uid
-        userInfo.userId = auth?.currentUser?.email
-        db.collection("users").document(auth?.uid.toString()).set(userInfo)
+
+        db.collection("users").document(auth?.currentUser?.email.toString()).set(userInfo)
     }
 
     // 메인 페이지로 이동
