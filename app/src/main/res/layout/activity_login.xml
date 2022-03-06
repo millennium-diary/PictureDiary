@@ -67,19 +67,21 @@
         <!-- Button -->
         <android.widget.Button
             android:id="@+id/email_login_button"
+            android:backgroundTint="@color/black"
             android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:layout_marginBottom="35dp"
+            android:layout_height="match_parent"
+            android:layout_marginBottom="10dp"
             android:layout_marginEnd="20dp"
             android:layout_marginStart="20dp"
             android:layout_marginTop="15dp"
+            android:textColor="@color/white"
             android:text="회원가입 및 이메일 로그인" />
 
         <android.widget.Button
             android:id="@+id/google_sign_in_button"
             android:layout_width="match_parent"
             android:layout_height="40dp"
-            android:layout_marginBottom="5dp"
+            android:layout_marginBottom="100dp"
             android:layout_marginEnd="20dp"
             android:layout_marginStart="20dp"
             android:background="@drawable/btn_signin_google"
@@ -87,28 +89,28 @@
             android:textColor="@color/white" />
 
 
-        <android.widget.Button
-            android:id="@+id/facebook_login_button"
-            android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginBottom="5dp"
-            android:layout_marginEnd="20dp"
-            android:layout_marginStart="20dp"
-            android:background="@drawable/btn_signin_facebook"
-            android:text="FACEBOOK으로 로그인"
-            android:textColor="@color/white" />
+<!--        <android.widget.Button-->
+<!--            android:id="@+id/facebook_login_button"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="40dp"-->
+<!--            android:layout_gravity="center_horizontal"-->
+<!--            android:layout_marginBottom="5dp"-->
+<!--            android:layout_marginEnd="20dp"-->
+<!--            android:layout_marginStart="20dp"-->
+<!--            android:background="@drawable/btn_signin_facebook"-->
+<!--            android:text="FACEBOOK으로 로그인"-->
+<!--            android:textColor="@color/white" />-->
 
-        <android.widget.Button
-            android:id="@+id/twitter_login_button"
-            android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:layout_marginBottom="35dp"
-            android:layout_marginEnd="20dp"
-            android:layout_marginStart="20dp"
-            android:background="@drawable/btn_signin_twitter"
-            android:text="TWITTER로 로그인"
-            android:textColor="@color/white" />
+<!--        <android.widget.Button-->
+<!--            android:id="@+id/twitter_login_button"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="40dp"-->
+<!--            android:layout_marginBottom="35dp"-->
+<!--            android:layout_marginEnd="20dp"-->
+<!--            android:layout_marginStart="20dp"-->
+<!--            android:background="@drawable/btn_signin_twitter"-->
+<!--            android:text="TWITTER로 로그인"-->
+<!--            android:textColor="@color/white" />-->
 
 
     </LinearLayout>
