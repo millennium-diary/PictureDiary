@@ -3,18 +3,28 @@ package com.example.picturediary
 import android.content.DialogInterface
 import android.os.Bundle
 import android.text.InputType
+import android.util.Log
 import android.view.MenuItem
-import android.widget.EditText
+import android.widget.*
 import androidx.appcompat.app.*
 import com.example.picturediary.navigation.*
-import com.google.android.material.navigation.NavigationBarView.*
+import com.example.picturediary.navigation.model.GroupDTO
+import com.example.picturediary.navigation.model.UserDTO
+import com.google.android.gms.tasks.*
+import com.google.android.material.navigation.NavigationBarView.OnItemSelectedListener
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.*
+import com.google.firebase.ktx.Firebase
 import kotlinx.android.synthetic.main.community.*
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.tasks.await
+import java.util.*
+import kotlin.collections.ArrayList
+
 
 class GalleryActivity : AppCompatActivity(), OnItemSelectedListener {
     var auth : FirebaseAuth? = null
-    var uid : String? = null
     private var firestore : FirebaseFirestore? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -27,30 +37,49 @@ class GalleryActivity : AppCompatActivity(), OnItemSelectedListener {
             var grpname = ""
 
             // 팝업 설정
-           val dlg = AlertDialog.Builder(this)
+            val dlg = AlertDialog.Builder(this)
             val input = EditText(this)
             input.inputType = InputType.TYPE_CLASS_TEXT
             dlg.setTitle("생성할 그룹의 이름을 작성하세요")
             dlg.setView(input)
             dlg.setPositiveButton("확인", DialogInterface.OnClickListener { dialog, which ->
                 grpname = input.text.toString()
-//                addGroup(grpname)
+                addGroup(grpname)
             })
             dlg.show()
         }
 
         // (일기 공유할 그룹) 그룹 목록 파이어스토어에서 가져와야 됨
-        val myArray = arrayOf("내 일기", "가족", "친구")
-        val checkArray = booleanArrayOf(false, false, false)
-        select_grp.setOnClickListener {
-            var dlg = AlertDialog.Builder(this)
-            dlg.setTitle("해당 일기를 함께 공유할 그룹을 선택하세요")
-            dlg.setMultiChoiceItems(myArray, checkArray) { dialog, which, isChecked ->
-                select_grp.text = myArray[which]
+        auth = Firebase.auth
+        firestore = FirebaseFirestore.getInstance()
+        val uid = auth?.currentUser?.uid.toString()
+
+        // 해당 사용자의 그룹 모두 가져오기
+        firestore!!
+            .collection("groups")
+            .whereArrayContains("shareWith", uid)
+            .get()
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val groupList = ArrayList<String>()
+                    for (doc in task.result) {
+                        val group = doc.data["grpname"].toString()
+                        groupList.add(group)
+                    }
+                    val finalGroups = groupList.toTypedArray()
+                    val checkArray = BooleanArray(finalGroups.size)
+                    select_grp.setOnClickListener {
+                        val dlg = AlertDialog.Builder(this)
+                        dlg.setTitle("일기를 함께 공유할 그룹을 선택하세요")
+                        dlg.setMultiChoiceItems(finalGroups, checkArray) { dialog, which, isChecked ->
+                            // 해당 그룹에 일기 공유
+                            select_grp.text = finalGroups[which]
+                        }
+                        dlg.setPositiveButton("확인", null)
+                        dlg.show()
+                    }
+                }
             }
-            dlg.setPositiveButton("확인", null)
-            dlg.show()
-        }
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
@@ -76,28 +105,41 @@ class GalleryActivity : AppCompatActivity(), OnItemSelectedListener {
         return false
     }
 
-//    private fun addGroup(grpname : String) {
-//        auth = Firebase.auth
-//        firestore = FirebaseFirestore.getInstance()
-//
-//        val groupDTO = GroupDTO()
-//        groupDTO.maker = auth?.currentUser?.uid
-//        groupDTO.grpname = grpname
-//        groupDTO.timestamp = System.currentTimeMillis()
-//        groupDTO.friends = mutableListOf(groupDTO.maker.toString())
-//
-//        firestore?.collection(auth!!.currentUser!!.uid)?.document(grpname)?.set(groupDTO)
-//    }
+    private fun addGroup(grpname : String) {
+        auth = Firebase.auth
+        firestore = FirebaseFirestore.getInstance()
+        val userEmail = auth?.currentUser?.email.toString()
+        val uid = auth?.currentUser?.uid.toString()
 
-//    private fun getGroups(grpname : String): GroupDTO? {
-//        uid = FirebaseAuth.getInstance().currentUser?.uid
-//        firestore = FirebaseFirestore.getInstance()
-//        var groupDTO : GroupDTO? = null
-//
-//        val docRef = firestore?.collection(auth!!.currentUser!!.uid)
-//        docRef!!.get().addOnSuccessListener { documentSnapshot ->
-//            groupDTO = documentSnapshot.toObject(GroupDTO::class.java)
-//        }
-//        return groupDTO
-//    }
+        // 그룹 데이터베이스에 추가
+        val groupDTO = GroupDTO()
+        groupDTO.grpid = "$uid@$grpname"
+        groupDTO.grpname = grpname
+        groupDTO.creator = auth?.currentUser?.uid
+        groupDTO.timestamp = System.currentTimeMillis()
+        groupDTO.shareWith = arrayListOf(groupDTO.creator.toString())
+        firestore?.collection("groups")?.document("$uid@$grpname")?.set(groupDTO)
+
+        // 사용자 데이터베이스에 추가
+        firestore!!.collection("users")
+            .document(userEmail).get()
+            .addOnCompleteListener { task ->
+                val document = task.result
+                var group = document["userGroups"] as ArrayList<String>?
+
+                // 그룹 없으면 추가
+                if (group == null)
+                    group = arrayListOf("$uid@$grpname")
+                else {
+                    // 이미 있는 그룹이면 메시지 띄움
+                    if (group.contains("$uid@$grpname"))
+                        Toast.makeText(this, "이미 존재하는 그룹입니다", Toast.LENGTH_SHORT).show()
+                    // 겹치지 않으면 그룹 추가
+                    else group.add("$uid@$grpname")
+                }
+                firestore!!.collection("users")
+                    .document(userEmail)
+                    .update("userGroups", group)
+            }
+    }
 }

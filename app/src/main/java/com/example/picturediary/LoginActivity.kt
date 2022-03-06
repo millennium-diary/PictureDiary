@@ -126,12 +126,22 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun addUser() {
-        val db : FirebaseFirestore = FirebaseFirestore.getInstance()
-        var userInfo = UserDTO()
+        val firestore : FirebaseFirestore = FirebaseFirestore.getInstance()
+        val useremail = auth?.currentUser?.email.toString()
+
+        val userInfo = UserDTO()
         userInfo.email = auth?.currentUser?.email
         userInfo.uid = auth?.uid
 
-        db.collection("users").document(auth?.currentUser?.email.toString()).set(userInfo)
+        val collection = firestore.collection("users").document(useremail)
+        collection.get().addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val document = task.result
+                if (document != null) {
+                    if (!document.exists()) collection.set(userInfo)
+                }
+            }
+        }
     }
 
     // 메인 페이지로 이동
