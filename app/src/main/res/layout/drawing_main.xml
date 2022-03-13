@@ -3,9 +3,15 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <TextView
+    <android.widget.Button
+        android:id="@+id/select_grp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="draw"/>
+        android:layout_marginEnd="8dp"
+        android:gravity="center"
+        android:maxLines="1"
+        android:text="공유"
+        android:textColor="#777"
+        android:textSize="22sp" />
 
 </LinearLayout>
