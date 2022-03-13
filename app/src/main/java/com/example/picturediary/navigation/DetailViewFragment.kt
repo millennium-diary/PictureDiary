@@ -17,7 +17,7 @@ import kotlinx.android.synthetic.main.fragment_detail.view.*
 
 
 class DetailViewFragment : Fragment() {
-    var auth: FirebaseAuth? = null
+    private var auth: FirebaseAuth? = null
     private var firestore: FirebaseFirestore? = null
 
     override fun onCreateView(
@@ -27,8 +27,8 @@ class DetailViewFragment : Fragment() {
     ): View {
         val view: View = inflater.inflate(R.layout.fragment_detail, container, false)
 
-        view.add_grp.setOnClickListener { view ->
-            var grpname = ""
+        view.add_grp.setOnClickListener { _ ->
+            var grpname: String
 
             // 팝업 설정
             val dlg = AlertDialog.Builder(requireActivity())
@@ -36,7 +36,7 @@ class DetailViewFragment : Fragment() {
             input.inputType = InputType.TYPE_CLASS_TEXT
             dlg.setTitle("생성할 그룹의 이름을 작성하세요")
             dlg.setView(input)
-            dlg.setPositiveButton("확인", DialogInterface.OnClickListener { dialog, which ->
+            dlg.setPositiveButton("확인", DialogInterface.OnClickListener { _, _ ->
                 grpname = input.text.toString()
                 addToGroup(grpname)
             })
@@ -69,7 +69,7 @@ class DetailViewFragment : Fragment() {
                 ?.document("$grpname@$uid")?.get()
                 ?.addOnCompleteListener { task ->
                     val document = task.result
-                    var group = document["grpid"]
+                    val group = document["grpid"]
 
                     // 그룹 데이터베이스에 이미 존재
                     if (group == "$grpname@$uid")
@@ -102,7 +102,6 @@ class DetailViewFragment : Fragment() {
             ?.addOnCompleteListener { task ->
                 val document = task.result
                 var userGroup = document["userGroups"] as ArrayList<String>?
-                println("하하하 $userGroup")
 
                 if (userGroup.isNullOrEmpty())
                     userGroup = arrayListOf("$grpname@$uid")
