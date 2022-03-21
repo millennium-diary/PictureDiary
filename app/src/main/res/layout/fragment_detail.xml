@@ -11,9 +11,10 @@
         android:layout_height="match_parent">
 
         <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/detailviewfragment_recyclerview"
+            android:id="@+id/detailRecycler"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
+            android:layout_height="match_parent"
+            tools:listitem="@layout/user_groups"/>
 
         <android.widget.Button
             android:id="@+id/add_grp"

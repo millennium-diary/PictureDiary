@@ -1,6 +1,6 @@
 package com.example.picturediary.navigation
 
-import android.content.DialogInterface
+import android.content.*
 import android.os.Bundle
 import android.text.InputType
 import android.view.*
@@ -8,10 +8,13 @@ import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import com.example.picturediary.R
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.example.picturediary.GroupListAdapter
 import com.example.picturediary.navigation.model.GroupDTO
 import com.google.firebase.auth.*
 import com.google.firebase.auth.ktx.auth
-import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.*
 import com.google.firebase.ktx.Firebase
 import kotlinx.android.synthetic.main.fragment_detail.view.*
 
@@ -19,6 +22,9 @@ import kotlinx.android.synthetic.main.fragment_detail.view.*
 class DetailViewFragment : Fragment() {
     private var auth: FirebaseAuth? = null
     private var firestore: FirebaseFirestore? = null
+    private lateinit var detailRecycler: RecyclerView
+    private lateinit var groupArrayList: ArrayList<GroupDTO>
+//    private lateinit var groupListAdapter: GroupListAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -26,6 +32,24 @@ class DetailViewFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         val view: View = inflater.inflate(R.layout.fragment_detail, container, false)
+
+        groupArrayList = arrayListOf()
+        groupArrayList.add(GroupDTO("안녕@park", "안녕", "park", 12345, arrayListOf("park"), null))
+        view.detailRecycler.adapter = GroupListAdapter(requireContext(), groupArrayList)
+        view.detailRecycler.layoutManager = LinearLayoutManager(activity)
+
+//        firestore?.collection("groups")
+//            ?.orderBy("timestamp", Query.Direction.ASCENDING)
+//            ?.addSnapshotListener { querySnapshot, exception ->
+//                if (querySnapshot != null) {
+//                    for (dc in querySnapshot.documentChanges) {
+//                        if (dc.type == DocumentChange.Type.ADDED) {
+//                            var firebaseMessage = dc.document.toObject(GroupDTO::class.java)
+//                            firebaseMessage.grpid = dc.document.id
+//                        }
+//                    }
+//                }
+//            }
 
         view.add_grp.setOnClickListener { _ ->
             var grpname: String
@@ -42,6 +66,7 @@ class DetailViewFragment : Fragment() {
             })
             dlg.show()
         }
+
         return view
     }
 
