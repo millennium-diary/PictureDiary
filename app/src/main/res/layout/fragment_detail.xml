@@ -1,20 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="#001122">
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/detailRecycler"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tools:listitem="@layout/user_groups"/>
 
+        <android.widget.Button
+            android:id="@+id/add_grp"
+            android:backgroundTint="#3DB7CC"
+            android:background="@drawable/roundbutton"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_margin="20dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            android:clickable="true"
+            android:text="+"
+            android:textAlignment="center"
+            android:textColor="@color/white"
+            android:textSize="25sp"
+            tools:ignore="RtlCompat" />
 
-    </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
-
-
-
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+</FrameLayout>
