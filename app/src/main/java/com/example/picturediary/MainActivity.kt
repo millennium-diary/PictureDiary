@@ -24,9 +24,4 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
         }
     }
-
-    // 사용자 UID 가져오기
-    private fun getUID(): String? {
-        return FirebaseAuth.getInstance().currentUser?.uid
-    }
 }
