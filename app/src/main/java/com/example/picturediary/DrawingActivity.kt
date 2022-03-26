@@ -19,13 +19,13 @@ class DrawingActivity : AppCompatActivity() {
 
         auth = Firebase.auth
         firestore = FirebaseFirestore.getInstance()
-        val uid = auth?.currentUser?.uid.toString()
+        val username = auth?.currentUser?.email.toString().replace("@fake.com", "")
 
 
         // 해당 사용자의 그룹 모두 가져오기
         firestore!!
             .collection("groups")
-            .whereArrayContains("shareWith", uid)
+            .whereArrayContains("shareWith", username)
             .get()
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {

@@ -3,7 +3,6 @@ package com.example.picturediary
 import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import com.google.firebase.auth.FirebaseAuth
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
@@ -20,7 +19,7 @@ class MainActivity : AppCompatActivity() {
 
         // 일기 공유 갤러리
         shareDiary.setOnClickListener {
-            val intent = Intent(this, TimelineActivity::class.java)
+            val intent = Intent(this, GroupActivity::class.java)
             startActivity(intent)
         }
     }

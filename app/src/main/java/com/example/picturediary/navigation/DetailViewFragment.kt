@@ -1,5 +1,6 @@
 package com.example.picturediary.navigation
 
+import android.annotation.SuppressLint
 import android.content.*
 import android.os.Bundle
 import android.text.InputType
@@ -7,15 +8,19 @@ import android.view.*
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.ItemTouchHelper
 import com.example.picturediary.R
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.picturediary.GroupListAdapter
+import com.example.picturediary.GroupSwipeHelperCallback
 import com.example.picturediary.navigation.model.GroupDTO
 import com.google.firebase.auth.*
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.*
 import com.google.firebase.firestore.EventListener
 import com.google.firebase.ktx.Firebase
+import kotlinx.android.synthetic.main.fragment_detail.*
 import kotlinx.android.synthetic.main.fragment_detail.view.*
 import kotlin.collections.ArrayList
 
@@ -26,6 +31,7 @@ class DetailViewFragment : Fragment() {
     private lateinit var groupArrayList: ArrayList<GroupDTO>
     private lateinit var groupListAdapter: GroupListAdapter
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -34,11 +40,23 @@ class DetailViewFragment : Fragment() {
         val view: View = inflater.inflate(R.layout.fragment_detail, container, false)
 
         groupArrayList = arrayListOf()
-        groupListAdapter = GroupListAdapter(requireContext(), groupArrayList)
-        view.detailRecycler.adapter = groupListAdapter
-        view.detailRecycler.layoutManager = LinearLayoutManager(activity)
+        groupListAdapter = GroupListAdapter(groupArrayList)
 
-        EventChangeListener()
+        val swipeHelperCallback = GroupSwipeHelperCallback(requireContext(), view.detailRecycler).apply {
+            setClamp(200f)
+        }
+        val itemTouchHelper = ItemTouchHelper(swipeHelperCallback)
+        itemTouchHelper.attachToRecyclerView(view.detailRecycler)
+
+        view.detailRecycler.apply {
+            view.detailRecycler.layoutManager = LinearLayoutManager(activity)
+            view.detailRecycler.adapter = groupListAdapter
+
+            setOnTouchListener { _, _ ->
+                swipeHelperCallback.removePreviousClamp(this)
+                false
+            }
+        }
 
         // 그룹 추가 버튼
         view.add_grp.setOnClickListener { _ ->
@@ -57,17 +75,22 @@ class DetailViewFragment : Fragment() {
             dlg.show()
         }
 
+        // 어댑터에 변화가 생기면 바로 적용
+        EventChangeListener(view)
+
         return view
     }
 
-    private fun EventChangeListener() {
+    private fun EventChangeListener(view: View) {
         auth = Firebase.auth
         firestore = FirebaseFirestore.getInstance()
         val username = auth?.currentUser?.email.toString().replace("@fake.com", "")
+        val swipeHelperCallback = GroupSwipeHelperCallback(requireContext(), view.detailRecycler)
 
-        firestore?.collection("groups")
-            ?.whereArrayContains("shareWith", username)
-            ?.addSnapshotListener(object : EventListener<QuerySnapshot>{
+        firestore!!.collection("groups")
+            .whereArrayContains("shareWith", username)
+            .addSnapshotListener(object : EventListener<QuerySnapshot>{
+                @SuppressLint("NotifyDataSetChanged")
                 override fun onEvent(value: QuerySnapshot?, error: FirebaseFirestoreException?) {
                     if (error != null) {
                         println("EventChangeListener error : " + error.message.toString())
@@ -78,16 +101,22 @@ class DetailViewFragment : Fragment() {
                         if (dc.type == DocumentChange.Type.ADDED) {
                             groupArrayList.add(dc.document.toObject(GroupDTO::class.java))
                             groupListAdapter.notifyDataSetChanged()
+                            swipeHelperCallback.removePreviousClamp(view.detailRecycler)
+//                            swipeHelperCallback.setClamp(0f)
                         }
                         else if (dc.type == DocumentChange.Type.REMOVED) {
-                            groupArrayList.remove(groupArrayList[0])
+                            val position = groupArrayList.indexOf(dc.document.toObject(GroupDTO::class.java))
+                            groupArrayList.remove(groupArrayList[position])
                             groupListAdapter.notifyDataSetChanged()
+                            swipeHelperCallback.removePreviousClamp(view.detailRecycler)
+//                            swipeHelperCallback.setClamp(0f)
                         }
                     }
                 }
             })
     }
 
+    // groups 컬렉션에 그룹 추가
     private fun addToGroup(grpname: String) {
         auth = Firebase.auth
         firestore = FirebaseFirestore.getInstance()
@@ -103,14 +132,15 @@ class DetailViewFragment : Fragment() {
             val groupDTO = GroupDTO()
             groupDTO.grpid = "$grpname@$username"
             groupDTO.grpname = grpname
-            groupDTO.creator = username
+            groupDTO.leader = username
             groupDTO.timestamp = System.currentTimeMillis()
-            groupDTO.shareWith = arrayListOf(groupDTO.creator.toString())
+            groupDTO.shareWith = arrayListOf(groupDTO.leader.toString())
 
             // 그룹 데이터베이스 확인
-            firestore?.collection("groups")
-                ?.document("$grpname@$username")?.get()
-                ?.addOnCompleteListener { task ->
+            firestore!!.collection("groups")
+                .document("$grpname@$username")
+                .get()
+                .addOnCompleteListener { task ->
                     val document = task.result
                     val group = document["grpid"]
 
@@ -132,16 +162,17 @@ class DetailViewFragment : Fragment() {
         }
     }
 
-    // 사용자 데이터베이스에 추가
+    // users 컬렉션의 userGroups 필드에 추가
     private fun addToUserGroups(grpname: String) {
         auth = Firebase.auth
         firestore = FirebaseFirestore.getInstance()
         val username = auth?.currentUser?.email.toString().replace("@fake.com", "")
 
         // 사용자 데이터베이스에 추가
-        firestore?.collection("users")
-            ?.document(username)?.get()
-            ?.addOnCompleteListener { task ->
+        firestore!!.collection("users")
+            .document(username)
+            .get()
+            .addOnCompleteListener { task ->
                 val document = task.result
                 var userGroup = document["userGroups"] as ArrayList<String>?
 
