@@ -98,6 +98,7 @@ class GroupSwipeHelperCallback(var context: Context, var recyclerView: RecyclerV
             firestore = FirebaseFirestore.getInstance()
             val groupId = viewHolder.itemView.groupId.text.toString()
             val groupName = viewHolder.itemView.groupName.text.toString()
+            val leader = viewHolder.itemView.leader.text.toString()
 
             firestore!!.collection("groups")
                 .document(groupId)
@@ -108,6 +109,7 @@ class GroupSwipeHelperCallback(var context: Context, var recyclerView: RecyclerV
 
                     if (shareWith!!.size <= 1)
                         deleteGroup(groupId, groupName)
+//                    else if ()
                     else
                         exitGroup(groupId, groupName)
                 }
@@ -120,7 +122,7 @@ class GroupSwipeHelperCallback(var context: Context, var recyclerView: RecyclerV
     private fun deleteGroup(groupId : String, groupName : String) {
         auth = Firebase.auth
         firestore = FirebaseFirestore.getInstance()
-        val username = auth?.currentUser?.email.toString().replace("@fake.com", "")
+        val username = auth?.currentUser?.displayName
 
         val dlg = AlertDialog.Builder(context)
         dlg.setTitle("$groupName 그룹에 남은 마지막 멤버입니다")
@@ -132,6 +134,7 @@ class GroupSwipeHelperCallback(var context: Context, var recyclerView: RecyclerV
                 .document(groupId)
                 .delete()
             deleteUserGroup(groupId, groupName)
+            removePreviousClamp(recyclerView)
         })
         // 그룹 삭제 취소
         dlg.setNegativeButton("취소", DialogInterface.OnClickListener { _, _ ->
@@ -145,7 +148,7 @@ class GroupSwipeHelperCallback(var context: Context, var recyclerView: RecyclerV
     private fun exitGroup(groupId : String, groupName : String) {
         auth = Firebase.auth
         firestore = FirebaseFirestore.getInstance()
-        val username = auth?.currentUser?.email.toString().replace("@fake.com", "")
+        val username = auth?.currentUser?.displayName
 
         val dlg = AlertDialog.Builder(context)
         dlg.setTitle("$groupName 그룹을 나가시겠습니까?")
@@ -157,6 +160,7 @@ class GroupSwipeHelperCallback(var context: Context, var recyclerView: RecyclerV
                 .document(groupId)
                 .update("shareWith", FieldValue.arrayRemove(username))
             deleteUserGroup(groupId, groupName)
+            removePreviousClamp(recyclerView)
         })
         // 그룹 삭제 취소
         dlg.setNegativeButton("취소", DialogInterface.OnClickListener { _, _ ->
@@ -169,7 +173,7 @@ class GroupSwipeHelperCallback(var context: Context, var recyclerView: RecyclerV
     private fun deleteUserGroup(groupId : String, groupName : String) {
         auth = Firebase.auth
         firestore = FirebaseFirestore.getInstance()
-        val username = auth?.currentUser?.email.toString().replace("@fake.com", "")
+        val username = auth?.currentUser?.displayName.toString()
 
         firestore!!.collection("users")
             .document(username)
@@ -218,7 +222,7 @@ class GroupSwipeHelperCallback(var context: Context, var recyclerView: RecyclerV
         previousPosition?.let {
             val viewHolder = recyclerView.findViewHolderForAdapterPosition(it) ?: return
             getView(viewHolder).animate().x(0f).setDuration(100L).start()
-            setTag(viewHolder, true)
+            setTag(viewHolder, false)
             previousPosition = null
         }
     }

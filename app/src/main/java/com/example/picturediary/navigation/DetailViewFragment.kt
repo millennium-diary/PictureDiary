@@ -84,7 +84,7 @@ class DetailViewFragment : Fragment() {
     private fun EventChangeListener(view: View) {
         auth = Firebase.auth
         firestore = FirebaseFirestore.getInstance()
-        val username = auth?.currentUser?.email.toString().replace("@fake.com", "")
+        val username = auth?.currentUser?.displayName.toString()
         val swipeHelperCallback = GroupSwipeHelperCallback(requireContext(), view.detailRecycler)
 
         firestore!!.collection("groups")
@@ -102,14 +102,12 @@ class DetailViewFragment : Fragment() {
                             groupArrayList.add(dc.document.toObject(GroupDTO::class.java))
                             groupListAdapter.notifyDataSetChanged()
                             swipeHelperCallback.removePreviousClamp(view.detailRecycler)
-//                            swipeHelperCallback.setClamp(0f)
                         }
                         else if (dc.type == DocumentChange.Type.REMOVED) {
                             val position = groupArrayList.indexOf(dc.document.toObject(GroupDTO::class.java))
                             groupArrayList.remove(groupArrayList[position])
                             groupListAdapter.notifyDataSetChanged()
                             swipeHelperCallback.removePreviousClamp(view.detailRecycler)
-//                            swipeHelperCallback.setClamp(0f)
                         }
                     }
                 }
@@ -120,7 +118,7 @@ class DetailViewFragment : Fragment() {
     private fun addToGroup(grpname: String) {
         auth = Firebase.auth
         firestore = FirebaseFirestore.getInstance()
-        val username = auth?.currentUser?.email.toString().replace("@fake.com", "")
+        val username = auth?.currentUser?.displayName.toString()
 
         // 그룹명이 비어있을 경우
         if (grpname.isBlank())
@@ -166,7 +164,7 @@ class DetailViewFragment : Fragment() {
     private fun addToUserGroups(grpname: String) {
         auth = Firebase.auth
         firestore = FirebaseFirestore.getInstance()
-        val username = auth?.currentUser?.email.toString().replace("@fake.com", "")
+        val username = auth?.currentUser?.displayName.toString()
 
         // 사용자 데이터베이스에 추가
         firestore!!.collection("users")

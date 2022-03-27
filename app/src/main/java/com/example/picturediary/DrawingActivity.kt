@@ -19,7 +19,7 @@ class DrawingActivity : AppCompatActivity() {
 
         auth = Firebase.auth
         firestore = FirebaseFirestore.getInstance()
-        val username = auth?.currentUser?.email.toString().replace("@fake.com", "")
+        val username = auth?.currentUser?.displayName.toString()
 
 
         // 해당 사용자의 그룹 모두 가져오기
