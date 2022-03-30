@@ -14,7 +14,7 @@ class CalendarAdapter(context: Context?): BaseAdapter() {
     private var dateArray: List<Date> = mDateManager!!.days
     private var mLayoutInflater: LayoutInflater? = LayoutInflater.from(mContext)
 
-    //After expanding the custom cell, define Wiget here
+    // After expanding the custom cell, define Widget here
     private class ViewHolder {
         var dateText: TextView? = null
     }
@@ -35,7 +35,7 @@ class CalendarAdapter(context: Context?): BaseAdapter() {
             holder = convertView.tag as ViewHolder
         }
 
-        //Specify cell size
+        // Specify cell size
         val dp = mContext!!.resources.displayMetrics.density
         val params = AbsListView.LayoutParams(
             parent.width / 7 - dp.toInt(),
@@ -77,12 +77,14 @@ class CalendarAdapter(context: Context?): BaseAdapter() {
         return format.format(mDateManager!!.mCalendar.time)
     }
 
+    // 다음 달
     fun nextMonth() {
         mDateManager!!.nextMonth()
         dateArray = mDateManager!!.days
         notifyDataSetChanged()
     }
 
+    // 이전 달
     fun prevMonth() {
         mDateManager!!.prevMonth()
         dateArray = mDateManager!!.days

@@ -19,17 +19,22 @@ class CalendarActivity : AppCompatActivity() {
 
         val mCalendarAdapter = CalendarAdapter(this)
 
+        // 이전 달 이동 버튼
         prevButton.setOnClickListener {
             mCalendarAdapter.prevMonth()
             titleText.text = mCalendarAdapter.getTitle()
         }
+
+        // 다음 달 이동 버튼
         nextButton.setOnClickListener {
             mCalendarAdapter.nextMonth()
             titleText.text = mCalendarAdapter.getTitle()
         }
+
         calendarGridView.adapter = mCalendarAdapter
         titleText.text = mCalendarAdapter.getTitle()
 
+        // 해당 날짜 선택 --> 그림판 이동
         calendarGridView.setOnItemClickListener { parent, view, position, id ->
             val element = mCalendarAdapter.getItemId(position)
             println(element)

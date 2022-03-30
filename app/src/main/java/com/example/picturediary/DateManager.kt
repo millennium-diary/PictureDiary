@@ -33,23 +33,23 @@ class DateManager {
         return currentMonth == format.format(date)
     }
 
-    //Get the number of weeks
+    // Get the number of weeks
     val weeks: Int
         get() = mCalendar.getActualMaximum(Calendar.WEEK_OF_MONTH)
 
-    //Get the day of the week
+    // Get the day of the week
     fun getDayOfWeek(date: Date): Int {
         val calendar = Calendar.getInstance()
         calendar.time = date
         return calendar[Calendar.DAY_OF_WEEK]
     }
 
-    //To the next month
+    // To the next month
     fun nextMonth() {
         mCalendar.add(Calendar.MONTH, 1)
     }
 
-    //To the previous month
+    // To the previous month
     fun prevMonth() {
         mCalendar.add(Calendar.MONTH, -1)
     }
