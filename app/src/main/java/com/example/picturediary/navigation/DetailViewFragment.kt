@@ -7,6 +7,7 @@ import android.text.InputType
 import android.view.*
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
+import androidx.core.view.marginRight
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.ItemTouchHelper
 import com.example.picturediary.R
@@ -104,6 +105,7 @@ class DetailViewFragment : Fragment() {
                             swipeHelperCallback.removePreviousClamp(view.detailRecycler)
                         }
                         else if (dc.type == DocumentChange.Type.REMOVED) {
+                            val groupDTO = dc.document.toObject(GroupDTO::class.java)
                             val position = groupArrayList.indexOf(dc.document.toObject(GroupDTO::class.java))
                             groupArrayList.remove(groupArrayList[position])
                             groupListAdapter.notifyDataSetChanged()
@@ -164,11 +166,12 @@ class DetailViewFragment : Fragment() {
     private fun addToUserGroups(grpname: String) {
         auth = Firebase.auth
         firestore = FirebaseFirestore.getInstance()
+        val uid = auth?.currentUser?.uid.toString()
         val username = auth?.currentUser?.displayName.toString()
 
         // 사용자 데이터베이스에 추가
         firestore!!.collection("users")
-            .document(username)
+            .document(uid)
             .get()
             .addOnCompleteListener { task ->
                 val document = task.result
@@ -180,7 +183,7 @@ class DetailViewFragment : Fragment() {
                     userGroup.add("$grpname@$username")
 
                 firestore!!.collection("users")
-                    .document(username)
+                    .document(uid)
                     .update("userGroups", userGroup)
             }
 

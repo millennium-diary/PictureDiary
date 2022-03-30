@@ -23,8 +23,7 @@ class DrawingActivity : AppCompatActivity() {
 
 
         // 해당 사용자의 그룹 모두 가져오기
-        firestore!!
-            .collection("groups")
+        firestore!!.collection("groups")
             .whereArrayContains("shareWith", username)
             .get()
             .addOnCompleteListener { task ->

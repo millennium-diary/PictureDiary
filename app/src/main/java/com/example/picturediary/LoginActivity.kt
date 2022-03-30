@@ -1,6 +1,9 @@
 package com.example.picturediary
 
+import android.Manifest
 import android.content.*
+import android.content.Intent.ACTION_OPEN_DOCUMENT
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
@@ -25,6 +28,7 @@ class LoginActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
+
 
         // Firebase 로그인 통합 관리하는 객체
         auth = FirebaseAuth.getInstance()
@@ -109,10 +113,11 @@ class LoginActivity : AppCompatActivity() {
         val firestore : FirebaseFirestore = FirebaseFirestore.getInstance()
 
         val userInfo = UserDTO()
-        userInfo.uid = auth?.uid
+        userInfo.uid = auth?.uid.toString()
         userInfo.username = username
+        userInfo.imageUrl = auth?.currentUser?.photoUrl.toString()
 
-        val collection = firestore.collection("users").document(username)
+        val collection = firestore.collection("users").document(userInfo.uid!!)
         collection.get().addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 val document = task.result
