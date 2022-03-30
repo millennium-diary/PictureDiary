@@ -8,9 +8,11 @@ import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.picturediary.navigation.model.ContentDTO
 import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.android.synthetic.main.group_timeline.*
 import kotlinx.android.synthetic.main.timeline_detail.view.*
+import kotlinx.android.synthetic.main.group_timeline.*
+import com.bumptech.glide.Glide
 
 class DiarytimelineActivity : AppCompatActivity() {
 
@@ -23,31 +25,34 @@ class DiarytimelineActivity : AppCompatActivity() {
         //파이어스토어 인스턴스 초기화
         firestore = FirebaseFirestore.getInstance()
 
-        val recyclerview : RecyclerView=findViewById(R.id.recyclerViewtimeline)
-        recyclerview.adapter = RecyclerViewAdapter()
-        recyclerview.layoutManager = LinearLayoutManager(this)
+        recyclerViewtimeline.adapter = RecyclerViewAdapter()
+        recyclerViewtimeline.layoutManager = LinearLayoutManager(this)
+
     }
 
     inner class RecyclerViewAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         // Diary 클래스 ArrayList 생성성
-        var ImageDiary: ArrayList<Diary> = arrayListOf()
+        var contentDTOs : ArrayList<ContentDTO> = arrayListOf()
+        var contentUidList : ArrayList<String> = arrayListOf()
 
         init {
-            firestore?.collection("telephoneBook")
+            firestore?.collection("images")?.orderBy("timestamp")
                 ?.addSnapshotListener { querySnapshot, firebaseFirestoreException ->
                     // ArrayList 비워줌
-                    ImageDiary.clear()
+                    contentDTOs.clear()
+                    contentUidList.clear()
 
                     for (snapshot in querySnapshot!!.documents) {
-                        var item = snapshot.toObject(Diary::class.java)
-                        ImageDiary.add(item!!)
+                        var item = snapshot.toObject(ContentDTO::class.java)
+                        contentDTOs.add(item!!)
+                        contentUidList.add(snapshot.id)
                     }
                     notifyDataSetChanged()
                 }
         }
 
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-            var view = LayoutInflater.from(parent.context).inflate(R.layout.timeline_detail, parent, false)
+        override fun onCreateViewHolder(p0: ViewGroup, p1: Int): RecyclerView.ViewHolder {
+            var view = LayoutInflater.from(p0.context).inflate(R.layout.timeline_detail, p0, false)
             return ViewHolder(view)
         }
 
@@ -55,16 +60,20 @@ class DiarytimelineActivity : AppCompatActivity() {
         }
 
         // onCreateViewHolder에서 만든 view와 실제 데이터를 연결
-        override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-            var viewHolder = (holder as ViewHolder).itemView
+        override fun onBindViewHolder(p0: RecyclerView.ViewHolder, p1: Int) {
+            var viewHolder = (p0 as ViewHolder).itemView
 
-            viewHolder.profile_textview.text = ImageDiary[position].name
-            viewHolder.like_number.text = ImageDiary[position].like.toString()
-            viewHolder.like_number.text = ImageDiary[position].image
+            //UserId
+            viewHolder.profile_textview.text=contentDTOs!![p1].userId
+
+            viewHolder.explain_textview.text=contentDTOs!![p1].explain
+
+            Glide.with(p0.itemView.context).load(contentDTOs!![p1].imageUrl).into(viewHolder.Diary_image)
+
         }
 
         override fun getItemCount(): Int {
-            return ImageDiary.size
+            return contentDTOs.size
         }
     }
 

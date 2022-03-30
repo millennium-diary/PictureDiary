@@ -22,7 +22,7 @@
         <activity android:name=".CalendarActivity" />
         <activity android:name=".TimelineActivity" />
         <activity android:name=".DrawingActivity" />
-
+        <activity android:name=".DiarytimelineActivity" />
 
     </application>
 
