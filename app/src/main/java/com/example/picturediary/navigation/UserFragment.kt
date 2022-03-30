@@ -23,13 +23,14 @@ import com.google.firebase.storage.FirebaseStorage
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.fragment_user.*
 import kotlinx.android.synthetic.main.fragment_user.view.*
+import kotlin.time.measureTime
 
 
 class UserFragment: Fragment() {
     private var auth: FirebaseAuth? = null
     private var firestore: FirebaseFirestore? = null
     private var firebaseStorage: FirebaseStorage? = null
-    lateinit var photoUrl: Uri
+    private var photoUrl: Uri? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -67,6 +68,7 @@ class UserFragment: Fragment() {
 
                 if (message != "") {
                     view.info_message_text.text = message
+                    view.info_message_edit.setText(message)
                 }
                 else {
                     view.speech_bubble.visibility = View.GONE
@@ -74,6 +76,7 @@ class UserFragment: Fragment() {
                 }
             }
 
+        // 정보 수정 버튼
         view.info_update.setOnClickListener {
             // textview --> GONE, edittext --> VISIBLE
             view.info_update.visibility = View.GONE
@@ -90,22 +93,26 @@ class UserFragment: Fragment() {
 //            view.info_username_edit.setText(username)
         }
 
+        // 카메라 버튼
         view.change_pic.setOnClickListener {
             selectImage()
         }
 
+        // 수정 완료 버튼
         view.info_update_complete.setOnClickListener {
 //            val oldUsername = auth?.currentUser?.displayName.toString()
 //            val newUsername = view.info_username_edit.text.toString()
-            val newMessage = view.info_message_edit.text.toString()
 
 //            changeUsernameInUsers(oldUsername, newUsername)
 //            changeUsernameInGroups(oldUsername, newUsername)
+
+            val newMessage = view.info_message_edit.text.toString()
             changeMessage(newMessage)
             view.info_message_text.text = newMessage
 
             if (newMessage.isEmpty()) view.speech_bubble.visibility = View.GONE
-            uploadImage()
+            if (view.info_profile_pic.drawable != null)
+                uploadImage()
 
             // textview --> VISIBLE, edittext --> GONE
             view.info_update.visibility = View.VISIBLE
@@ -124,11 +131,24 @@ class UserFragment: Fragment() {
     }
 
     private fun selectImage() {
-        var getResult: ActivityResultLauncher<Intent>
         val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
         intent.type = "image/*"
 
         startActivityForResult(intent, 0)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == 0 && resultCode == RESULT_OK && data != null) {
+            photoUrl = data.data!!
+            info_profile_pic.setImageURI(photoUrl)
+
+            val source: Source = createSource(requireContext().contentResolver, photoUrl!!)
+            val bitmap = decodeBitmap(source)
+            val bitmapDrawable = BitmapDrawable(requireContext().resources, bitmap)
+            info_profile_pic.background = bitmapDrawable
+        }
     }
 
     private fun uploadImage() {
@@ -140,41 +160,28 @@ class UserFragment: Fragment() {
         val ref = FirebaseStorage.getInstance().getReference("/images/$filename")
 
         val progressDialog = ProgressDialog(requireContext())
-        progressDialog.setMessage("사진 업로드 중...")
+        progressDialog.setMessage("처리 중...")
         progressDialog.setCancelable(false)
         progressDialog.show()
 
-        ref.putFile(photoUrl)
+        ref.putFile(photoUrl!!)
             .addOnSuccessListener {
+                Toast.makeText(requireContext(), "처리 완료", Toast.LENGTH_SHORT).show()
+                if (progressDialog.isShowing) progressDialog.dismiss()
+
                 ref.downloadUrl.addOnSuccessListener {
                     firestore!!.collection("users")
                         .document(uid)
                         .update("imageUrl", it.toString())
                 }
-
-
-                Toast.makeText(requireContext(), "업로드 성공", Toast.LENGTH_SHORT).show()
-                if (progressDialog.isShowing) progressDialog.dismiss()
             }
             .addOnFailureListener {
                 if (progressDialog.isShowing) progressDialog.dismiss()
-                Toast.makeText(requireContext(), "업로드 실패", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "처리하는 중 오류가 발생했습니다", Toast.LENGTH_SHORT).show()
             }
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
 
-        if (requestCode == 0 && resultCode == RESULT_OK && data != null) {
-            photoUrl = data.data!!
-            info_profile_pic.setImageURI(photoUrl)
-
-            val source: Source = createSource(requireContext().contentResolver, photoUrl)
-            val bitmap = decodeBitmap(source)
-            val bitmapDrawable = BitmapDrawable(requireContext().resources, bitmap)
-            info_profile_pic.background = bitmapDrawable
-        }
-    }
 
     private fun changeMessage(message: String) {
         auth = Firebase.auth
