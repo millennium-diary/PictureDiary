@@ -1,21 +1,11 @@
 package com.example.picturediary
 
-import android.Manifest
 import android.content.*
-import android.content.Intent.ACTION_OPEN_DOCUMENT
-import android.content.pm.PackageManager
 import android.os.Bundle
-import android.view.View
 import android.widget.Toast
-import androidx.activity.result.ActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.example.picturediary.navigation.model.UserDTO
 import com.google.firebase.auth.*
-import com.google.android.gms.auth.api.signin.*
-import com.google.android.gms.common.api.ApiException
-import com.google.android.gms.tasks.Task
-import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.auth.ktx.userProfileChangeRequest
 import com.google.firebase.firestore.FirebaseFirestore

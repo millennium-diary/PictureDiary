@@ -13,6 +13,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import com.example.picturediary.R
 import com.google.firebase.auth.FirebaseAuth
@@ -23,7 +24,6 @@ import com.google.firebase.storage.FirebaseStorage
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.fragment_user.*
 import kotlinx.android.synthetic.main.fragment_user.view.*
-import kotlin.time.measureTime
 
 
 class UserFragment: Fragment() {
@@ -31,6 +31,17 @@ class UserFragment: Fragment() {
     private var firestore: FirebaseFirestore? = null
     private var firebaseStorage: FirebaseStorage? = null
     private var photoUrl: Uri? = null
+    private val getResult = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        if (it.resultCode == RESULT_OK && it.data != null) {
+            photoUrl = it.data!!.data!!
+            info_profile_pic.setImageURI(photoUrl)
+
+            val source: Source = createSource(requireContext().contentResolver, photoUrl!!)
+            val bitmap = decodeBitmap(source)
+            val bitmapDrawable = BitmapDrawable(requireContext().resources, bitmap)
+            info_profile_pic.background = bitmapDrawable
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -93,10 +104,13 @@ class UserFragment: Fragment() {
 //            view.info_username_edit.setText(username)
         }
 
-        // 카메라 버튼
+        // 카메라 버튼 또는 프로필 사진 눌러 사진 변경
         view.change_pic.setOnClickListener {
             selectImage()
         }
+//        view.info_profile_pic.setOnClickListener {
+//            selectImage()
+//        }
 
         // 수정 완료 버튼
         view.info_update_complete.setOnClickListener {
@@ -112,6 +126,7 @@ class UserFragment: Fragment() {
 
             if (newMessage.isEmpty()) view.speech_bubble.visibility = View.GONE
             if (view.info_profile_pic.drawable != null)
+//                Toast.makeText(context, "hello!!", Toast.LENGTH_SHORT).show()
                 uploadImage()
 
             // textview --> VISIBLE, edittext --> GONE
@@ -126,30 +141,15 @@ class UserFragment: Fragment() {
             view.info_message_edit.visibility = View.GONE
         }
 
-
         return view
     }
 
     private fun selectImage() {
         val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
         intent.type = "image/*"
-
-        startActivityForResult(intent, 0)
+        getResult.launch(intent)
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-
-        if (requestCode == 0 && resultCode == RESULT_OK && data != null) {
-            photoUrl = data.data!!
-            info_profile_pic.setImageURI(photoUrl)
-
-            val source: Source = createSource(requireContext().contentResolver, photoUrl!!)
-            val bitmap = decodeBitmap(source)
-            val bitmapDrawable = BitmapDrawable(requireContext().resources, bitmap)
-            info_profile_pic.background = bitmapDrawable
-        }
-    }
 
     private fun uploadImage() {
         auth = Firebase.auth
@@ -164,23 +164,29 @@ class UserFragment: Fragment() {
         progressDialog.setCancelable(false)
         progressDialog.show()
 
-        ref.putFile(photoUrl!!)
-            .addOnSuccessListener {
-                Toast.makeText(requireContext(), "처리 완료", Toast.LENGTH_SHORT).show()
-                if (progressDialog.isShowing) progressDialog.dismiss()
+        if (photoUrl != null) {
+            ref.putFile(photoUrl!!)
+                .addOnSuccessListener {
+                    Toast.makeText(requireContext(), "처리 완료", Toast.LENGTH_SHORT).show()
+                    if (progressDialog.isShowing) progressDialog.dismiss()
 
-                ref.downloadUrl.addOnSuccessListener {
-                    firestore!!.collection("users")
-                        .document(uid)
-                        .update("imageUrl", it.toString())
+                    ref.downloadUrl.addOnSuccessListener {
+                        firestore!!.collection("users")
+                            .document(uid)
+                            .update("imageUrl", it.toString())
+                    }
                 }
-            }
-            .addOnFailureListener {
-                if (progressDialog.isShowing) progressDialog.dismiss()
-                Toast.makeText(requireContext(), "처리하는 중 오류가 발생했습니다", Toast.LENGTH_SHORT).show()
-            }
-    }
+                .addOnFailureListener {
+                    if (progressDialog.isShowing) progressDialog.dismiss()
+                    Toast.makeText(requireContext(), "처리하는 중 오류가 발생했습니다", Toast.LENGTH_SHORT).show()
+                }            
+        }
+        else {
+            if (progressDialog.isShowing)
+                progressDialog.dismiss()
+        }
 
+    }
 
 
     private fun changeMessage(message: String) {
@@ -188,9 +194,16 @@ class UserFragment: Fragment() {
         firestore = FirebaseFirestore.getInstance()
         val uid = auth?.currentUser?.uid.toString()
 
-        firestore!!.collection("users")
-            .document(uid)
-            .update("message", message)
+//        if (message.isEmpty()) {
+//            firestore!!.collection("users")
+//                .document(uid)
+//                .update("message", "")
+//        }
+//        else {
+            firestore!!.collection("users")
+                .document(uid)
+                .update("message", message)
+//        }
     }
 
 
