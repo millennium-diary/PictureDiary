@@ -35,9 +35,13 @@ android {
     kotlinOptions {
         jvmTarget = '1.8'
     }
+    aaptOptions {
+        noCompress "tflite"
+    }
 }
 
 dependencies {
+    implementation 'org.tensorflow:tensorflow-lite:+'
     implementation 'com.squareup.picasso:picasso:2.5.2'
     implementation 'com.google.firebase:firebase-auth-ktx:21.0.2'
     implementation 'com.google.android.gms:play-services-auth:20.1.0'

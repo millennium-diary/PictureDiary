@@ -77,12 +77,13 @@ class DetailViewFragment : Fragment() {
         }
 
         // 어댑터에 변화가 생기면 바로 적용
-        EventChangeListener(view)
+        checkRemovedGroup()
+        eventChangeListener(view)
 
         return view
     }
 
-    private fun EventChangeListener(view: View) {
+    private fun eventChangeListener(view: View) {
         auth = Firebase.auth
         firestore = FirebaseFirestore.getInstance()
         val username = auth?.currentUser?.displayName.toString()
@@ -99,21 +100,55 @@ class DetailViewFragment : Fragment() {
                     }
 
                     for (dc : DocumentChange in value?.documentChanges!!) {
-                        if (dc.type == DocumentChange.Type.ADDED) {
-                            groupArrayList.add(dc.document.toObject(GroupDTO::class.java))
-                            groupListAdapter.notifyDataSetChanged()
-                            swipeHelperCallback.removePreviousClamp(view.detailRecycler)
-                        }
-                        else if (dc.type == DocumentChange.Type.REMOVED) {
-                            val groupDTO = dc.document.toObject(GroupDTO::class.java)
-                            val position = groupArrayList.indexOf(dc.document.toObject(GroupDTO::class.java))
-                            groupArrayList.remove(groupArrayList[position])
-                            groupListAdapter.notifyDataSetChanged()
-                            swipeHelperCallback.removePreviousClamp(view.detailRecycler)
+                        when (dc.type) {
+                            DocumentChange.Type.ADDED -> {
+                                groupArrayList.add(dc.document.toObject(GroupDTO::class.java))
+                                groupListAdapter.notifyDataSetChanged()
+                                swipeHelperCallback.removePreviousClamp(view.detailRecycler)
+                            }
+                            DocumentChange.Type.REMOVED -> {
+                                groupArrayList.remove(dc.document.toObject(GroupDTO::class.java))
+                                groupListAdapter.notifyDataSetChanged()
+                                swipeHelperCallback.removePreviousClamp(view.detailRecycler)
+                            }
+                            DocumentChange.Type.MODIFIED -> {
+                                groupListAdapter.notifyDataSetChanged()
+                                swipeHelperCallback.removePreviousClamp(view.detailRecycler)
+                            }
                         }
                     }
                 }
             })
+    }
+    private fun checkRemovedGroup() {
+        auth = Firebase.auth
+        firestore = FirebaseFirestore.getInstance()
+        val uid = auth?.currentUser?.uid.toString()
+        val username = auth?.currentUser?.displayName.toString()
+
+        firestore!!.collection("users")
+            .document(uid)
+            .get()
+            .addOnCompleteListener { task ->
+                val document = task.result
+                val userGroups = document["userGroups"] as ArrayList<String>?
+                println("호호호 $userGroups")
+
+                firestore!!.collection("groups")
+                    .whereArrayContains("shareWith", username)
+                    .get()
+                    .addOnSuccessListener { documents ->
+                        for (doc in documents) {
+                            println("하하하 " + doc.id)
+                            if ((userGroups?.contains(doc.id) == false) or (userGroups?.isEmpty() == true)) {
+                                Toast.makeText(context, "이거봐", Toast.LENGTH_SHORT).show()
+                                firestore!!.collection("groups")
+                                    .document(doc.id)
+                                    .delete()
+                            }
+                        }
+                    }
+            }
     }
 
     // groups 컬렉션에 그룹 추가

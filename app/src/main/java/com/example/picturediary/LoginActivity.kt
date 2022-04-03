@@ -1,5 +1,6 @@
 package com.example.picturediary
 
+import android.app.ProgressDialog
 import android.content.*
 import android.os.Bundle
 import android.widget.Toast
@@ -35,6 +36,11 @@ class LoginActivity : AppCompatActivity() {
 
     // 사용자 등록 안 되어 있으면 추가, 등록되어 있으면 로그인
     private fun createAndLogin(username : String, password : String) {
+        val progressDialog = ProgressDialog(this)
+        progressDialog.setMessage("처리 중...")
+        progressDialog.setCancelable(false)
+        progressDialog.show()
+
         auth?.createUserWithEmailAndPassword("$username@fake.com", password)
             ?.addOnCompleteListener { task ->
                 // 회원가입
@@ -44,14 +50,19 @@ class LoginActivity : AppCompatActivity() {
                         setNewUsername(username)
 
                         Toast.makeText(this, "회원가입을 성공적으로 했습니다", Toast.LENGTH_SHORT).show()
+                        if (progressDialog.isShowing) progressDialog.dismiss()
                         moveMainPage(auth?.currentUser)
                     }
                     // 로그인
-                    task.exception?.message?.contains("already in use") == true ->
+                    task.exception?.message?.contains("already in use") == true ->{
+                        if (progressDialog.isShowing) progressDialog.dismiss()
                         signinUserID(username, password)
+                    }
                     // 비밀번호 형식 에러
-                    task.exception?.message?.startsWith("The given password is invalid") == true ->
+                    task.exception?.message?.startsWith("The given password is invalid") == true ->{
                         Toast.makeText(this, "비밀번호의 형식이 올바르지 않습니다\n(최소 6글자로 설정해야 합니다)", Toast.LENGTH_SHORT).show()
+                        if (progressDialog.isShowing) progressDialog.dismiss()
+                    }
                     // 에러 메시지
                     else ->
                         Toast.makeText(this, task.exception?.message, Toast.LENGTH_SHORT).show()
@@ -91,11 +102,6 @@ class LoginActivity : AppCompatActivity() {
         }
 
         user!!.updateProfile(profileUpdates)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    println("updated displayName")
-                }
-            }
     }
 
     // 사용자 추가 함수
@@ -105,7 +111,8 @@ class LoginActivity : AppCompatActivity() {
         val userInfo = UserDTO()
         userInfo.uid = auth?.uid.toString()
         userInfo.username = username
-        userInfo.imageUrl = auth?.currentUser?.photoUrl.toString()
+        userInfo.imageUrl = ""
+        userInfo.message = ""
 
         val collection = firestore.collection("users").document(userInfo.uid!!)
         collection.get().addOnCompleteListener { task ->
@@ -122,6 +129,7 @@ class LoginActivity : AppCompatActivity() {
     private fun moveMainPage(user: FirebaseUser?) {
         if (user != null) {
             val intent = Intent(this, MainActivity::class.java)
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
             startActivity(intent)
         }
     }

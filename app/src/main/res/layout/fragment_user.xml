@@ -151,6 +151,7 @@
         app:layout_constraintBottom_toBottomOf="parent">
 
         <android.widget.Button
+            android:id="@+id/delete_account"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="10dp"
@@ -159,6 +160,16 @@
             android:text="계정 삭제"/>
 
         <android.widget.Button
+            android:id="@+id/change_password"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:text="비밀번호 변경"/>
+
+        <android.widget.Button
+            android:id="@+id/logout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="10dp"
