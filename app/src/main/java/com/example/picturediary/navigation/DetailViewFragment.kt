@@ -38,6 +38,10 @@ class DetailViewFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+        auth = Firebase.auth
+        firestore = FirebaseFirestore.getInstance()
+        val username = auth?.currentUser?.displayName.toString()
+
         val view: View = inflater.inflate(R.layout.fragment_detail, container, false)
 
         groupArrayList = arrayListOf()
@@ -77,7 +81,6 @@ class DetailViewFragment : Fragment() {
         }
 
         // 어댑터에 변화가 생기면 바로 적용
-        checkRemovedGroup()
         eventChangeListener(view)
 
         return view
@@ -88,6 +91,15 @@ class DetailViewFragment : Fragment() {
         firestore = FirebaseFirestore.getInstance()
         val username = auth?.currentUser?.displayName.toString()
         val swipeHelperCallback = GroupSwipeHelperCallback(requireContext(), view.detailRecycler)
+
+//        firestore!!.collection("users")
+//            .whereArrayContains("userGroups", username)
+//            .addSnapshotListener(object : EventListener<QuerySnapshot>{
+//                @SuppressLint("NotifyDataSetChanged")
+//                override fun onEvent(value: QuerySnapshot?, error: FirebaseFirestoreException?) {
+//                    checkRemovedGroup("이거봐 1")
+//                }
+//            })
 
         firestore!!.collection("groups")
             .whereArrayContains("shareWith", username)
@@ -119,8 +131,17 @@ class DetailViewFragment : Fragment() {
                     }
                 }
             })
+//        firestore!!.collection("users")
+//            .whereArrayContains("userGroups", username)
+//            .addSnapshotListener(object : EventListener<QuerySnapshot>{
+//                @SuppressLint("NotifyDataSetChanged")
+//                override fun onEvent(value: QuerySnapshot?, error: FirebaseFirestoreException?) {
+//                    checkRemovedGroup("이거봐 3")
+//                }
+//            })
     }
-    private fun checkRemovedGroup() {
+
+    private fun checkRemovedGroup(message: String) {
         auth = Firebase.auth
         firestore = FirebaseFirestore.getInstance()
         val uid = auth?.currentUser?.uid.toString()
@@ -141,7 +162,7 @@ class DetailViewFragment : Fragment() {
                         for (doc in documents) {
                             println("하하하 " + doc.id)
                             if ((userGroups?.contains(doc.id) == false) or (userGroups?.isEmpty() == true)) {
-                                Toast.makeText(context, "이거봐", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                                 firestore!!.collection("groups")
                                     .document(doc.id)
                                     .delete()

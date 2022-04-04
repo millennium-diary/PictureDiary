@@ -1,7 +1,10 @@
 package com.example.picturediary
 
+import android.content.Intent
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.example.picturediary.GroupListAdapter.ViewHolder
 import com.example.picturediary.databinding.UserGroupItemBinding
@@ -16,12 +19,29 @@ import kotlin.collections.ArrayList
 
 
 class GroupListAdapter(var items: ArrayList<GroupDTO>) : RecyclerView.Adapter<ViewHolder>() {
+    interface ItemClickListener {
+        fun onClick(view: View, position: Int)
+    }
+
+    //클릭리스너 선언
+    private lateinit var itemClickListener: ItemClickListener
+
+    //클릭리스너 등록 매소드
+    fun setItemClickListener(itemClickListener: ItemClickListener) {
+        this.itemClickListener = itemClickListener
+    }
+
     override fun getItemCount(): Int {
         return items.size
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.bind(items[position])
+        holder.itemView.setOnClickListener {
+//            val intent = Intent(holder.itemView.context, TimelineActivity::class.java)
+//            ContextCompat.startActivity(holder.itemView.context, intent, null)
+//            itemClickListener.onClick(it, position)
+        }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {

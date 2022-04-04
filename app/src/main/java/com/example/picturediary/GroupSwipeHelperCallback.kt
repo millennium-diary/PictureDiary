@@ -144,6 +144,7 @@ class GroupSwipeHelperCallback(var context: Context, var recyclerView: RecyclerV
 //                                deleteGroup(groupId, groupName)
                                 deleteUserGroup(groupId, groupName)
                                 removePreviousClamp(recyclerView)
+//                                checkRemovedGroup()
                             })
                             // 그룹 삭제 취소
                             dlg.setNegativeButton("취소", DialogInterface.OnClickListener { _, _ ->
@@ -172,6 +173,7 @@ class GroupSwipeHelperCallback(var context: Context, var recyclerView: RecyclerV
                     }
                 }
         }
+
         return 2f
     }
 
@@ -237,12 +239,16 @@ class GroupSwipeHelperCallback(var context: Context, var recyclerView: RecyclerV
         firestore!!.collection("users")
             .document(uid)
             .update("userGroups", FieldValue.arrayRemove(groupId))
-//            .addOnCompleteListener { checkRemovedGroup() }
+            .addOnSuccessListener {
+                checkRemovedGroup(groupId)
+                println("gooood")
+            }
+            .addOnFailureListener { println("FUCK") }
 
         Toast.makeText(context, "$groupName 그룹을 나갔습니다", Toast.LENGTH_SHORT).show()
     }
 
-    private fun checkRemovedGroup() {
+    private fun checkRemovedGroup(groupId: String) {
         auth = Firebase.auth
         firestore = FirebaseFirestore.getInstance()
         val uid = auth?.currentUser?.uid.toString()
@@ -261,13 +267,22 @@ class GroupSwipeHelperCallback(var context: Context, var recyclerView: RecyclerV
                     .get()
                     .addOnSuccessListener { documents ->
                         for (doc in documents) {
-                            println("하하하 " + doc.id)
-                            if ((userGroups?.contains(doc.id) == false) or (userGroups?.isEmpty() == true)) {
-                                Toast.makeText(context, "이거봐", Toast.LENGTH_SHORT).show()
-                                firestore!!.collection("groups")
-                                    .document(doc.id)
-                                    .delete()
+                            println(groupId + " ## " + doc.id)
+                            if (doc.id == groupId) {
+                                while (userGroups?.contains(doc.id) == true) {
+                                    println(groupId + " ## " + doc.id)
+                                    firestore!!.collection("groups")
+                                        .document(doc.id)
+                                        .delete()
+                                }
                             }
+                            println("하하하 " + doc.id)
+//                            if ((userGroups?.contains(doc.id) == false) or (userGroups?.isEmpty() == true)) {
+//                                Toast.makeText(context, "이거봐", Toast.LENGTH_SHORT).show()
+//                                firestore!!.collection("groups")
+//                                    .document(doc.id)
+//                                    .delete()
+//                            }
                         }
                     }
             }
