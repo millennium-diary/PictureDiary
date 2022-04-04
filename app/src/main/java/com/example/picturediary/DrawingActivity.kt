@@ -2,18 +2,12 @@ package com.example.picturediary
 
 import android.app.AlertDialog
 import android.app.Dialog
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
-import android.graphics.Paint
 import android.os.Bundle
-import android.provider.MediaStore
-import android.view.Menu
-import android.view.MenuItem
-import android.view.MotionEvent
 import android.view.View
 import android.widget.*
 import androidx.activity.result.ActivityResultLauncher
@@ -29,7 +23,6 @@ import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
-import java.util.jar.Manifest
 
 
 class DrawingActivity : AppCompatActivity() {
@@ -74,7 +67,7 @@ class DrawingActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.drawing_main)
         drawingView = findViewById(R.id.drawing_view)
-        val ibBrush: ImageButton = findViewById(R.id.ib_brush)
+        val ibBrush: Button = findViewById(R.id.ib_brush)
         ibBrush.setOnClickListener {
             showBrushSizeChooserDialog()
         }
@@ -87,20 +80,25 @@ class DrawingActivity : AppCompatActivity() {
             )
         )
 
-        val ibGallery: ImageButton = findViewById(R.id.ib_gallery)
-
-        ibGallery.setOnClickListener {
-            if(isReadStorageAllowed())
-            {
-                val pickIntent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-                //using the intent launcher created above launch the pick intent
-                openGalleryLauncher.launch(pickIntent)
+        val ibMotion: Button = findViewById(R.id.ib_motion)
+        ibMotion.setOnClickListener {
+            val intent = Intent(this, MotionActivity::class.java)
+            showProgressDialog()
+            lifecycleScope.launch{
+                val fl: FrameLayout = findViewById(R.id.fl_drawing_view_container)
+                val stream = ByteArrayOutputStream()
+                val picture=getBitmapFromView(fl)
+                picture.compress(Bitmap.CompressFormat.PNG, 100, stream)
+                val byteArray = stream.toByteArray()
+                intent.putExtra("picture", byteArray)
             }
-            else{
-                requestStoragePermission()
-            }
+            startActivity(intent)
+        }
 
-
+        val idEraser : ImageButton = findViewById(R.id.ib_eraser)
+        idEraser.setOnClickListener {
+            val colorTag = idEraser.tag.toString()
+            drawingView?.setColor(colorTag)
         }
 
         val ibUndo: ImageButton = findViewById(R.id.ib_undo)
@@ -113,7 +111,7 @@ class DrawingActivity : AppCompatActivity() {
             drawingView?.onClickRedo()
         }
 
-        val ibSave: ImageButton = findViewById(R.id.ib_save)
+        val ibSave: Button = findViewById(R.id.ib_save)
         ibSave.setOnClickListener {
             if(isReadStorageAllowed())
             {
