@@ -36,8 +36,13 @@ class DiarytimelineActivity : AppCompatActivity() {
         var contentUidList : ArrayList<String> = arrayListOf()
 
         init {
-            firestore?.collection("images")?.orderBy("timestamp")
-                ?.addSnapshotListener { querySnapshot, firebaseFirestoreException ->
+//            firestore?.collection("images")?.orderBy("timestamp")
+//                ?.addSnapshotListener { querySnapshot, firebaseFirestoreException ->
+//                    // ArrayList 비워줌
+//                    contentDTOs.clear()
+//                    contentUidList.clear()
+
+            firestore?.collection("images")?.addSnapshotListener { querySnapshot, firebaseFirestoreException ->
                     // ArrayList 비워줌
                     contentDTOs.clear()
                     contentUidList.clear()
@@ -64,7 +69,7 @@ class DiarytimelineActivity : AppCompatActivity() {
             var viewHolder = (p0 as ViewHolder).itemView
 
             //UserId
-            viewHolder.profile_textview.text=contentDTOs!![p1].userId
+            viewHolder.profile_textview.text=contentDTOs!![p1].username
 
             viewHolder.explain_textview.text=contentDTOs!![p1].explain
 

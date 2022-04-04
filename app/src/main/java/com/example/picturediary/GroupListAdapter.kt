@@ -38,8 +38,8 @@ class GroupListAdapter(var items: ArrayList<GroupDTO>) : RecyclerView.Adapter<Vi
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.bind(items[position])
         holder.itemView.setOnClickListener {
-//            val intent = Intent(holder.itemView.context, TimelineActivity::class.java)
-//            ContextCompat.startActivity(holder.itemView.context, intent, null)
+            val intent = Intent(holder.itemView.context, DiarytimelineActivity::class.java)
+            ContextCompat.startActivity(holder.itemView.context, intent, null)
 //            itemClickListener.onClick(it, position)
         }
     }
