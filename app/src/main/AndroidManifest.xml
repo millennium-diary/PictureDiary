@@ -2,6 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.picturediary">
 
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -20,7 +23,7 @@
         </activity>
         <activity android:name=".MainActivity" />
         <activity android:name=".CalendarActivity" />
-        <activity android:name=".TimelineActivity" />
+        <activity android:name=".GroupActivity" />
         <activity android:name=".DrawingActivity" />
         <activity android:name=".DiarytimelineActivity" />
 

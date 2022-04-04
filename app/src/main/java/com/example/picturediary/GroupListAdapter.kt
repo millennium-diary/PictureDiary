@@ -1,76 +1,69 @@
 package com.example.picturediary
 
-import android.content.Context
+import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
-import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.example.picturediary.GroupListAdapter.ViewHolder
-import com.example.picturediary.navigation.model.ContentDTO
+import com.example.picturediary.databinding.UserGroupItemBinding
 import com.example.picturediary.navigation.model.GroupDTO
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.ktx.Firebase
-import kotlinx.android.synthetic.main.user_groups.view.*
+import java.text.SimpleDateFormat
+import java.util.*
+import kotlin.collections.ArrayList
 
 
-class GroupListAdapter(var context : Context, var items: ArrayList<GroupDTO>) : RecyclerView.Adapter<ViewHolder>() {
+class GroupListAdapter(var items: ArrayList<GroupDTO>) : RecyclerView.Adapter<ViewHolder>() {
+    interface ItemClickListener {
+        fun onClick(view: View, position: Int)
+    }
+
+    //클릭리스너 선언
+    private lateinit var itemClickListener: ItemClickListener
+
+    //클릭리스너 등록 매소드
+    fun setItemClickListener(itemClickListener: ItemClickListener) {
+        this.itemClickListener = itemClickListener
+    }
+
     override fun getItemCount(): Int {
         return items.size
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-//        holder.bind(items[position])
-
-        val item = items[position]
-
-        holder.groupId.text = item.grpid
-        holder.groupName.text = item.grpname
-        holder.creator.text = item.creator
-        holder.groupTime.text = item.timestamp.toString()
-        holder.shareWith.text = item.shareWith.toString()
-
-//        val listener = View.OnClickListener { it ->
-//            Toast.makeText(it.context, "Clicked: " + item.grpname, Toast.LENGTH_SHORT).show()
-//        }
-//        holder.apply {
-//            bind(listener, item)
-//            itemView.tag = item
-//        }
+        holder.bind(items[position])
+        holder.itemView.setOnClickListener {
+//            val intent = Intent(holder.itemView.context, TimelineActivity::class.java)
+//            ContextCompat.startActivity(holder.itemView.context, intent, null)
+//            itemClickListener.onClick(it, position)
+        }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val inflatedView = LayoutInflater.from(context).inflate(R.layout.user_groups, parent, false)
-        return ViewHolder(inflatedView)
+        val binding = UserGroupItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        return ViewHolder(binding)
     }
 
-    class ViewHolder(v: View) : RecyclerView.ViewHolder(v) {
-        val groupId: TextView = v.groupId
-        val groupName: TextView = v.groupName
-        val creator: TextView = v.creator
-        val groupTime: TextView = v.groupTime
-        val shareWith: TextView = v.shareWith
+    inner class ViewHolder(private val binding: UserGroupItemBinding) : RecyclerView.ViewHolder(binding.root) {
 
-//        private var view : View = v
+        // long 자료형 --> time 자료형
+        private fun convertLongToTime(time: Long): String {
+            val date = Date(time)
+            val format = SimpleDateFormat("yyyy.MM.dd")
+            return format.format(date)
+        }
 
-//        fun bind(item: GroupDTO) {
-//            view.groupId.text = item.grpid
-//            view.groupName.text = item.grpname
-//            view.creator.text = item.creator
-//            view.groupTime.text = item.timestamp.toString()
-//            view.shareWith.text = item.shareWith.toString()
-
-//            val auth = Firebase.auth
-//            val firestore = FirebaseFirestore.getInstance()
-//            val uid = auth.currentUser?.uid.toString()
-//
-//            firestore.collection("users").document(uid).get()
-//                .addOnSuccessListener {
-//                    val groupDTO = it.toObject(GroupDTO::class.java)
-//                    groupName.text = groupDTO?.grpname
-//                }
+        fun bind(item: GroupDTO) {
+            binding.groupId.text = item.grpid
+            binding.groupName.text = item.grpname
+            binding.leader.text = item.leader
+            binding.groupTime.text = convertLongToTime(item.timestamp!!)
+            binding.shareWith.text = item.shareWith.toString()
+        }
     }
 }
