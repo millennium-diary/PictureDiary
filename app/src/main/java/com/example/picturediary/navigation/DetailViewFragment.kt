@@ -15,12 +15,17 @@ import com.example.picturediary.GroupListAdapter
 import com.example.picturediary.GroupSwipeHelperCallback
 import com.example.picturediary.R
 import com.example.picturediary.navigation.model.GroupDTO
+import com.example.picturediary.navigation.model.UserDTO
 import com.google.firebase.auth.*
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.*
 import com.google.firebase.ktx.Firebase
 import kotlinx.android.synthetic.main.fragment_detail.*
 import kotlinx.android.synthetic.main.fragment_detail.view.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import java.util.function.Predicate
 
 
@@ -105,21 +110,26 @@ class DetailViewFragment : Fragment() {
                         when (dc.type) {
                             DocumentChange.Type.ADDED -> {
                                 println("added $grpid")
+                                println("3355 $groupArrayList")
                                 groupArrayList.add(dc.document.toObject(GroupDTO::class.java))
+                                println("3366 $groupArrayList")
                                 groupListAdapter.notifyDataSetChanged()
                                 swipeHelperCallback.removePreviousClamp(view.detailRecycler)
                             }
                             DocumentChange.Type.REMOVED -> {
-                                println("removed $grpid")
-                                groupArrayList.remove(dc.document.toObject(GroupDTO::class.java))
+                                val data = dc.document.toObject(GroupDTO::class.java)
+                                if (data.leader == username) {
+                                    val shareWith = arrayListOf(username)
+                                    data.shareWith = shareWith
+                                    println("33333 $data")
+                                    println("33333 $groupArrayList")
+                                    groupArrayList.remove(data)
+                                    println("33333 $groupArrayList")
+                                }
+                                else groupArrayList.remove(data)
+
                                 groupListAdapter.notifyDataSetChanged()
-
-                                fragment.requireFragmentManager().beginTransaction().detach(fragment).commit()
-                                fragment.requireFragmentManager().beginTransaction().attach(fragment).commit()
-
                                 swipeHelperCallback.removePreviousClamp(view.detailRecycler)
-
-//                                removed = true
                             }
                             DocumentChange.Type.MODIFIED -> {
                                 println("modified $grpid")
@@ -185,25 +195,45 @@ class DetailViewFragment : Fragment() {
         val uid = auth?.currentUser?.uid.toString()
         val username = auth?.currentUser?.displayName.toString()
 
-        // 사용자 데이터베이스에 추가
-        firestore!!.collection("users")
-            .document(uid)
-            .get()
-            .addOnCompleteListener { task ->
-                val document = task.result
-                var userGroup = document["userGroups"] as ArrayList<String>?
+        GlobalScope.launch(Dispatchers.IO) {
+            val userDTO = firestore!!.collection("users")
+                .document(uid)
+                .get()
+                .await()
+                .toObject(UserDTO::class.java)
 
-                if (userGroup.isNullOrEmpty())
-                    userGroup = arrayListOf("$grpname@$username")
-                else
-                    userGroup.add("$grpname@$username")
+            var userGroups = userDTO?.userGroups
 
-                firestore!!.collection("users")
-                    .document(uid)
-                    .update("userGroups", userGroup)
-            }
+            if (userGroups.isNullOrEmpty()) userGroups = arrayListOf("$grpname@$username")
+            else userGroups.add("$grpname@$username")
 
+            firestore!!.collection("users")
+                .document(uid)
+                .update("userGroups", FieldValue.arrayUnion("$grpname@$username"))
+                .await()
+
+        }
         Toast.makeText(activity, "$grpname 그룹을 생성했습니다", Toast.LENGTH_SHORT).show()
+
+//        // 사용자 데이터베이스에 추가
+//        firestore!!.collection("users")
+//            .document(uid)
+//            .get()
+//            .addOnCompleteListener { task ->
+//                val document = task.result
+//                var userGroup = document["userGroups"] as ArrayList<String>?
+//
+//                if (userGroup.isNullOrEmpty())
+//                    userGroup = arrayListOf("$grpname@$username")
+//                else
+//                    userGroup.add("$grpname@$username")
+//
+//                firestore!!.collection("users")
+//                    .document(uid)
+//                    .update("userGroups", userGroup)
+//            }
+//
+//        Toast.makeText(activity, "$grpname 그룹을 생성했습니다", Toast.LENGTH_SHORT).show()
     }
 }
 
