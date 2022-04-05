@@ -19,6 +19,9 @@ import kotlin.collections.ArrayList
 
 
 class GroupListAdapter(var items: ArrayList<GroupDTO>) : RecyclerView.Adapter<ViewHolder>() {
+    private var auth: FirebaseAuth? = null
+    private var firestore: FirebaseFirestore? = null
+
     interface ItemClickListener {
         fun onClick(view: View, position: Int)
     }

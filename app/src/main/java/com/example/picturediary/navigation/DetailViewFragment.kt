@@ -7,23 +7,21 @@ import android.text.InputType
 import android.view.*
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
-import androidx.core.view.marginRight
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentTransaction
 import androidx.recyclerview.widget.ItemTouchHelper
-import com.example.picturediary.R
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.example.picturediary.GroupListAdapter
 import com.example.picturediary.GroupSwipeHelperCallback
+import com.example.picturediary.R
 import com.example.picturediary.navigation.model.GroupDTO
 import com.google.firebase.auth.*
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.*
-import com.google.firebase.firestore.EventListener
 import com.google.firebase.ktx.Firebase
 import kotlinx.android.synthetic.main.fragment_detail.*
 import kotlinx.android.synthetic.main.fragment_detail.view.*
-import kotlin.collections.ArrayList
+import java.util.function.Predicate
 
 
 class DetailViewFragment : Fragment() {
@@ -32,7 +30,7 @@ class DetailViewFragment : Fragment() {
     private lateinit var groupArrayList: ArrayList<GroupDTO>
     private lateinit var groupListAdapter: GroupListAdapter
 
-    @SuppressLint("ClickableViewAccessibility")
+    @SuppressLint("ClickableViewAccessibility", "NotifyDataSetChanged")
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -81,25 +79,16 @@ class DetailViewFragment : Fragment() {
         }
 
         // 어댑터에 변화가 생기면 바로 적용
-        eventChangeListener(view)
+        eventChangeListener(view, this)
 
         return view
     }
 
-    private fun eventChangeListener(view: View) {
+    private fun eventChangeListener(view: View, fragment: Fragment) {
         auth = Firebase.auth
         firestore = FirebaseFirestore.getInstance()
         val username = auth?.currentUser?.displayName.toString()
         val swipeHelperCallback = GroupSwipeHelperCallback(requireContext(), view.detailRecycler)
-
-//        firestore!!.collection("users")
-//            .whereArrayContains("userGroups", username)
-//            .addSnapshotListener(object : EventListener<QuerySnapshot>{
-//                @SuppressLint("NotifyDataSetChanged")
-//                override fun onEvent(value: QuerySnapshot?, error: FirebaseFirestoreException?) {
-//                    checkRemovedGroup("이거봐 1")
-//                }
-//            })
 
         firestore!!.collection("groups")
             .whereArrayContains("shareWith", username)
@@ -112,18 +101,28 @@ class DetailViewFragment : Fragment() {
                     }
 
                     for (dc : DocumentChange in value?.documentChanges!!) {
+                        val grpid = dc.document.toObject(GroupDTO::class.java).grpid
                         when (dc.type) {
                             DocumentChange.Type.ADDED -> {
+                                println("added $grpid")
                                 groupArrayList.add(dc.document.toObject(GroupDTO::class.java))
                                 groupListAdapter.notifyDataSetChanged()
                                 swipeHelperCallback.removePreviousClamp(view.detailRecycler)
                             }
                             DocumentChange.Type.REMOVED -> {
+                                println("removed $grpid")
                                 groupArrayList.remove(dc.document.toObject(GroupDTO::class.java))
                                 groupListAdapter.notifyDataSetChanged()
+
+                                fragment.requireFragmentManager().beginTransaction().detach(fragment).commit()
+                                fragment.requireFragmentManager().beginTransaction().attach(fragment).commit()
+
                                 swipeHelperCallback.removePreviousClamp(view.detailRecycler)
+
+//                                removed = true
                             }
                             DocumentChange.Type.MODIFIED -> {
+                                println("modified $grpid")
                                 groupListAdapter.notifyDataSetChanged()
                                 swipeHelperCallback.removePreviousClamp(view.detailRecycler)
                             }
@@ -131,45 +130,6 @@ class DetailViewFragment : Fragment() {
                     }
                 }
             })
-//        firestore!!.collection("users")
-//            .whereArrayContains("userGroups", username)
-//            .addSnapshotListener(object : EventListener<QuerySnapshot>{
-//                @SuppressLint("NotifyDataSetChanged")
-//                override fun onEvent(value: QuerySnapshot?, error: FirebaseFirestoreException?) {
-//                    checkRemovedGroup("이거봐 3")
-//                }
-//            })
-    }
-
-    private fun checkRemovedGroup(message: String) {
-        auth = Firebase.auth
-        firestore = FirebaseFirestore.getInstance()
-        val uid = auth?.currentUser?.uid.toString()
-        val username = auth?.currentUser?.displayName.toString()
-
-        firestore!!.collection("users")
-            .document(uid)
-            .get()
-            .addOnCompleteListener { task ->
-                val document = task.result
-                val userGroups = document["userGroups"] as ArrayList<String>?
-                println("호호호 $userGroups")
-
-                firestore!!.collection("groups")
-                    .whereArrayContains("shareWith", username)
-                    .get()
-                    .addOnSuccessListener { documents ->
-                        for (doc in documents) {
-                            println("하하하 " + doc.id)
-                            if ((userGroups?.contains(doc.id) == false) or (userGroups?.isEmpty() == true)) {
-                                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-                                firestore!!.collection("groups")
-                                    .document(doc.id)
-                                    .delete()
-                            }
-                        }
-                    }
-            }
     }
 
     // groups 컬렉션에 그룹 추가
