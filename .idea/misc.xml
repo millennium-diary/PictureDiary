@@ -31,9 +31,17 @@
         <entry key="..\:/AndroidStudio/PictureDiary/app/src/main/res/layout/login_main.xml" value="0.25" />
         <entry key="..\:/AndroidStudio/PictureDiary/app/src/main/res/menu/bottom_navigation_main.xml" value="0.20208333333333334" />
         <entry key="..\:/Users/gusru/AndroidStudioProjects/PictureDiary/app/src/main/res/layout/activity_login.xml" value="0.24947916666666667" />
+        <entry key="..\:/Users/gusru/AndroidStudioProjects/PictureDiary/app/src/main/res/layout/activity_main.xml" value="0.24947916666666667" />
+        <entry key="..\:/Users/gusru/AndroidStudioProjects/PictureDiary/app/src/main/res/layout/calendar.xml" value="0.24947916666666667" />
+        <entry key="..\:/Users/gusru/AndroidStudioProjects/PictureDiary/app/src/main/res/layout/calendar_cell.xml" value="0.24947916666666667" />
         <entry key="..\:/Users/gusru/AndroidStudioProjects/PictureDiary/app/src/main/res/layout/community.xml" value="0.24947916666666667" />
-        <entry key="..\:/Users/gusru/AndroidStudioProjects/PictureDiary/app/src/main/res/layout/drawing_main.xml" value="0.24947916666666667" />
+        <entry key="..\:/Users/gusru/AndroidStudioProjects/PictureDiary/app/src/main/res/layout/dialog_brush_size.xml" value="0.12107396149949341" />
+        <entry key="..\:/Users/gusru/AndroidStudioProjects/PictureDiary/app/src/main/res/layout/diary_motion.xml" value="0.12107396149949341" />
+        <entry key="..\:/Users/gusru/AndroidStudioProjects/PictureDiary/app/src/main/res/layout/diary_text.xml" value="0.176" />
+        <entry key="..\:/Users/gusru/AndroidStudioProjects/PictureDiary/app/src/main/res/layout/drawing_main.xml" value="0.16" />
         <entry key="..\:/Users/gusru/AndroidStudioProjects/PictureDiary/app/src/main/res/layout/fragment_detail.xml" value="0.24947916666666667" />
+        <entry key="..\:/Users/gusru/AndroidStudioProjects/PictureDiary/app/src/main/res/layout/fragment_grid.xml" value="0.24947916666666667" />
+        <entry key="..\:/Users/gusru/AndroidStudioProjects/PictureDiary/app/src/main/res/layout/fragment_user.xml" value="0.24947916666666667" />
       </map>
     </option>
   </component>
