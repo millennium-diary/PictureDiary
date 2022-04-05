@@ -47,7 +47,7 @@
             android:contentDescription="image"
             android:src="@drawable/pallet_normal"
             android:tag="@color/skin" />
-        <!--android:onClick="paintClicked"-->
+
 
         <ImageButton
             android:layout_width="25dp"
@@ -129,13 +129,23 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
-        <ImageButton
+        <Button
+            android:id="@+id/ib_motion"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_margin="5dp"
+            android:text="완료"
+            android:contentDescription="image"
+            android:scaleType="fitXY"
+             />
+        <Button
             android:id="@+id/ib_gallery"
             android:layout_width="50dp"
             android:layout_height="50dp"
             android:layout_margin="5dp"
             android:contentDescription="image"
             android:scaleType="fitXY"
+            android:text="갤러리"
             android:src="@drawable/imsi" />
         <ImageButton
             android:id="@+id/ib_undo"
@@ -153,7 +163,7 @@
             android:scaleType="fitXY"
             android:src="@drawable/ic_redo"
             android:visibility="visible" />
-        <ImageButton
+        <Button
             android:id="@+id/ib_brush"
             android:layout_width="50dp"
             android:layout_height="50dp"
@@ -161,13 +171,26 @@
             android:contentDescription="image"
             android:scaleType="fitXY"
             android:tooltipText="브러쉬"
+            android:text="펜"
             android:src="@drawable/imsi" />
         <ImageButton
+            android:id="@+id/ib_eraser"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_margin="5dp"
+            android:contentDescription="image"
+            android:scaleType="fitXY"
+            android:tooltipText="지우개"
+            android:text="지우개"
+            android:tag="@color/white"
+            android:src="@drawable/imsi" />
+        <Button
             android:id="@+id/ib_save"
             android:layout_width="50dp"
             android:layout_height="50dp"
             android:contentDescription="image"
             android:scaleType="fitXY"
+            android:text="저장"
             android:src="@drawable/imsi" />
         <ImageButton
             android:id="@+id/ib_reset"

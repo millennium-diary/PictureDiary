@@ -1,34 +1,19 @@
 package com.example.picturediary
 
+import android.app.AlertDialog
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.*
-import android.os.Bundle
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
-import android.widget.ImageView
-import androidx.appcompat.app.AppCompatActivity
+import android.view.View.OnTouchListener
 
-class MotionActivity : AppCompatActivity(){
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.motion)
-        val intent = intent
-        val arr = getIntent().getByteArrayExtra("picture")
-        val picture = BitmapFactory.decodeByteArray(arr, 0, arr!!.size)
-        val imgView = findViewById<ImageView>(R.id.imgView)
-        imgView.setImageBitmap(picture)
-    }
-    override fun onResume() {
-        super.onResume()
-        setContentView(CropView(this@MotionActivity))
-    }
-}
 
-class CropView : View, View.OnTouchListener {
+class CropView : View, OnTouchListener {
     private var paint: Paint
+
     var DIST = 2
     var flgPathDraw = true
     var mfirstpoint: Point? = null
