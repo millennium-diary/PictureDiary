@@ -187,24 +187,10 @@ class DetailViewFragment : Fragment() {
         val uid = auth?.currentUser?.uid.toString()
         val username = auth?.currentUser?.displayName.toString()
 
-        GlobalScope.launch(Dispatchers.IO) {
-            val userDTO = firestore!!.collection("users")
-                .document(uid)
-                .get()
-                .await()
-                .toObject(UserDTO::class.java)
+        firestore!!.collection("users")
+            .document(uid)
+            .update("userGroups", FieldValue.arrayUnion("$grpname@$username"))
 
-            var userGroups = userDTO?.userGroups
-
-            if (userGroups.isNullOrEmpty()) userGroups = arrayListOf("$grpname@$username")
-            else userGroups.add("$grpname@$username")
-
-            firestore!!.collection("users")
-                .document(uid)
-                .update("userGroups", FieldValue.arrayUnion("$grpname@$username"))
-                .await()
-
-        }
         Toast.makeText(activity, "$grpname 그룹을 생성했습니다", Toast.LENGTH_SHORT).show()
     }
 }
