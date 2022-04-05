@@ -84,12 +84,12 @@ class DetailViewFragment : Fragment() {
         }
 
         // 어댑터에 변화가 생기면 바로 적용
-        eventChangeListener(view, this)
+        eventChangeListener(view)
 
         return view
     }
 
-    private fun eventChangeListener(view: View, fragment: Fragment) {
+    private fun eventChangeListener(view: View) {
         auth = Firebase.auth
         firestore = FirebaseFirestore.getInstance()
         val username = auth?.currentUser?.displayName.toString()
@@ -106,13 +106,9 @@ class DetailViewFragment : Fragment() {
                     }
 
                     for (dc : DocumentChange in value?.documentChanges!!) {
-                        val grpid = dc.document.toObject(GroupDTO::class.java).grpid
                         when (dc.type) {
                             DocumentChange.Type.ADDED -> {
-                                println("added $grpid")
-                                println("3355 $groupArrayList")
                                 groupArrayList.add(dc.document.toObject(GroupDTO::class.java))
-                                println("3366 $groupArrayList")
                                 groupListAdapter.notifyDataSetChanged()
                                 swipeHelperCallback.removePreviousClamp(view.detailRecycler)
                             }
@@ -121,10 +117,7 @@ class DetailViewFragment : Fragment() {
                                 if (data.leader == username) {
                                     val shareWith = arrayListOf(username)
                                     data.shareWith = shareWith
-                                    println("33333 $data")
-                                    println("33333 $groupArrayList")
                                     groupArrayList.remove(data)
-                                    println("33333 $groupArrayList")
                                 }
                                 else groupArrayList.remove(data)
 
@@ -132,7 +125,6 @@ class DetailViewFragment : Fragment() {
                                 swipeHelperCallback.removePreviousClamp(view.detailRecycler)
                             }
                             DocumentChange.Type.MODIFIED -> {
-                                println("modified $grpid")
                                 groupListAdapter.notifyDataSetChanged()
                                 swipeHelperCallback.removePreviousClamp(view.detailRecycler)
                             }
@@ -214,26 +206,6 @@ class DetailViewFragment : Fragment() {
 
         }
         Toast.makeText(activity, "$grpname 그룹을 생성했습니다", Toast.LENGTH_SHORT).show()
-
-//        // 사용자 데이터베이스에 추가
-//        firestore!!.collection("users")
-//            .document(uid)
-//            .get()
-//            .addOnCompleteListener { task ->
-//                val document = task.result
-//                var userGroup = document["userGroups"] as ArrayList<String>?
-//
-//                if (userGroup.isNullOrEmpty())
-//                    userGroup = arrayListOf("$grpname@$username")
-//                else
-//                    userGroup.add("$grpname@$username")
-//
-//                firestore!!.collection("users")
-//                    .document(uid)
-//                    .update("userGroups", userGroup)
-//            }
-//
-//        Toast.makeText(activity, "$grpname 그룹을 생성했습니다", Toast.LENGTH_SHORT).show()
     }
 }
 

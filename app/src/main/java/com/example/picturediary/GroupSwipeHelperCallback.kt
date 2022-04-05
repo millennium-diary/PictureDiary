@@ -104,7 +104,6 @@ class GroupSwipeHelperCallback(var context: Context, var recyclerView: RecyclerV
         if (!isClamped && currentDx <= -clamp) {
             auth = Firebase.auth
             firestore = FirebaseFirestore.getInstance()
-            val uid = auth?.currentUser?.uid.toString()
             val username = auth?.currentUser?.displayName.toString()
             val groupId = viewHolder.itemView.groupId.text.toString()
             val groupName = viewHolder.itemView.groupName.text.toString()
@@ -160,6 +159,7 @@ class GroupSwipeHelperCallback(var context: Context, var recyclerView: RecyclerV
                                     // groups 컬렉션에서 그룹 삭제
                                     deleteGroup(groupId)
                                 }
+                                Toast.makeText(context, "$groupName 그룹을 나갔습니다", Toast.LENGTH_SHORT).show()
                                 removePreviousClamp(recyclerView)
                             })
                             // 그룹 삭제 취소
@@ -170,22 +170,25 @@ class GroupSwipeHelperCallback(var context: Context, var recyclerView: RecyclerV
                         }
 
                         // 일반 멤버
-//                        else -> {
-//                            val dlg = AlertDialog.Builder(context)
-//                            dlg.setTitle("$groupName 그룹을 나가시겠습니까?")
-//
-//                            // 그룹 삭제
-//                            dlg.setPositiveButton("확인", DialogInterface.OnClickListener { _, _ ->
-//                                exitGroup(groupId, groupName)
-//                                deleteUserGroup(groupId, groupName)
-//                                removePreviousClamp(recyclerView)
-//                            })
-//                            // 그룹 삭제 취소
-//                            dlg.setNegativeButton("취소", DialogInterface.OnClickListener { _, _ ->
-//                                removePreviousClamp(recyclerView)
-//                            })
-//                            dlg.show()
-//                        }
+                        else -> {
+                            val dlg = AlertDialog.Builder(context)
+                            dlg.setTitle("$groupName 그룹을 나가시겠습니까?")
+
+                            // 그룹 삭제
+                            dlg.setPositiveButton("확인", DialogInterface.OnClickListener { _, _ ->
+                                GlobalScope.launch(Dispatchers.IO) {
+                                    exitGroup(groupId)
+                                    deleteUserGroup(groupId)
+                                }
+                                Toast.makeText(context, "$groupName 그룹을 나갔습니다", Toast.LENGTH_SHORT).show()
+                                removePreviousClamp(recyclerView)
+                            })
+                            // 그룹 삭제 취소
+                            dlg.setNegativeButton("취소", DialogInterface.OnClickListener { _, _ ->
+                                removePreviousClamp(recyclerView)
+                            })
+                            dlg.show()
+                        }
                     }
                 }
         }
@@ -245,9 +248,6 @@ class GroupSwipeHelperCallback(var context: Context, var recyclerView: RecyclerV
                 firestore!!.collection("groups")
                     .document(groupDTO.grpid.toString())
                     .set(groupDTO)
-//                    .addOnCompleteListener {
-//                        checkRemovedGroup()
-//                    }
             }
         println("test: giveLeader")
     }
