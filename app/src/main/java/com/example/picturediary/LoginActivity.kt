@@ -21,45 +21,59 @@ class LoginActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_login)
-
 
         // Firebase 로그인 통합 관리하는 객체
         auth = FirebaseAuth.getInstance()
+        val loggedInUser = PrefApplication.prefs.getString("loggedInUser", "")
 
-        // 이메일로 회원가입
-        signup_button.setOnClickListener {
-            val wifi = getSystemService(WIFI_SERVICE) as WifiManager
-            if (!wifi.isWifiEnabled) {
-                Toast.makeText(this, "와이파이 연결을 확인해 주세요", Toast.LENGTH_SHORT).show()
-            }
-            else {
-                when {
-                    username_edittext.text.isEmpty() -> Toast.makeText(this, "아이디를 입력해주세요", Toast.LENGTH_SHORT).show()
-                    password_edittext.text.isEmpty() -> Toast.makeText(this, "비밀번호를 입력해주세요", Toast.LENGTH_SHORT).show()
-                    else -> createAndLogin(username_edittext.text.toString(), password_edittext.text.toString())
-                }
-            }
+        if (loggedInUser.isBlank()) {
+            setContentView(R.layout.activity_login)
 
+            signup_button.setOnClickListener { signUpButton() }
+            login_button.setOnClickListener { loginButton() }
         }
+        else {
+            val userInfo = loggedInUser.split("★")
+            val username = userInfo[0]
+            val password = userInfo[1]
+            println("사용자 $username $password")
 
-        // 이메일로 회원가입
-        login_button.setOnClickListener {
-            val wifi = getSystemService(WIFI_SERVICE) as WifiManager
-            if (!wifi.isWifiEnabled) {
-                Toast.makeText(this, "와이파이 연결을 확인해 주세요", Toast.LENGTH_SHORT).show()
-            }
-            else {
-                when {
-                    username_edittext.text.isEmpty() -> Toast.makeText(this, "아이디를 입력해주세요", Toast.LENGTH_SHORT).show()
-                    password_edittext.text.isEmpty() -> Toast.makeText(this, "비밀번호를 입력해주세요", Toast.LENGTH_SHORT).show()
-                    else -> signinUserID(username_edittext.text.toString(), password_edittext.text.toString())
-                }
+            auth?.signInWithEmailAndPassword(username, password)
+                ?.addOnCompleteListener { moveMainPage(auth?.currentUser) }
+        }
+    }
+
+    // 이메일로 회원가입
+    private fun signUpButton() {
+        val wifi = getSystemService(WIFI_SERVICE) as WifiManager
+        if (!wifi.isWifiEnabled) {
+            Toast.makeText(this, "와이파이 연결을 확인해 주세요", Toast.LENGTH_SHORT).show()
+        }
+        else {
+            when {
+                username_edittext.text.isEmpty() -> Toast.makeText(this, "아이디를 입력해주세요", Toast.LENGTH_SHORT).show()
+                password_edittext.text.isEmpty() -> Toast.makeText(this, "비밀번호를 입력해주세요", Toast.LENGTH_SHORT).show()
+                else -> createAndLogin(username_edittext.text.toString(), password_edittext.text.toString())
             }
         }
     }
 
-    // 사용자 등록 안 되어 있으면 추가, 등록되어 있으면 로그인
+    // 이메일로 로그인
+    private fun loginButton() {
+        val wifi = getSystemService(WIFI_SERVICE) as WifiManager
+        if (!wifi.isWifiEnabled) {
+            Toast.makeText(this, "와이파이 연결을 확인해 주세요", Toast.LENGTH_SHORT).show()
+        }
+        else {
+            when {
+                username_edittext.text.isEmpty() -> Toast.makeText(this, "아이디를 입력해주세요", Toast.LENGTH_SHORT).show()
+                password_edittext.text.isEmpty() -> Toast.makeText(this, "비밀번호를 입력해주세요", Toast.LENGTH_SHORT).show()
+                else -> signinUserID(username_edittext.text.toString(), password_edittext.text.toString())
+            }
+        }
+    }
+
+    // 사용자 등록 & 로그인
     private fun createAndLogin(username : String, password : String) {
         val progressDialog = ProgressDialog(this)
         progressDialog.setMessage("처리 중...")
@@ -75,16 +89,22 @@ class LoginActivity : AppCompatActivity() {
                         setNewUsername(username)
 
                         Toast.makeText(this, "회원가입을 성공적으로 했습니다", Toast.LENGTH_SHORT).show()
+                        PrefApplication.prefs.setString("loggedInUser", "$username★$password")
                         if (progressDialog.isShowing) progressDialog.dismiss()
                         moveMainPage(auth?.currentUser)
                     }
                     // 이미 존재하는 아이디
-                    task.exception?.message?.contains("already in use") == true ->{
+                    task.exception?.message?.contains("already in use") == true -> {
                         Toast.makeText(this, "이미 존재하는 아이디입니다", Toast.LENGTH_SHORT).show()
                         if (progressDialog.isShowing) progressDialog.dismiss()
                     }
+                    // 이미 존재하는 아이디
+                    task.exception?.message?.contains("badly formatted") == true -> {
+                        Toast.makeText(this, "사용자 아이디에는 문자, 숫자, 밑줄 및 마침표만 사용할 수 있습니다", Toast.LENGTH_SHORT).show()
+                        if (progressDialog.isShowing) progressDialog.dismiss()
+                    }
                     // 비밀번호 형식 에러
-                    task.exception?.message?.startsWith("The given password is invalid") == true ->{
+                    task.exception?.message?.startsWith("The given password is invalid") == true -> {
                         Toast.makeText(this, "비밀번호의 형식이 올바르지 않습니다\n(최소 6글자로 설정해야 합니다)", Toast.LENGTH_SHORT).show()
                         if (progressDialog.isShowing) progressDialog.dismiss()
                     }
@@ -96,7 +116,6 @@ class LoginActivity : AppCompatActivity() {
                 }
             }
     }
-
 
     // 로그인 함수
     private fun signinUserID(username : String, password: String) {
@@ -110,6 +129,7 @@ class LoginActivity : AppCompatActivity() {
                 // 로그인
                 if (task.isSuccessful) {
                     Toast.makeText(this, "로그인을 성공적으로 했습니다", Toast.LENGTH_SHORT).show()
+                    PrefApplication.prefs.setString("loggedInUser", "$username★$password")
                     if (progressDialog.isShowing) progressDialog.dismiss()
                     moveMainPage(auth?.currentUser)
                 }
