@@ -119,10 +119,27 @@ class UserFragment: Fragment() {
 
         // 카메라 버튼 또는 프로필 사진 눌러 사진 변경
         view.change_pic.setOnClickListener {
-            selectImage()
+            val choose_pic = arrayOf("기본 이미지로 변경", "앨범에서 사진 선택")
+            val dlg = AlertDialog.Builder(requireContext())
+            val picListener = DialogInterface.OnClickListener { _, which ->
+                if (which == 0) {
+                    view.info_profile_pic.setImageResource(R.drawable.user)
+                }
+                else selectImage()
+            }
+            dlg.setItems(choose_pic, picListener)
+
         }
         view.info_profile_pic.setOnClickListener {
-            selectImage()
+            val choose_pic = arrayOf("기본 이미지로 변경", "앨범에서 사진 선택")
+            val dlg = AlertDialog.Builder(requireContext())
+            val picListener = DialogInterface.OnClickListener { _, which ->
+                if (which == 0) {
+                    view.info_profile_pic.setImageResource(R.drawable.user)
+                }
+                else selectImage()
+            }
+            dlg.setItems(choose_pic, picListener)
         }
 
         // 수정 완료 버튼
