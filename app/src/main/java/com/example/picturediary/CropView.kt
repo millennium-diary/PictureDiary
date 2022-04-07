@@ -14,7 +14,7 @@ import android.view.View.OnTouchListener
 class CropView : View, OnTouchListener {
     private var paint: Paint
 
-    var DIST = 2
+    var points = arrayListOf<Point?>()
     var flgPathDraw = true
     var mfirstpoint: Point? = null
     var bfirstpoint = false
@@ -35,7 +35,6 @@ class CropView : View, OnTouchListener {
         paint.strokeWidth = 5f
         paint.color = Color.WHITE
         setOnTouchListener(this)
-        points = ArrayList<Point?>()
         bfirstpoint = false
     }
 
@@ -48,7 +47,6 @@ class CropView : View, OnTouchListener {
         paint.strokeWidth = 2f
         paint.color = Color.WHITE
         setOnTouchListener(this)
-        points = ArrayList<Point?>()
         bfirstpoint = false
     }
 
@@ -130,12 +128,12 @@ class CropView : View, OnTouchListener {
                 val intent: Intent
                 when (which) {
                     DialogInterface.BUTTON_POSITIVE -> {
-                        intent = Intent(mContext, ImageCropActivity::class.java)
+                        intent = Intent(mContext, MotionActivity::class.java)
                         intent.putExtra("crop", true)
                         mContext.startActivity(intent)
                     }
                     DialogInterface.BUTTON_NEGATIVE -> {
-                        intent = Intent(mContext, ImageCropActivity::class.java)
+                        intent = Intent(mContext, MotionActivity::class.java)
                         intent.putExtra("crop", false)
                         mContext.startActivity(intent)
                         bfirstpoint = false
@@ -149,7 +147,7 @@ class CropView : View, OnTouchListener {
             .setCancelable(false)
     }
 
-    companion object {
-        lateinit var points: MutableList<Point?>
-    }
+//    companion object {
+//        lateinit var points: MutableList<Point?>
+//    }
 }

@@ -1,171 +1,60 @@
 package com.example.picturediary
-
-import android.app.AlertDialog
-import android.content.Context
-import android.content.DialogInterface
-import android.content.Intent
+import android.app.Activity
 import android.graphics.*
 import android.os.Bundle
-import android.util.AttributeSet
-import android.view.MotionEvent
+import android.util.DisplayMetrics
 import android.view.View
 import android.widget.ImageView
-import androidx.appcompat.app.AppCompatActivity
+import android.widget.Toast
+import kotlinx.android.synthetic.main.motion.*
 
-class MotionActivity : AppCompatActivity(){
+
+class MotionActivity : Activity() {
+    var compositeImageView: ImageView? = null
+    var crop = false
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.motion)
-        val intent = intent
-        val arr = getIntent().getByteArrayExtra("picture")
-        val picture = BitmapFactory.decodeByteArray(arr, 0, arr!!.size)
-        val imgView = findViewById<ImageView>(R.id.imgView)
-        imgView.setImageBitmap(picture)
-    }
-    override fun onResume() {
-        super.onResume()
-        setContentView(CropView(this@MotionActivity))
-    }
-}
 
-class CropView : View, View.OnTouchListener {
-    private var paint: Paint
-    var DIST = 2
-    var flgPathDraw = true
-    var mfirstpoint: Point? = null
-    var bfirstpoint = false
-    var mlastpoint: Point? = null
-    var bitmap = BitmapFactory.decodeResource(
-        resources,
-        R.drawable.pk
-    )
-    var mContext: Context
+        Toast.makeText(applicationContext, "MotionActivity", Toast.LENGTH_SHORT).show()
 
-    constructor(c: Context) : super(c) {
-        mContext = c
-        isFocusable = true
-        isFocusableInTouchMode = true
-        paint = Paint(Paint.ANTI_ALIAS_FLAG)
-        paint.style = Paint.Style.STROKE
-        paint.pathEffect = DashPathEffect(floatArrayOf(10f, 20f), 0F)
-        paint.strokeWidth = 5f
-        paint.color = Color.WHITE
-        setOnTouchListener(this)
-        points = ArrayList<Point?>()
-        bfirstpoint = false
-    }
-
-    constructor(context: Context, attrs: AttributeSet?) : super(context, attrs) {
-        mContext = context
-        isFocusable = true
-        isFocusableInTouchMode = true
-        paint = Paint(Paint.ANTI_ALIAS_FLAG)
-        paint.style = Paint.Style.STROKE
-        paint.strokeWidth = 2f
-        paint.color = Color.WHITE
-        setOnTouchListener(this)
-        points = ArrayList<Point?>()
-        bfirstpoint = false
-    }
-
-    public override fun onDraw(canvas: Canvas) {
-        canvas.drawBitmap(bitmap, 0f, 0f, null)
+        val extras = intent.extras
+        if (extras != null) {
+            crop = extras.getBoolean("crop")
+        }
+        var widthOfscreen = 0
+        var heightOfScreen = 0
+        val dm = DisplayMetrics()
+        try {
+            windowManager.defaultDisplay.getMetrics(dm)
+        } catch (ex: Exception) {
+        }
+        widthOfscreen = dm.widthPixels
+        heightOfScreen = dm.heightPixels
+        compositeImageView = findViewById<View>(R.id.imgView) as ImageView
+        val bitmap2 = BitmapFactory.decodeResource(
+            resources,
+            R.drawable.pk
+        )
+        val resultingImage = Bitmap.createBitmap(
+            widthOfscreen,
+            heightOfScreen, bitmap2.config
+        )
+        val canvas = Canvas(resultingImage)
+        val paint = Paint()
+        paint.isAntiAlias = true
         val path = Path()
-        var first = true
-        var i = 0
-        while (i < points.size) {
-            val point: Point? = points[i]
-            if (first) {
-                first = false
-                path.moveTo(point!!.x, point!!.y)
-            } else if (i < points.size - 1) {
-                val next: Point? = points[i + 1]
-                path.quadTo(point!!.x, point!!.y, next!!.x, next!!.y)
-            } else {
-                mlastpoint = points[i]
-                path.lineTo(point!!.x, point!!.y)
-            }
-            i += 2
+        val imageCropActivity = ImageCropActivity()
+        for (i in imageCropActivity.points.indices) {
+            path.lineTo(imageCropActivity.points[i]!!.x, imageCropActivity.points[i]!!.y)
         }
         canvas.drawPath(path, paint)
-    }
-
-    override fun onTouch(view: View, event: MotionEvent): Boolean {
-        val point = Point()
-        point.x = event.x
-        point.y = event.y
-        if (flgPathDraw) {
-            if (bfirstpoint) {
-                if (comparepoint(mfirstpoint, point)) {
-                    points.add(mfirstpoint)
-                    flgPathDraw = false
-                    showcropdialog()
-                } else {
-                    points.add(point)
-                }
-            } else {
-                points.add(point)
-            }
-            if (!bfirstpoint) {
-                mfirstpoint = point
-                bfirstpoint = true
-            }
-        }
-        invalidate()
-        if (event.action == MotionEvent.ACTION_UP) {
-            mlastpoint = point
-            if (flgPathDraw) {
-                if (points.size > 12) {
-                    if (!comparepoint(mfirstpoint, mlastpoint)) {
-                        flgPathDraw = false
-                        points.add(mfirstpoint)
-                        showcropdialog()
-                    }
-                }
-            }
-        }
-        return true
-    }
-
-    private fun comparepoint(first: Point?, current: Point?): Boolean {
-        val left_range_x = (current!!.x - 3).toInt()
-        val left_range_y = (current.y - 3).toInt()
-        val right_range_x = (current.x + 3).toInt()
-        val right_range_y = (current.y + 3).toInt()
-        return if (left_range_x < first!!.x && first.x < right_range_x
-            && left_range_y < first.y && first.y < right_range_y) {
-            points.size >= 10
+        if (crop) {
+            paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_IN)
         } else {
-            false
+            paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_OUT)
         }
-    }
-
-    private fun showcropdialog() {
-        val dialogClickListener =
-            DialogInterface.OnClickListener { dialog, which ->
-                val intent: Intent
-                when (which) {
-                    DialogInterface.BUTTON_POSITIVE -> {
-                        intent = Intent(mContext, ImageCropActivity::class.java)
-                        intent.putExtra("crop", true)
-                        mContext.startActivity(intent)
-                    }
-                    DialogInterface.BUTTON_NEGATIVE -> {
-                        intent = Intent(mContext, ImageCropActivity::class.java)
-                        intent.putExtra("crop", false)
-                        mContext.startActivity(intent)
-                        bfirstpoint = false
-                    }
-                }
-            }
-        val builder = AlertDialog.Builder(mContext)
-        builder.setMessage("Do you Want to save Crop or Non-crop image?")
-            .setPositiveButton("Crop", dialogClickListener)
-            .setNegativeButton("Non-crop", dialogClickListener).show()
-            .setCancelable(false)
-    }
-
-    companion object {
-        lateinit var points: MutableList<Point?>
+        canvas.drawBitmap(bitmap2, 0f, 0f, paint)
+        compositeImageView!!.setImageBitmap(resultingImage)
     }
 }

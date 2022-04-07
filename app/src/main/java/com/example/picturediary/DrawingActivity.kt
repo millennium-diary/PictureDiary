@@ -82,12 +82,11 @@ class DrawingActivity : AppCompatActivity() {
 
         val ibMotion: Button = findViewById(R.id.ib_motion)
         ibMotion.setOnClickListener {
-            val intent = Intent(this, MotionActivity::class.java)
-            showProgressDialog()
+            val intent = Intent(this, ImageCropActivity::class.java)
             lifecycleScope.launch{
                 val fl: FrameLayout = findViewById(R.id.fl_drawing_view_container)
                 val stream = ByteArrayOutputStream()
-                val picture=getBitmapFromView(fl)
+                val picture = getBitmapFromView(fl)
                 picture.compress(Bitmap.CompressFormat.PNG, 100, stream)
                 val byteArray = stream.toByteArray()
                 intent.putExtra("picture", byteArray)
@@ -115,7 +114,6 @@ class DrawingActivity : AppCompatActivity() {
         ibSave.setOnClickListener {
             if(isReadStorageAllowed())
             {
-                showProgressDialog()
                 lifecycleScope.launch{
                     val fl: FrameLayout = findViewById(R.id.fl_drawing_view_container)
                     saveBitmapFile(getBitmapFromView(fl))
@@ -239,7 +237,6 @@ class DrawingActivity : AppCompatActivity() {
                     fo.close()
                     result = f.absolutePath
                     runOnUiThread {
-                        cancelProgressDialog()
                         if(result.isNotEmpty()){
                             Toast.makeText(this@DrawingActivity,"File saved successfully: $result",Toast.LENGTH_SHORT).show()
                         }
@@ -257,23 +254,5 @@ class DrawingActivity : AppCompatActivity() {
             }
         }
         return result
-    }
-    private fun showProgressDialog() {
-        customProgressDialog = Dialog(this)
-
-        /*Set the screen content from a layout resource.
-        The resource will be inflated, adding all top-level views to the screen.*/
-        customProgressDialog?.setContentView(R.layout.dialog_custom_progress)
-
-        //Start the dialog and display it on screen.
-        customProgressDialog?.show()
-    }
-
-
-    private fun cancelProgressDialog() {
-        if (customProgressDialog != null) {
-            customProgressDialog?.dismiss()
-            customProgressDialog = null
-        }
     }
 }
