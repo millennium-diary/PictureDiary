@@ -1,8 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.picturediary">
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
 
     <application
+        android:name=".PrefApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -20,10 +25,18 @@
         </activity>
         <activity android:name=".MainActivity" />
         <activity android:name=".CalendarActivity" />
-        <activity android:name=".TimelineActivity" />
+        <activity android:name=".GroupActivity" />
         <activity android:name=".DrawingActivity" />
-
-
+        <activity android:name=".ImageCropActivity" />
+        <activity android:name=".MotionActivity" />
+        <provider
+            android:authorities="com.example.paint.fileprovider"
+            android:name="androidx.core.content.FileProvider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/path"/>
+        </provider>
     </application>
-
 </manifest>

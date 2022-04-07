@@ -11,7 +11,7 @@ import com.google.android.material.navigation.NavigationBarView.OnItemSelectedLi
 import kotlinx.android.synthetic.main.community.*
 
 
-class TimelineActivity : AppCompatActivity(), OnItemSelectedListener {
+class GroupActivity : AppCompatActivity(), OnItemSelectedListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
