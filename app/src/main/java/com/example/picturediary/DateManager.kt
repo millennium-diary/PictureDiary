@@ -27,7 +27,7 @@ class DateManager {
         }
 
     //Check if it is this month
-    fun isCurrentMonth(date: Date): Boolean {
+    fun isCurrentMonth(date: Date?): Boolean {
         val format = SimpleDateFormat("yyyy년 MM월", Locale.KOREA)
         val currentMonth = format.format(mCalendar.time)
         return currentMonth == format.format(date)
@@ -37,8 +37,8 @@ class DateManager {
     val weeks: Int
         get() = mCalendar.getActualMaximum(Calendar.WEEK_OF_MONTH)
 
-    // Get the day of the week
-    fun getDayOfWeek(date: Date): Int {
+    //Get the day of the week
+    fun getDayOfWeek(date: Date?): Int {
         val calendar = Calendar.getInstance()
         calendar.time = date
         return calendar[Calendar.DAY_OF_WEEK]
@@ -53,5 +53,4 @@ class DateManager {
     fun prevMonth() {
         mCalendar.add(Calendar.MONTH, -1)
     }
-
 }
