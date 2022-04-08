@@ -1,6 +1,7 @@
 package com.example.picturediary
 
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -13,10 +14,13 @@ import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.android.synthetic.main.timeline_detail.view.*
 import kotlinx.android.synthetic.main.group_timeline.*
 import com.bumptech.glide.Glide
+import kotlinx.android.synthetic.main.user_group_item.*
+import kotlinx.android.synthetic.main.user_group_item.view.*
 
 class DiarytimelineActivity : AppCompatActivity() {
 
     var firestore: FirebaseFirestore? = null
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,6 +38,8 @@ class DiarytimelineActivity : AppCompatActivity() {
         // Diary 클래스 ArrayList 생성성
         var contentDTOs : ArrayList<ContentDTO> = arrayListOf()
         var contentUidList : ArrayList<String> = arrayListOf()
+
+        val groupId = intent.getStringExtra("groupID")
 
         init {
 //            firestore?.collection("images")?.orderBy("timestamp")
@@ -68,7 +74,6 @@ class DiarytimelineActivity : AppCompatActivity() {
         override fun onBindViewHolder(p0: RecyclerView.ViewHolder, p1: Int) {
             var viewHolder = (p0 as ViewHolder).itemView
 
-            //UserId
             viewHolder.profile_textview.text=contentDTOs!![p1].username
 
             viewHolder.explain_textview.text=contentDTOs!![p1].explain

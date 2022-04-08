@@ -13,6 +13,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.ktx.Firebase
+import kotlinx.android.synthetic.main.user_group_item.view.*
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
@@ -36,9 +37,13 @@ class GroupListAdapter(var items: ArrayList<GroupDTO>) : RecyclerView.Adapter<Vi
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+
+        val groupId = holder.itemView.groupId.text.toString()
+
         holder.bind(items[position])
         holder.itemView.setOnClickListener {
             val intent = Intent(holder.itemView.context, DiarytimelineActivity::class.java)
+            intent.putExtra("GroupID", groupId)
             ContextCompat.startActivity(holder.itemView.context, intent, null)
 //            itemClickListener.onClick(it, position)
         }
