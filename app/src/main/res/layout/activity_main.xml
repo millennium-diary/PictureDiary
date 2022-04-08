@@ -16,15 +16,7 @@
             android:textSize="30sp"
             android:text="Motion Diary"
             android:textColor="@color/black"/>
-
     </LinearLayout>
-
-    <ProgressBar
-        android:id="@+id/progress_bar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:visibility="gone" />
 
     <LinearLayout
         android:id="@+id/choose_activity"
@@ -57,7 +49,4 @@
             android:textColor="@color/white"
             android:text="갤러리"/>
     </LinearLayout>
-
-
-
 </RelativeLayout>

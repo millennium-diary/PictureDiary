@@ -1,5 +1,6 @@
 package com.example.picturediary
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.DialogInterface
 import android.graphics.Canvas
@@ -8,6 +9,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.*
 import androidx.recyclerview.widget.ItemTouchHelper.*
+import com.example.picturediary.navigation.DetailViewFragment
 import com.example.picturediary.navigation.model.GroupDTO
 import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.FirebaseAuth
@@ -15,13 +17,16 @@ import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.*
 import com.google.firebase.ktx.Firebase
 import kotlinx.android.synthetic.main.user_group_item.view.*
+import kotlinx.coroutines.*
+import kotlinx.coroutines.tasks.await
 import java.lang.Float.*
+import java.util.*
+import kotlin.collections.ArrayList
 
 // 참고자료 : https://velog.io/@trycatch98/Android-RecyclerView-Swipe-Menu
 class GroupSwipeHelperCallback(var context: Context, var recyclerView: RecyclerView) : ItemTouchHelper.Callback() {
     private var auth: FirebaseAuth? = null
     private var firestore: FirebaseFirestore? = null
-    private var groupDTO: GroupDTO? = null
 
     private var currentPosition: Int? = null
     private var previousPosition: Int? = null
@@ -120,8 +125,13 @@ class GroupSwipeHelperCallback(var context: Context, var recyclerView: RecyclerV
 
                             // 그룹 삭제
                             dlg.setPositiveButton("확인", DialogInterface.OnClickListener { _, _ ->
-                                deleteGroup(groupId, groupName)
-                                deleteUserGroup(groupId, groupName)
+                                GlobalScope.launch(Dispatchers.IO) {
+                                    // groups 컬렉션에서 그룹 삭제
+                                    deleteGroup(groupId)
+                                    // users 컬렉션의 userGroups에서 그룹 삭제
+                                    deleteUserGroup(groupId)
+                                }
+                                Toast.makeText(context, "$groupName 그룹을 나갔습니다", Toast.LENGTH_SHORT).show()
                                 removePreviousClamp(recyclerView)
                             })
                             // 그룹 삭제 취소
@@ -139,12 +149,18 @@ class GroupSwipeHelperCallback(var context: Context, var recyclerView: RecyclerV
 
                             // 그룹 삭제
                             dlg.setPositiveButton("확인", DialogInterface.OnClickListener { _, _ ->
-                                // 0번째 그룹멤버를 방장으로 설정
-                                giveLeader(groupId, groupName)
-//                                deleteGroup(groupId, groupName)
-                                deleteUserGroup(groupId, groupName)
+                                GlobalScope.launch(Dispatchers.IO) {
+                                    // groups 컬렉션의 shareWith에서 사용자 삭제
+                                    exitGroup(groupId)
+                                    // groups 컬렉션에서 leader 위임
+                                    giveLeader(groupId, groupName)
+                                    // users 컬렉션의 userGroups에서 그룹 삭제
+                                    deleteUserGroup(groupId)
+                                    // groups 컬렉션에서 그룹 삭제
+                                    deleteGroup(groupId)
+                                }
+                                Toast.makeText(context, "$groupName 그룹을 나갔습니다", Toast.LENGTH_SHORT).show()
                                 removePreviousClamp(recyclerView)
-//                                checkRemovedGroup()
                             })
                             // 그룹 삭제 취소
                             dlg.setNegativeButton("취소", DialogInterface.OnClickListener { _, _ ->
@@ -160,8 +176,11 @@ class GroupSwipeHelperCallback(var context: Context, var recyclerView: RecyclerV
 
                             // 그룹 삭제
                             dlg.setPositiveButton("확인", DialogInterface.OnClickListener { _, _ ->
-                                exitGroup(groupId, groupName)
-                                deleteUserGroup(groupId, groupName)
+                                GlobalScope.launch(Dispatchers.IO) {
+                                    exitGroup(groupId)
+                                    deleteUserGroup(groupId)
+                                }
+                                Toast.makeText(context, "$groupName 그룹을 나갔습니다", Toast.LENGTH_SHORT).show()
                                 removePreviousClamp(recyclerView)
                             })
                             // 그룹 삭제 취소
@@ -173,22 +192,35 @@ class GroupSwipeHelperCallback(var context: Context, var recyclerView: RecyclerV
                     }
                 }
         }
-
         return 2f
     }
 
-
     // groups 컬렉션에서 그룹 삭제
-    private fun deleteGroup(groupId : String, groupName : String) {
+    private suspend fun deleteGroup(groupId: String) = withContext(Dispatchers.IO) {
         auth = Firebase.auth
         firestore = FirebaseFirestore.getInstance()
         firestore!!.collection("groups")
             .document(groupId)
             .delete()
+            .await()
+        println("test: deleteGroup")
+    }
+
+    // users 컬렉션의 userGroups에서 그룹 삭제
+    private suspend fun deleteUserGroup(groupId : String) = withContext(Dispatchers.IO) {
+        auth = Firebase.auth
+        firestore = FirebaseFirestore.getInstance()
+        val uid = auth?.currentUser?.uid.toString()
+
+        firestore!!.collection("users")
+            .document(uid)
+            .update("userGroups", FieldValue.arrayRemove(groupId))
+            .await()
+        println("test: deleteUserGroup")
     }
 
     // groups 컬렉션에서 leader 새로 임명
-    private fun giveLeader(groupId: String, groupName: String) {
+    private suspend fun giveLeader(groupId: String, groupName: String) = withContext(Dispatchers.IO) {
         auth = Firebase.auth
         firestore = FirebaseFirestore.getInstance()
 
@@ -199,10 +231,10 @@ class GroupSwipeHelperCallback(var context: Context, var recyclerView: RecyclerV
                 val document = task.result
                 val shareWith = document["shareWith"] as ArrayList<String>?
                 val timestamp = document["timestamp"] as Long
-                val newLeader = shareWith!![1]
+                val newLeader = shareWith!![0]
                 val newGroupId = "$groupName@$newLeader"
                 val newShareWith = arrayListOf<String>()
-                for (index in 1 until shareWith.size) {
+                for (index in 0 until shareWith.size) {
                     newShareWith.add(shareWith[index])
                 }
 
@@ -217,10 +249,11 @@ class GroupSwipeHelperCallback(var context: Context, var recyclerView: RecyclerV
                     .document(groupDTO.grpid.toString())
                     .set(groupDTO)
             }
+        println("test: giveLeader")
     }
 
     // groups 컬렉션의 shareWith에서 사용자 삭제
-    private fun exitGroup(groupId : String, groupName : String) {
+    private suspend fun exitGroup(groupId : String) = withContext(Dispatchers.IO) {
         auth = Firebase.auth
         firestore = FirebaseFirestore.getInstance()
         val username = auth?.currentUser?.displayName
@@ -228,27 +261,11 @@ class GroupSwipeHelperCallback(var context: Context, var recyclerView: RecyclerV
         firestore!!.collection("groups")
             .document(groupId)
             .update("shareWith", FieldValue.arrayRemove(username))
+            .await()
+        println("test: exitGroup")
     }
 
-    // users 컬렉션의 userGroups에서 그룹 삭제
-    private fun deleteUserGroup(groupId : String, groupName : String) {
-        auth = Firebase.auth
-        firestore = FirebaseFirestore.getInstance()
-        val uid = auth?.currentUser?.uid.toString()
-
-        firestore!!.collection("users")
-            .document(uid)
-            .update("userGroups", FieldValue.arrayRemove(groupId))
-            .addOnSuccessListener {
-                checkRemovedGroup(groupId)
-                println("gooood")
-            }
-            .addOnFailureListener { println("FUCK") }
-
-        Toast.makeText(context, "$groupName 그룹을 나갔습니다", Toast.LENGTH_SHORT).show()
-    }
-
-    private fun checkRemovedGroup(groupId: String) {
+    private fun checkRemovedGroup() {
         auth = Firebase.auth
         firestore = FirebaseFirestore.getInstance()
         val uid = auth?.currentUser?.uid.toString()
@@ -260,34 +277,21 @@ class GroupSwipeHelperCallback(var context: Context, var recyclerView: RecyclerV
             .addOnCompleteListener { task ->
                 val document = task.result
                 val userGroups = document["userGroups"] as ArrayList<String>?
-                println("호호호 $userGroups")
 
                 firestore!!.collection("groups")
-                    .whereArrayContains("shareWith", username)
+                    .whereEqualTo("leader", username)
                     .get()
                     .addOnSuccessListener { documents ->
                         for (doc in documents) {
-                            println(groupId + " ## " + doc.id)
-                            if (doc.id == groupId) {
-                                while (userGroups?.contains(doc.id) == true) {
-                                    println(groupId + " ## " + doc.id)
-                                    firestore!!.collection("groups")
-                                        .document(doc.id)
-                                        .delete()
-                                }
+                            if ((userGroups?.contains(doc.id) == false) or (userGroups?.isEmpty() == true)) {
+                                firestore!!.collection("groups")
+                                    .document(doc.id)
+                                    .delete()
                             }
-                            println("하하하 " + doc.id)
-//                            if ((userGroups?.contains(doc.id) == false) or (userGroups?.isEmpty() == true)) {
-//                                Toast.makeText(context, "이거봐", Toast.LENGTH_SHORT).show()
-//                                firestore!!.collection("groups")
-//                                    .document(doc.id)
-//                                    .delete()
-//                            }
                         }
                     }
             }
     }
-
 
     private fun getView(viewHolder: RecyclerView.ViewHolder): View {
         return (viewHolder as GroupListAdapter.ViewHolder).itemView.swipe_view

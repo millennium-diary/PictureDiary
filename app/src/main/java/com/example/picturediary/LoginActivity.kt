@@ -1,31 +1,55 @@
 package com.example.picturediary
 
 import android.app.ProgressDialog
-import android.content.*
+import android.content.Intent
+import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.picturediary.navigation.model.UserDTO
-import com.google.firebase.auth.*
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.auth.ktx.userProfileChangeRequest
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.android.synthetic.main.activity_login.*
 
+
 class LoginActivity : AppCompatActivity() {
     private var auth: FirebaseAuth? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_login)
-
 
         // Firebase 로그인 통합 관리하는 객체
         auth = FirebaseAuth.getInstance()
+        val loggedInUser = PrefApplication.prefs.getString("loggedInUser", "")
 
-        // 이메일로 로그인/회원가입
-        signup_login_button.setOnClickListener {
+        if (loggedInUser.isBlank()) {
+            setContentView(R.layout.activity_login)
+
+            signup_button.setOnClickListener { signUpButton() }
+            login_button.setOnClickListener { loginButton() }
+        }
+        else {
+            val userInfo = loggedInUser.split("★")
+            val username = userInfo[0]
+            val password = userInfo[1]
+            println("사용자 $username $password")
+
+            auth?.signInWithEmailAndPassword(username, password)
+                ?.addOnCompleteListener { moveMainPage(auth?.currentUser) }
+        }
+    }
+
+    // 이메일로 회원가입
+    private fun signUpButton() {
+        val wifi = getSystemService(WIFI_SERVICE) as WifiManager
+        if (!wifi.isWifiEnabled) {
+            Toast.makeText(this, "와이파이 연결을 확인해 주세요", Toast.LENGTH_SHORT).show()
+        }
+        else {
             when {
                 username_edittext.text.isEmpty() -> Toast.makeText(this, "아이디를 입력해주세요", Toast.LENGTH_SHORT).show()
                 password_edittext.text.isEmpty() -> Toast.makeText(this, "비밀번호를 입력해주세요", Toast.LENGTH_SHORT).show()
@@ -34,7 +58,22 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
-    // 사용자 등록 안 되어 있으면 추가, 등록되어 있으면 로그인
+    // 이메일로 로그인
+    private fun loginButton() {
+        val wifi = getSystemService(WIFI_SERVICE) as WifiManager
+        if (!wifi.isWifiEnabled) {
+            Toast.makeText(this, "와이파이 연결을 확인해 주세요", Toast.LENGTH_SHORT).show()
+        }
+        else {
+            when {
+                username_edittext.text.isEmpty() -> Toast.makeText(this, "아이디를 입력해주세요", Toast.LENGTH_SHORT).show()
+                password_edittext.text.isEmpty() -> Toast.makeText(this, "비밀번호를 입력해주세요", Toast.LENGTH_SHORT).show()
+                else -> signinUserID(username_edittext.text.toString(), password_edittext.text.toString())
+            }
+        }
+    }
+
+    // 사용자 등록 & 로그인
     private fun createAndLogin(username : String, password : String) {
         val progressDialog = ProgressDialog(this)
         progressDialog.setMessage("처리 중...")
@@ -50,46 +89,66 @@ class LoginActivity : AppCompatActivity() {
                         setNewUsername(username)
 
                         Toast.makeText(this, "회원가입을 성공적으로 했습니다", Toast.LENGTH_SHORT).show()
+                        PrefApplication.prefs.setString("loggedInUser", "$username★$password")
                         if (progressDialog.isShowing) progressDialog.dismiss()
                         moveMainPage(auth?.currentUser)
                     }
-                    // 로그인
-                    task.exception?.message?.contains("already in use") == true ->{
+                    // 이미 존재하는 아이디
+                    task.exception?.message?.contains("already in use") == true -> {
+                        Toast.makeText(this, "이미 존재하는 아이디입니다", Toast.LENGTH_SHORT).show()
                         if (progressDialog.isShowing) progressDialog.dismiss()
-                        signinUserID(username, password)
+                    }
+                    // 이미 존재하는 아이디
+                    task.exception?.message?.contains("badly formatted") == true -> {
+                        Toast.makeText(this, "사용자 아이디에는 문자, 숫자, 밑줄 및 마침표만 사용할 수 있습니다", Toast.LENGTH_SHORT).show()
+                        if (progressDialog.isShowing) progressDialog.dismiss()
                     }
                     // 비밀번호 형식 에러
-                    task.exception?.message?.startsWith("The given password is invalid") == true ->{
+                    task.exception?.message?.startsWith("The given password is invalid") == true -> {
                         Toast.makeText(this, "비밀번호의 형식이 올바르지 않습니다\n(최소 6글자로 설정해야 합니다)", Toast.LENGTH_SHORT).show()
                         if (progressDialog.isShowing) progressDialog.dismiss()
                     }
                     // 에러 메시지
-                    else ->
+                    else -> {
                         Toast.makeText(this, task.exception?.message, Toast.LENGTH_SHORT).show()
+                        if (progressDialog.isShowing) progressDialog.dismiss()
+                    }
                 }
             }
     }
 
-
     // 로그인 함수
     private fun signinUserID(username : String, password: String) {
+        val progressDialog = ProgressDialog(this)
+        progressDialog.setMessage("처리 중...")
+        progressDialog.setCancelable(false)
+        progressDialog.show()
+
         auth?.signInWithEmailAndPassword("$username@fake.com", password)
             ?.addOnCompleteListener { task ->
                 // 로그인
                 if (task.isSuccessful) {
                     Toast.makeText(this, "로그인을 성공적으로 했습니다", Toast.LENGTH_SHORT).show()
+                    PrefApplication.prefs.setString("loggedInUser", "$username★$password")
+                    if (progressDialog.isShowing) progressDialog.dismiss()
                     moveMainPage(auth?.currentUser)
                 }
                 // 에러 메시지
                 else {
                     val error = task.exception?.message
                     when {
-                        error?.startsWith("The password is invalid") == true ->
+                        error?.startsWith("The password is invalid") == true -> {
                             Toast.makeText(this, "비밀번호가 틀렸거나 이미 존재하는 사용자입니다", Toast.LENGTH_SHORT).show()
-                        error?.startsWith("The given password is invalid") == true ->
+                            if (progressDialog.isShowing) progressDialog.dismiss()
+                        }
+                        error?.startsWith("The given password is invalid") == true -> {
                             Toast.makeText(this, "비밀번호의 형식이 올바르지 않습니다\n(최소 6글자로 설정해야 합니다)", Toast.LENGTH_SHORT).show()
-                        else ->
+                            if (progressDialog.isShowing) progressDialog.dismiss()
+                        }
+                        else -> {
                             Toast.makeText(this, error, Toast.LENGTH_SHORT).show()
+                            if (progressDialog.isShowing) progressDialog.dismiss()
+                        }
                     }
                 }
         }

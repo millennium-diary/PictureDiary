@@ -20,6 +20,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import com.example.picturediary.LoginActivity
+import com.example.picturediary.PrefApplication
 import com.example.picturediary.R
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
@@ -118,10 +119,27 @@ class UserFragment: Fragment() {
 
         // 카메라 버튼 또는 프로필 사진 눌러 사진 변경
         view.change_pic.setOnClickListener {
-            selectImage()
+            val choose_pic = arrayOf("기본 이미지로 변경", "앨범에서 사진 선택")
+            val dlg = AlertDialog.Builder(requireContext())
+            val picListener = DialogInterface.OnClickListener { _, which ->
+                if (which == 0) {
+                    view.info_profile_pic.setImageResource(R.drawable.user)
+                }
+                else selectImage()
+            }
+            dlg.setItems(choose_pic, picListener)
+
         }
         view.info_profile_pic.setOnClickListener {
-            selectImage()
+            val choose_pic = arrayOf("기본 이미지로 변경", "앨범에서 사진 선택")
+            val dlg = AlertDialog.Builder(requireContext())
+            val picListener = DialogInterface.OnClickListener { _, which ->
+                if (which == 0) {
+                    view.info_profile_pic.setImageResource(R.drawable.user)
+                }
+                else selectImage()
+            }
+            dlg.setItems(choose_pic, picListener)
         }
 
         // 수정 완료 버튼
@@ -165,6 +183,7 @@ class UserFragment: Fragment() {
             user.delete()
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
+                        PrefApplication.prefs.setString("loggedInUser", "")
                         val intent = Intent(context, LoginActivity::class.java)
                         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
                         startActivity(intent)
@@ -199,14 +218,12 @@ class UserFragment: Fragment() {
                 }
             })
             dlg.show()
-
-
-
         }
 
        // 로그아웃
         view.logout.setOnClickListener {
             FirebaseAuth.getInstance().signOut()
+            PrefApplication.prefs.setString("loggedInUser", "")
             val intent = Intent(context, LoginActivity::class.java)
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
             startActivity(intent)
