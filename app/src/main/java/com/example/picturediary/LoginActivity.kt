@@ -24,6 +24,7 @@ class LoginActivity : AppCompatActivity() {
 
         // Firebase 로그인 통합 관리하는 객체
         auth = FirebaseAuth.getInstance()
+        PrefApplication.prefs.setString("loggedInUser", "")
         val loggedInUser = PrefApplication.prefs.getString("loggedInUser", "")
 
         if (loggedInUser.isBlank()) {
@@ -137,8 +138,12 @@ class LoginActivity : AppCompatActivity() {
                 else {
                     val error = task.exception?.message
                     when {
+                        error?.contains("no user record") == true -> {
+                            Toast.makeText(this, "존재하는 사용자가 없습니다", Toast.LENGTH_SHORT).show()
+                            if (progressDialog.isShowing) progressDialog.dismiss()
+                        }
                         error?.startsWith("The password is invalid") == true -> {
-                            Toast.makeText(this, "비밀번호가 틀렸거나 이미 존재하는 사용자입니다", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this, "비밀번호가 틀렸습니다", Toast.LENGTH_SHORT).show()
                             if (progressDialog.isShowing) progressDialog.dismiss()
                         }
                         error?.startsWith("The given password is invalid") == true -> {
