@@ -24,7 +24,7 @@ class LoginActivity : AppCompatActivity() {
 
         // Firebase 로그인 통합 관리하는 객체
         auth = FirebaseAuth.getInstance()
-        PrefApplication.prefs.setString("loggedInUser", "")
+//        PrefApplication.prefs.setString("loggedInUser", "")
         val loggedInUser = PrefApplication.prefs.getString("loggedInUser", "")
 
         if (loggedInUser.isBlank()) {
