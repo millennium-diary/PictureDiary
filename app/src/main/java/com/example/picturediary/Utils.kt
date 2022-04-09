@@ -129,46 +129,45 @@ class Utils {
         auth = Firebase.auth
         firestore = FirebaseFirestore.getInstance()
 
-//        GlobalScope.launch(Dispatchers.IO) {
-            // 그룹 멤버에서 나가기 (exitGroup)
-            firestore!!.collection("groups")
-                .document(groupId)
-                .update("shareWith", FieldValue.arrayRemove(username))
-                .await()
+        // 그룹 멤버에서 나가기 (exitGroup)
+        firestore!!.collection("groups")
+            .document(groupId)
+            .update("shareWith", FieldValue.arrayRemove(username))
+            .await()
 
-            // 리더 위임하기
-            val groupDTO = firestore!!.collection("groups")
-                .document(groupId).get()
-                .await()
-                .toObject(GroupDTO::class.java)
+        // 리더 위임하기
+        val groupDTO = firestore!!.collection("groups")
+            .document(groupId).get()
+            .await()
+            .toObject(GroupDTO::class.java)
 
-            val shareWith = groupDTO?.shareWith
-            val timestamp = groupDTO?.timestamp
-            val newLeader = shareWith!![0]
-            val newGroupId = "$groupName@$newLeader"
-            val newShareWith = arrayListOf<String>()
-            for (index in 0 until shareWith.size) {
-                newShareWith.add(shareWith[index])
-            }
+        val shareWith = groupDTO?.shareWith
+        val timestamp = groupDTO?.timestamp
+        val newLeader = shareWith!![0]
+        val newGroupId = "$groupName@$newLeader"
+        val newShareWith = arrayListOf<String>()
+        for (index in 0 until shareWith.size) {
+            newShareWith.add(shareWith[index])
+        }
 
-            val newGroupDTO = GroupDTO()
-            newGroupDTO.grpid = newGroupId
-            newGroupDTO.grpname = groupName
-            newGroupDTO.leader = newLeader
-            newGroupDTO.timestamp = timestamp
-            newGroupDTO.shareWith = newShareWith
+        val newGroupDTO = GroupDTO()
+        newGroupDTO.grpid = newGroupId
+        newGroupDTO.grpname = groupName
+        newGroupDTO.leader = newLeader
+        newGroupDTO.timestamp = timestamp
+        newGroupDTO.shareWith = newShareWith
 
-            firestore!!.collection("groups")
-                .document(newGroupDTO.grpid.toString())
-                .set(newGroupDTO)
-                .await()
+        firestore!!.collection("groups")
+            .document(newGroupDTO.grpid.toString())
+            .set(newGroupDTO)
+            .await()
 
-            // 본인이 리더였던 그룹 삭제 (deleteGroup)
-            firestore!!.collection("groups")
-                .document(groupId)
-                .delete()
-                .await()
-//        }
+        // 본인이 리더였던 그룹 삭제 (deleteGroup)
+        firestore!!.collection("groups")
+            .document(groupId)
+            .delete()
+            .await()
+
         println("test: giveLeader $groupId ${Thread.currentThread().name}")
     }
 }
