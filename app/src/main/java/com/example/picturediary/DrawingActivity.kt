@@ -26,6 +26,7 @@ import android.view.View
 import android.widget.*
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.get
@@ -68,22 +69,22 @@ class DrawingActivity : AppCompatActivity() {
             val checkArray = BooleanArray(groups.size)
 
             // 그룹 선택창
-            select_grp.setOnClickListener {
-                val dlg = AlertDialog.Builder(this@DrawingActivity)
-
-                if (groups.size == 0) {
-                    dlg.setTitle("공유할 그룹이 존재하지 않습니다")
-                }
-                else {
-                    dlg.setTitle("일기를 함께 공유할 그룹을 선택하세요")
-                    dlg.setMultiChoiceItems(finalGroups, checkArray) { dialog, which, isChecked ->
-                        // 해당 그룹에 일기 공유
-                        select_grp.text = groups[which]
-                    }
-                }
-                dlg.setPositiveButton("확인", null)
-                dlg.show()
-            }
+//            select_grp.setOnClickListener {
+//                val dlg = AlertDialog.Builder(this@DrawingActivity)
+//
+//                if (groups.size == 0) {
+//                    dlg.setTitle("공유할 그룹이 존재하지 않습니다")
+//                }
+//                else {
+//                    dlg.setTitle("일기를 함께 공유할 그룹을 선택하세요")
+//                    dlg.setMultiChoiceItems(finalGroups, checkArray) { dialog, which, isChecked ->
+//                        // 해당 그룹에 일기 공유
+//                        select_grp.text = groups[which]
+//                    }
+//                }
+//                dlg.setPositiveButton("확인", null)
+//                dlg.show()
+//            }
         }
 
         drawingView = findViewById(R.id.drawing_view)
@@ -103,10 +104,9 @@ class DrawingActivity : AppCompatActivity() {
         val ibMotion: Button = findViewById(R.id.ib_motion)
         ibMotion.setOnClickListener {
             val intent = Intent(this, ImageCropActivity::class.java)
-            lifecycleScope.launch{
-                val fl: FrameLayout = findViewById(R.id.fl_drawing_view_container)
+            lifecycleScope.launch {
                 val stream = ByteArrayOutputStream()
-                val picture = getBitmapFromView(fl)
+                val picture = getBitmapFromView(fl_drawing_view_container)
                 picture.compress(Bitmap.CompressFormat.PNG, 100, stream)
                 val byteArray = stream.toByteArray()
                 intent.putExtra("picture", byteArray)
@@ -114,7 +114,7 @@ class DrawingActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-        val idEraser : ImageButton = findViewById(R.id.ib_eraser)
+        val idEraser : Button = findViewById(R.id.ib_eraser)
         idEraser.setOnClickListener {
             val colorTag = idEraser.tag.toString()
             drawingView?.setColor(colorTag)
@@ -132,16 +132,13 @@ class DrawingActivity : AppCompatActivity() {
 
         val ibSave: Button = findViewById(R.id.ib_save)
         ibSave.setOnClickListener {
-            if(isReadStorageAllowed())
-            {
+            if(isReadStorageAllowed()) {
                 lifecycleScope.launch{
-                    val fl: FrameLayout = findViewById(R.id.fl_drawing_view_container)
-                    saveBitmapFile(getBitmapFromView(fl))
+//                    val fl: FrameLayout = findViewById(R.id.fl_drawing_view_container)
+                    saveBitmapFile(getBitmapFromView(fl_drawing_view_container))
                 }
             }
-            else{
-                requestStoragePermission()
-            }
+            else requestStoragePermission()
         }
         val ibReset: ImageButton = findViewById(R.id.ib_reset)
         ibReset.setOnClickListener {
@@ -159,7 +156,7 @@ class DrawingActivity : AppCompatActivity() {
 //        }
 //    }
 
-    val requestPermission: ActivityResultLauncher<Array<String>> =
+    private val requestPermission: ActivityResultLauncher<Array<String>> =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
             permissions.entries.forEach {
                 val perMissionName = it.key
@@ -207,6 +204,7 @@ class DrawingActivity : AppCompatActivity() {
         })
         brushDialog.show()
     }
+
     fun paintClicked(view: View?) {
         if (view !== mImageButtonCurrentPaint) {
             // Update the color
@@ -268,7 +266,7 @@ class DrawingActivity : AppCompatActivity() {
         val returnedBitmap = Bitmap.createBitmap(view.width,view.height,Bitmap.Config.ARGB_8888)
         val canvas = Canvas(returnedBitmap)
         val bgDrawable = view.background
-        if(bgDrawable!=null) {
+        if(bgDrawable != null) {
             bgDrawable.draw(canvas)
         }else{
             canvas.drawColor(Color.WHITE)
@@ -280,29 +278,27 @@ class DrawingActivity : AppCompatActivity() {
     private suspend fun saveBitmapFile(mBitmap: Bitmap): String{
         var result =  ""
         withContext(Dispatchers.IO){
-            if(mBitmap!=null){
-                try{
-                    val bytes = ByteArrayOutputStream()
-                    mBitmap.compress(Bitmap.CompressFormat.PNG,90,bytes)
+            try {
+                val bytes = ByteArrayOutputStream()
+                mBitmap.compress(Bitmap.CompressFormat.PNG,90,bytes)
 
-                    val f = File(externalCacheDir?.absoluteFile.toString()+File.separator+"Paints_"+System.currentTimeMillis()/1000+".png")
-                    val fo = FileOutputStream(f)
-                    fo.write(bytes.toByteArray())
-                    fo.close()
-                    result = f.absolutePath
-                    runOnUiThread {
-                        if(result.isNotEmpty()){
-                            Toast.makeText(this@DrawingActivity,"File saved successfully: $result",Toast.LENGTH_SHORT).show()
-                        }
-                        else{
-                            Toast.makeText(this@DrawingActivity,"File not saved.",Toast.LENGTH_SHORT).show()
-                        }
+                val f = File(externalCacheDir?.absoluteFile.toString()+File.separator+"Paints_"+System.currentTimeMillis()/1000+".png")
+                val fo = FileOutputStream(f)
+                fo.write(bytes.toByteArray())
+                fo.close()
+                result = f.absolutePath
+                runOnUiThread {
+                    if(result.isNotEmpty()) {
+                        Toast.makeText(this@DrawingActivity,"File saved successfully: $result",Toast.LENGTH_SHORT).show()
+                    }
+                    else{
+                        Toast.makeText(this@DrawingActivity,"File not saved.",Toast.LENGTH_SHORT).show()
                     }
                 }
-                catch (e: Exception){
-                    result = ""
-                    e.printStackTrace()
-                }
+            }
+            catch (e: Exception){
+                result = ""
+                e.printStackTrace()
             }
         }
         return result
