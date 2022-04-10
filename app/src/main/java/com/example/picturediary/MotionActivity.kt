@@ -16,8 +16,6 @@ class MotionActivity : Activity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.motion)
 
-        Toast.makeText(applicationContext, "MotionActivity", Toast.LENGTH_SHORT).show()
-
         val extras = intent.extras
         if (extras != null) {
             crop = extras.getBoolean("crop")

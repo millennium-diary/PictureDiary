@@ -1,6 +1,7 @@
 package com.example.picturediary.navigation
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Activity.RESULT_OK
 import android.app.ProgressDialog
 import android.content.DialogInterface
@@ -13,26 +14,37 @@ import android.text.InputType
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ArrayAdapter
 import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
+import com.bumptech.glide.Glide
 import com.example.picturediary.LoginActivity
 import com.example.picturediary.PrefApplication
 import com.example.picturediary.R
+import com.example.picturediary.Utils
+import com.example.picturediary.navigation.model.GroupDTO
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.fragment_user.*
 import kotlinx.android.synthetic.main.fragment_user.view.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 
 
 class UserFragment: Fragment() {
+    private val utils = Utils()
     private var auth: FirebaseAuth? = null
     private var firestore: FirebaseFirestore? = null
     private var firebaseStorage: FirebaseStorage? = null
@@ -49,6 +61,7 @@ class UserFragment: Fragment() {
         }
     }
 
+    @SuppressLint("UseCompatLoadingForDrawables")
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -75,7 +88,7 @@ class UserFragment: Fragment() {
 
                 // imageUrl 유무에 따른 프로필 사진 설정
                 if (imageUrl.isBlank()) view.info_profile_pic.setImageResource(R.drawable.user)
-                else Picasso.with(context).load(Uri.parse(imageUrl)).into(view.info_profile_pic)
+                else Glide.with(requireContext()).load(Uri.parse(imageUrl)).into(view.info_profile_pic)
 
                 // message 유무에 따른 상태 메시지 설정
                 if (message != "") {
@@ -112,9 +125,17 @@ class UserFragment: Fragment() {
             view.info_update_complete.visibility = View.VISIBLE
             view.info_message_edit.visibility = View.VISIBLE
 
-//            view.info_username_text.visibility = View.GONE
-//            view.info_username_edit.visibility = View.VISIBLE
-//            view.info_username_edit.setText(username)
+            view.info_profile_pic.setOnClickListener {
+                val choose_pic = arrayOf("기본 이미지로 변경", "앨범에서 사진 선택")
+                val dlg = AlertDialog.Builder(requireContext())
+                val picListener = DialogInterface.OnClickListener { _, which ->
+                    if (which == 0) view.info_profile_pic.setImageResource(R.drawable.user)
+                    else selectImage()
+                }
+                dlg.setItems(choose_pic, picListener)
+                dlg.create()
+                dlg.show()
+            }
         }
 
         // 카메라 버튼 또는 프로필 사진 눌러 사진 변경
@@ -122,40 +143,27 @@ class UserFragment: Fragment() {
             val choose_pic = arrayOf("기본 이미지로 변경", "앨범에서 사진 선택")
             val dlg = AlertDialog.Builder(requireContext())
             val picListener = DialogInterface.OnClickListener { _, which ->
-                if (which == 0) {
-                    view.info_profile_pic.setImageResource(R.drawable.user)
-                }
+                if (which == 0) view.info_profile_pic.setImageResource(R.drawable.user)
                 else selectImage()
             }
             dlg.setItems(choose_pic, picListener)
-
-        }
-        view.info_profile_pic.setOnClickListener {
-            val choose_pic = arrayOf("기본 이미지로 변경", "앨범에서 사진 선택")
-            val dlg = AlertDialog.Builder(requireContext())
-            val picListener = DialogInterface.OnClickListener { _, which ->
-                if (which == 0) {
-                    view.info_profile_pic.setImageResource(R.drawable.user)
-                }
-                else selectImage()
-            }
-            dlg.setItems(choose_pic, picListener)
+            dlg.create()
+            dlg.show()
         }
 
         // 수정 완료 버튼
         view.info_update_complete.setOnClickListener {
-//            val oldUsername = auth?.currentUser?.displayName.toString()
-//            val newUsername = view.info_username_edit.text.toString()
-
-//            changeUsernameInUsers(oldUsername, newUsername)
-//            changeUsernameInGroups(oldUsername, newUsername)
-
             val newMessage = view.info_message_edit.text.toString()
             changeMessage(newMessage)
             view.info_message_text.text = newMessage
 
             if (newMessage.isEmpty()) view.speech_bubble.visibility = View.GONE
-            if (view.info_profile_pic.drawable != null)
+            if (view.info_profile_pic.drawable.constantState == resources.getDrawable(R.drawable.user).constantState) {
+                firestore!!.collection("users")
+                    .document(uid)
+                    .update("imageUrl", "")
+            }
+            else if (view.info_profile_pic.drawable != null)
                 uploadImage()
 
             // textview --> VISIBLE, edittext --> GONE
@@ -172,23 +180,31 @@ class UserFragment: Fragment() {
 
         // 계정 삭제
         view.delete_account.setOnClickListener {
-            val user = Firebase.auth.currentUser!!
+            // groups 컬렉션에서 사용자 삭제
+            GlobalScope.launch(Dispatchers.IO) {
+                val groupDTOs = firestore!!.collection("groups")
+                    .whereArrayContains("shareWith", username).get()
+                    .await()
+                    .toObjects(GroupDTO::class.java)
 
-            firestore!!.collection("users")
-                .document(uid)
-                .delete()
+                for (groupDTO in groupDTOs) {
+                    val groupId = groupDTO.grpid.toString()
+                    val groupName = groupDTO.grpname.toString()
+                    val leader = groupDTO.leader.toString()
+                    val shareWith = groupDTO.shareWith
 
-            Toast.makeText(context, "계정을 성공적으로 삭제했습니다", Toast.LENGTH_SHORT).show()
-
-            user.delete()
-                .addOnCompleteListener { task ->
-                    if (task.isSuccessful) {
-                        PrefApplication.prefs.setString("loggedInUser", "")
-                        val intent = Intent(context, LoginActivity::class.java)
-                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                        startActivity(intent)
+                    when {
+                        shareWith!!.size <= 1 -> utils.deleteGroup(groupId)
+                        username == leader -> utils.giveLeader(groupId, groupName, username)
+                        else -> utils.exitGroup(groupId)
                     }
                 }
+
+                utils.removeUser(requireContext())
+                val intent = Intent(context, LoginActivity::class.java)
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                requireContext().startActivity(intent)
+            }
         }
 
         // 비밀번호 변경
@@ -238,7 +254,6 @@ class UserFragment: Fragment() {
         getResult.launch(intent)
     }
 
-
     private fun uploadImage() {
         auth = Firebase.auth
         firestore = FirebaseFirestore.getInstance()
@@ -276,7 +291,6 @@ class UserFragment: Fragment() {
 
     }
 
-
     private fun changeMessage(message: String) {
         auth = Firebase.auth
         firestore = FirebaseFirestore.getInstance()
@@ -286,107 +300,4 @@ class UserFragment: Fragment() {
             .document(uid)
             .update("message", message)
     }
-
-
-//    // 파이어베이스의 사용자 정보 수정 & users 컬렉션
-//    private fun changeUsernameInUsers(oldUsername: String, newUsername: String) {
-//        val uid = auth?.currentUser?.uid.toString()
-//        val user = Firebase.auth.currentUser
-//        auth = Firebase.auth
-//        firestore = FirebaseFirestore.getInstance()
-//
-//        val profileUpdates = userProfileChangeRequest {
-//            displayName = newUsername
-//        }
-//
-//        user!!.updateProfile(profileUpdates)
-//            .addOnCompleteListener { task ->
-//                if (task.isSuccessful) {
-//                    println("updated displayName")
-//                }
-//            }
-//
-//        user.updateEmail("$newUsername@fake.com")
-//            .addOnCompleteListener { task ->
-//                if (task.isSuccessful) {
-//                    println("updated email address")
-//                }
-//            }
-//
-//        firestore!!.collection("users")
-//            .document(uid)
-//            .get()
-//            .addOnCompleteListener { task ->
-//                val document = task.result
-//                var userGroups = document["userGroups"] as ArrayList<String>?
-//
-//                // users\username
-//                firestore!!.collection("users")
-//                    .document(uid)
-//                    .update("username", newUsername)
-//
-//                if (userGroups != null) {
-//                    for (userGroup in userGroups) {
-//                        if (userGroup.contains("@$oldUsername")) {
-//                            val index = userGroups.indexOf(userGroup)
-//                            userGroups[index] = userGroup.replace("@$oldUsername", "@$newUsername")
-//
-//                            firestore!!.collection("users")
-//                                .document(uid)
-//                                .update("userGroups", userGroups)
-//                        }
-//                    }
-//
-//                }
-//            }
-//    }
-//
-//    private fun changeUsernameInGroups(oldUsername: String, newUsername: String) {
-//        firestore = FirebaseFirestore.getInstance()
-//
-//        // 그룹 멤버 수정 (groups\shareWith)
-//        firestore!!.collection("groups")
-//            .whereArrayContains("shareWith", oldUsername)
-//            .get()
-//            .addOnCompleteListener { task ->
-//                if (task.isSuccessful) {
-//                    for (doc in task.result) {
-//                        val data = doc.data
-//                        var shareWith = data["shareWith"] as ArrayList<String>?
-//                        val leader = data["leader"].toString()
-//                        val oldDocname = doc.id
-//                        val newDocname = oldDocname.replace("@$oldUsername", "@$newUsername")
-//
-//                        // 사용자가 그룹 리더라면 그룹 삭제 & 다시 생성
-//                        if (leader == oldUsername) {
-//                            firestore!!.collection("groups")
-//                                .document(oldDocname)
-//                                .delete()
-//                        }
-//
-//                        if (shareWith?.contains(oldUsername) == true) {
-//                            val index = shareWith.indexOf(oldUsername)
-//                            println("old $shareWith")
-//                            shareWith[index] = newUsername
-//                            println("new $shareWith")
-//
-//                            val userInfo = GroupDTO()
-//                            userInfo.grpid = newDocname
-//                            userInfo.grpname = data["grpname"] as String
-//                            userInfo.leader = newUsername
-//                            userInfo.timestamp = data["timestamp"] as Long
-//                            userInfo.shareWith = shareWith
-//
-//                            val collection = firestore!!.collection("groups").document(newDocname)
-//
-//                            collection.get().addOnCompleteListener { task ->
-//                                val document = task.result
-//                                if (document != null)
-//                                    if (!document.exists()) collection.set(userInfo)
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//    }
 }
