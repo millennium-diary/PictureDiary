@@ -11,7 +11,7 @@ class TextActivity  : AppCompatActivity() {
         setContentView(R.layout.diary_text)
 
         confirmText.setOnClickListener {
-            val intent = Intent(this, ImageCropActivity::class.java)
+            val intent = Intent(this, CropActivity::class.java)
             startActivity(intent)
         }
     }

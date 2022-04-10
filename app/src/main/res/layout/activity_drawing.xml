@@ -173,6 +173,7 @@
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
+                android:tag="@color/white"
                 android:textSize="11dp"
                 android:text="지우개"/>
             <ImageButton
