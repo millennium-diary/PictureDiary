@@ -7,7 +7,7 @@ import android.util.TypedValue
 import android.view.MotionEvent
 import android.view.View
 
-class DrawingView(context: Context,attrs: AttributeSet) : View(context,attrs){
+class DrawingView(context: Context, attrs: AttributeSet) : View(context,attrs){
     private var mDrawPath: CustomPath? = null
     private var mCanvasBitmap: Bitmap? = null
     private var mDrawPaint: Paint? = null
@@ -26,20 +26,17 @@ class DrawingView(context: Context,attrs: AttributeSet) : View(context,attrs){
         super.onSizeChanged(w, h, oldw, oldh)
         mCanvasBitmap = Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888)
         canvas = Canvas(mCanvasBitmap!!)
-
     }
 
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
         canvas?.drawBitmap(mCanvasBitmap!!,0f,0f,mCanvasPaint)
-        for(path in mPaths)
-        {
+        for (path in mPaths) {
             mDrawPaint!!.strokeWidth = path.brushThickness
             mDrawPaint!!.color = path.color
             canvas?.drawPath(path,mDrawPaint!!)
         }
-        if(!mDrawPath!!.isEmpty)
-        {
+        if(!mDrawPath!!.isEmpty) {
             mDrawPaint!!.strokeWidth = mDrawPath!!.brushThickness
             mDrawPaint!!.color = mDrawPath!!.color
             canvas?.drawPath(mDrawPath!!,mDrawPaint!!)
@@ -88,12 +85,12 @@ class DrawingView(context: Context,attrs: AttributeSet) : View(context,attrs){
         mCanvasPaint = Paint(Paint.DITHER_FLAG)
     }
 
-    fun setBrushSize(newSize: Float)
-    {
+    fun setBrushSize(newSize: Float) {
         mBrushSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,newSize,resources.displayMetrics)
         mDrawPaint!!.strokeWidth = mBrushSize
 
     }
+
     fun setColor(newColor: String) {
         color = Color.parseColor(newColor)
         mDrawPaint?.color = color
@@ -120,8 +117,5 @@ class DrawingView(context: Context,attrs: AttributeSet) : View(context,attrs){
 
     }
 
-    internal inner class CustomPath(var color: Int, var brushThickness: Float) : Path() {
-
-    }
-
+    internal inner class CustomPath(var color: Int, var brushThickness: Float) : Path() { }
 }

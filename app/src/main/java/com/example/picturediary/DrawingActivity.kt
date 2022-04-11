@@ -18,7 +18,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.ktx.Firebase
-import kotlinx.android.synthetic.main.drawing_main.*
+import kotlinx.android.synthetic.main.activity_drawing.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlin.collections.ArrayList
@@ -26,7 +26,6 @@ import android.view.View
 import android.widget.*
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.get
@@ -47,7 +46,7 @@ class DrawingActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.drawing_main)
+        setContentView(R.layout.activity_drawing)
 
         auth = Firebase.auth
         firestore = FirebaseFirestore.getInstance()
@@ -103,7 +102,7 @@ class DrawingActivity : AppCompatActivity() {
 
         val ibMotion: Button = findViewById(R.id.ib_motion)
         ibMotion.setOnClickListener {
-            val intent = Intent(this, ImageCropActivity::class.java)
+            val intent = Intent(this, CropActivity::class.java)
             lifecycleScope.launch {
                 val stream = ByteArrayOutputStream()
                 val picture = getBitmapFromView(fl_drawing_view_container)
@@ -114,9 +113,9 @@ class DrawingActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-        val idEraser : Button = findViewById(R.id.ib_eraser)
-        idEraser.setOnClickListener {
-            val colorTag = idEraser.tag.toString()
+        val ibEraser : Button = findViewById(R.id.ib_eraser)
+        ibEraser.setOnClickListener {
+            val colorTag = ibEraser.tag.toString()
             drawingView?.setColor(colorTag)
         }
 
@@ -140,6 +139,7 @@ class DrawingActivity : AppCompatActivity() {
             }
             else requestStoragePermission()
         }
+
         val ibReset: ImageButton = findViewById(R.id.ib_reset)
         ibReset.setOnClickListener {
             drawingView?.onReset()
@@ -262,6 +262,7 @@ class DrawingActivity : AppCompatActivity() {
             }
         builder.create().show()
     }
+
     private fun getBitmapFromView(view : View): Bitmap{
         val returnedBitmap = Bitmap.createBitmap(view.width,view.height,Bitmap.Config.ARGB_8888)
         val canvas = Canvas(returnedBitmap)
