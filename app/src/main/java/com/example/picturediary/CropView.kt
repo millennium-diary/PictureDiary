@@ -1,6 +1,5 @@
 package com.example.picturediary
 
-import android.app.AlertDialog
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
@@ -9,18 +8,20 @@ import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
 import android.view.View.OnTouchListener
+import androidx.constraintlayout.widget.ConstraintLayout
 import kotlinx.android.synthetic.main.activity_crop.view.*
 
 
-class CropView(context: Context, attrs: AttributeSet) : View(context,attrs), OnTouchListener {
+class CropView(context: Context, attributeSet: AttributeSet) : View(context, attributeSet), OnTouchListener {
     var flgPathDraw = true
     private var points = arrayListOf<Point?>()
     private var objects = arrayListOf<Bitmap>()
+    private var bitmap: Bitmap? = null
     private var paint: Paint? = null
     private var mfirstpoint: Point? = null
     private var bfirstpoint = false
     private var mlastpoint: Point? = null
-    lateinit var bitmap: Bitmap
+
 
     init {
         isFocusable = true
@@ -39,7 +40,7 @@ class CropView(context: Context, attrs: AttributeSet) : View(context,attrs), OnT
     }
 
     public override fun onDraw(canvas: Canvas) {
-        canvas.drawBitmap(bitmap, 0f, 0f, null)
+        canvas.drawBitmap(bitmap!!, 0f, 0f, null)
         val path = Path()
         var first = true
         var i = 0
@@ -73,7 +74,9 @@ class CropView(context: Context, attrs: AttributeSet) : View(context,attrs), OnT
                 if (comparePoint(mfirstpoint, point)) {
                     points.add(mfirstpoint)
                     flgPathDraw = false
-//                        showCropDialog()
+//                    showCropDialog()
+                    val path = getPath()
+                    getObject(bitmap!!, path)
                 }
                 else points.add(point)
             }
@@ -92,7 +95,9 @@ class CropView(context: Context, attrs: AttributeSet) : View(context,attrs), OnT
                     if (!comparePoint(mfirstpoint, mlastpoint)) {
                         flgPathDraw = false
                         points.add(mfirstpoint)
-//                            showCropDialog()
+//                        showCropDialog()
+                        val path = getPath()
+                        getObject(bitmap!!, path)
                     }
                 }
             }
@@ -112,8 +117,24 @@ class CropView(context: Context, attrs: AttributeSet) : View(context,attrs), OnT
         } else false
     }
 
-    private fun getObject() {
+    private fun getPath(): Path {
+        val path = Path()
+        for (point in points)
+            path.lineTo(point!!.x, point.y)
+        return path
+    }
 
+    private fun getObject(bitmap: Bitmap, path: Path) {
+        val view = this.parent.parent as ConstraintLayout
+        val resultingImage = Bitmap.createBitmap(crop_view.width, crop_view.height, bitmap.config)
+
+        val canvas = Canvas(resultingImage)
+        val paint = Paint()
+
+        canvas.drawPath(path, paint)
+        paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_IN)
+        canvas.drawBitmap(bitmap, 0f, 0f, paint)
+        view.cropped.setImageBitmap(resultingImage)
     }
 
     private fun showCropDialog() {
@@ -122,6 +143,9 @@ class CropView(context: Context, attrs: AttributeSet) : View(context,attrs), OnT
                 val intent: Intent
                 when (which) {
                     DialogInterface.BUTTON_POSITIVE -> {
+//                        intent = Intent(context, TestActivity::class.java)
+//                        context.startActivity(intent)
+
 //                        intent = Intent(mContext, MotionActivity::class.java)
 //                        intent.putExtra("crop", true)
 //                        mContext.startActivity(intent)
