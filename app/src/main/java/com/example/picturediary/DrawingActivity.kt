@@ -8,17 +8,24 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.os.Bundle
+import kotlinx.coroutines.Dispatchers
+
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.ktx.Firebase
+import kotlinx.android.synthetic.main.activity_drawing.*
+import kotlinx.coroutines.launch
 import android.view.View
 import android.widget.*
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.get
 import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -26,18 +33,130 @@ import java.io.FileOutputStream
 
 
 class DrawingActivity : AppCompatActivity() {
-    private var drawingView:DrawingView? = null
+    private var auth : FirebaseAuth? = null
+    private var firestore : FirebaseFirestore? = null
+
+    private var drawingView: DrawingView? = null
     private var mImageButtonCurrentPaint: ImageButton? = null
     var customProgressDialog: Dialog? = null
 
-    val openGalleryLauncher: ActivityResultLauncher<Intent> = registerForActivityResult(ActivityResultContracts.StartActivityForResult()){ result->
-        if (result.resultCode == RESULT_OK && result.data != null){
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_drawing)
+
+        auth = Firebase.auth
+        firestore = FirebaseFirestore.getInstance()
+        val username = auth?.currentUser?.displayName.toString()
+
+//        GlobalScope.launch(Dispatchers.IO) {
+//            val groupDTOs = firestore!!.collection("groups")
+//                .whereArrayContains("shareWith", username)
+//                .get()
+//                .await()
+//                .toObjects(GroupDTO::class.java) as ArrayList<GroupDTO>
+//
+//            val groups = arrayListOf<String>()
+//            for (groupDTO in groupDTOs) {
+//                val groupName = groupDTO.grpname.toString()
+//                groups.add(groupName)
+//            }
+//            val finalGroups = groups.toTypedArray()
+//            val checkArray = BooleanArray(groups.size)
+
+            // 그룹 선택창
+//            select_grp.setOnClickListener {
+//                val dlg = AlertDialog.Builder(this@DrawingActivity)
+//
+//                if (groups.size == 0) {
+//                    dlg.setTitle("공유할 그룹이 존재하지 않습니다")
+//                }
+//                else {
+//                    dlg.setTitle("일기를 함께 공유할 그룹을 선택하세요")
+//                    dlg.setMultiChoiceItems(finalGroups, checkArray) { dialog, which, isChecked ->
+//                        // 해당 그룹에 일기 공유
+//                        select_grp.text = groups[which]
+//                    }
+//                }
+//                dlg.setPositiveButton("확인", null)
+//                dlg.show()
+//            }
+//        }
+
+        drawingView = findViewById(R.id.drawing_view)
+        val ibBrush: Button = findViewById(R.id.ib_size)
+        ibBrush.setOnClickListener {
+            showBrushSizeChooserDialog()
+        }
+        val linearLayoutPaintColors = findViewById<LinearLayout>(R.id.ll_paint_colors)
+        mImageButtonCurrentPaint = linearLayoutPaintColors[1] as ImageButton
+        mImageButtonCurrentPaint?.setImageDrawable(
+            ContextCompat.getDrawable(
+                this,
+                R.drawable.pallet_pressed
+            )
+        )
+
+        val ibMotion: Button = findViewById(R.id.ib_motion)
+        ibMotion.setOnClickListener {
+            val intent = Intent(this, CropActivity::class.java)
+            lifecycleScope.launch {
+                val stream = ByteArrayOutputStream()
+                val picture = getBitmapFromView(drawing_view)
+                picture.compress(Bitmap.CompressFormat.PNG, 50, stream)
+                val byteArray = stream.toByteArray()
+                intent.putExtra("picture", byteArray)
+            }
+            startActivity(intent)
+        }
+
+        val ibEraser : Button = findViewById(R.id.ib_eraser)
+        ibEraser.setOnClickListener {
+            val colorTag = ibEraser.tag.toString()
+            drawingView?.setColor(colorTag)
+        }
+
+        val ibUndo: ImageButton = findViewById(R.id.ib_undo)
+        ibUndo.setOnClickListener {
+            drawingView?.onClickUndo()
+        }
+
+        val ibRedo: ImageButton = findViewById(R.id.ib_redo)
+        ibRedo.setOnClickListener {
+            drawingView?.onClickRedo()
+        }
+/*
+        val ibSave: Button = findViewById(R.id.ib_save)
+        ibSave.setOnClickListener {
+            if(isReadStorageAllowed()) {
+                lifecycleScope.launch {
+//                    val fl: FrameLayout = findViewById(R.id.fl_drawing_view_container)
+                    saveBitmapFile(getBitmapFromView(fl_drawing_view_container))
+                }
+            }
+            else requestStoragePermission()
+        }
+*/
+        val ibReset: ImageButton = findViewById(R.id.ib_reset)
+        ibReset.setOnClickListener {
+            drawingView?.onReset()
             val imageBackground: ImageView = findViewById(R.id.iv_background)
-            imageBackground.setImageURI(result.data?.data)
+            imageBackground.setImageResource(0)
         }
     }
 
-    val requestPermission: ActivityResultLauncher<Array<String>> =
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.clear()
+    }
+
+//    val openGalleryLauncher: ActivityResultLauncher<Intent> = registerForActivityResult(ActivityResultContracts.StartActivityForResult()){ result->
+//        if (result.resultCode == RESULT_OK && result.data != null){
+//            val imageBackground: ImageView = findViewById(R.id.iv_background)
+//            imageBackground.setImageURI(result.data?.data)
+//        }
+//    }
+
+    private val requestPermission: ActivityResultLauncher<Array<String>> =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
             permissions.entries.forEach {
                 val perMissionName = it.key
@@ -60,101 +179,42 @@ class DrawingActivity : AppCompatActivity() {
                         ).show()
                 }
             }
-
         }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.drawing_main)
-        drawingView = findViewById(R.id.drawing_view)
-        val ibBrush: Button = findViewById(R.id.ib_brush)
-        ibBrush.setOnClickListener {
-            showBrushSizeChooserDialog()
-        }
-        val linearLayoutPaintColors = findViewById<LinearLayout>(R.id.ll_paint_colors)
-        mImageButtonCurrentPaint = linearLayoutPaintColors[1] as ImageButton
-        mImageButtonCurrentPaint?.setImageDrawable(
-            ContextCompat.getDrawable(
-                this,
-                R.drawable.pallet_pressed
-            )
-        )
-
-        val ibMotion: Button = findViewById(R.id.ib_motion)
-        ibMotion.setOnClickListener {
-            val intent = Intent(this, MotionActivity::class.java)
-            showProgressDialog()
-            lifecycleScope.launch{
-                val fl: FrameLayout = findViewById(R.id.fl_drawing_view_container)
-                val stream = ByteArrayOutputStream()
-                val picture=getBitmapFromView(fl)
-                picture.compress(Bitmap.CompressFormat.PNG, 100, stream)
-                val byteArray = stream.toByteArray()
-                intent.putExtra("picture", byteArray)
-            }
-            startActivity(intent)
-        }
-
-        val idEraser : ImageButton = findViewById(R.id.ib_eraser)
-        idEraser.setOnClickListener {
-            val colorTag = idEraser.tag.toString()
-            drawingView?.setColor(colorTag)
-        }
-
-        val ibUndo: ImageButton = findViewById(R.id.ib_undo)
-        ibUndo.setOnClickListener {
-            drawingView?.onClickUndo()
-        }
-
-        val ibRedo: ImageButton = findViewById(R.id.ib_redo)
-        ibRedo.setOnClickListener {
-            drawingView?.onClickRedo()
-        }
-
-        val ibSave: Button = findViewById(R.id.ib_save)
-        ibSave.setOnClickListener {
-            if(isReadStorageAllowed())
-            {
-                showProgressDialog()
-                lifecycleScope.launch{
-                    val fl: FrameLayout = findViewById(R.id.fl_drawing_view_container)
-                    saveBitmapFile(getBitmapFromView(fl))
-                }
-            }
-            else{
-                requestStoragePermission()
-            }
-        }
-        val ibReset: ImageButton = findViewById(R.id.ib_reset)
-        ibReset.setOnClickListener {
-            drawingView?.onReset()
-            val imageBackground: ImageView = findViewById(R.id.iv_background)
-            imageBackground.setImageResource(0)
-        }
-
-    }
     private fun showBrushSizeChooserDialog() {
         val brushDialog = Dialog(this)
         brushDialog.setContentView(R.layout.dialog_brush_size)
         brushDialog.setTitle("Brush size :")
-        val smallBtn: ImageButton = brushDialog.findViewById(R.id.ib_small_brush)
-        smallBtn.setOnClickListener(View.OnClickListener {
+        val BruSize1: ImageButton = brushDialog.findViewById(R.id.ib_brush_size1)
+        BruSize1.setOnClickListener(View.OnClickListener {
+            drawingView?.setBrushSize(5.toFloat())
+            brushDialog.dismiss()
+        })
+
+        val BruSize2: ImageButton = brushDialog.findViewById(R.id.ib_brush_size2)
+        BruSize2.setOnClickListener(View.OnClickListener {
             drawingView?.setBrushSize(10.toFloat())
             brushDialog.dismiss()
         })
-        val mediumBtn: ImageButton = brushDialog.findViewById(R.id.ib_medium_brush)
-        mediumBtn.setOnClickListener(View.OnClickListener {
+        val BruSize3: ImageButton = brushDialog.findViewById(R.id.ib_brush_size3)
+        BruSize3.setOnClickListener(View.OnClickListener {
+            drawingView?.setBrushSize(15.toFloat())
+            brushDialog.dismiss()
+        })
+        val BruSize4: ImageButton = brushDialog.findViewById(R.id.ib_brush_size4)
+        BruSize4.setOnClickListener(View.OnClickListener {
             drawingView?.setBrushSize(20.toFloat())
             brushDialog.dismiss()
         })
 
-        val largeBtn: ImageButton = brushDialog.findViewById(R.id.ib_large_brush)
-        largeBtn.setOnClickListener(View.OnClickListener {
+        val BruSize5: ImageButton = brushDialog.findViewById(R.id.ib_brush_size5)
+        BruSize5.setOnClickListener(View.OnClickListener {
             drawingView?.setBrushSize(30.toFloat())
             brushDialog.dismiss()
         })
         brushDialog.show()
     }
+
     fun paintClicked(view: View?) {
         if (view !== mImageButtonCurrentPaint) {
             // Update the color
@@ -212,14 +272,16 @@ class DrawingActivity : AppCompatActivity() {
             }
         builder.create().show()
     }
+
     private fun getBitmapFromView(view : View): Bitmap{
-        val returnedBitmap = Bitmap.createBitmap(view.width,view.height,Bitmap.Config.ARGB_8888)
+        val returnedBitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(returnedBitmap)
+
         val bgDrawable = view.background
-        if(bgDrawable!=null) {
+        if(bgDrawable != null) {
             bgDrawable.draw(canvas)
-        }else{
-            canvas.drawColor(Color.WHITE)
+        } else {
+            canvas.drawColor(Color.TRANSPARENT)
         }
         view.draw(canvas)
         return returnedBitmap
@@ -228,52 +290,30 @@ class DrawingActivity : AppCompatActivity() {
     private suspend fun saveBitmapFile(mBitmap: Bitmap): String{
         var result =  ""
         withContext(Dispatchers.IO){
-            if(mBitmap!=null){
-                try{
-                    val bytes = ByteArrayOutputStream()
-                    mBitmap.compress(Bitmap.CompressFormat.PNG,90,bytes)
+            try {
+                val bytes = ByteArrayOutputStream()
+                mBitmap.compress(Bitmap.CompressFormat.PNG,90,bytes)
 
-                    val f = File(externalCacheDir?.absoluteFile.toString()+File.separator+"Paints_"+System.currentTimeMillis()/1000+".png")
-                    val fo = FileOutputStream(f)
-                    fo.write(bytes.toByteArray())
-                    fo.close()
-                    result = f.absolutePath
-                    runOnUiThread {
-                        cancelProgressDialog()
-                        if(result.isNotEmpty()){
-                            Toast.makeText(this@DrawingActivity,"File saved successfully: $result",Toast.LENGTH_SHORT).show()
-                        }
-                        else{
-                            Toast.makeText(this@DrawingActivity,"File not saved.",Toast.LENGTH_SHORT).show()
-                        }
+                val f = File(externalCacheDir?.absoluteFile.toString()+File.separator+"Paints_"+System.currentTimeMillis()/1000+".png")
+                val fo = FileOutputStream(f)
+                fo.write(bytes.toByteArray())
+                fo.close()
+                result = f.absolutePath
+                runOnUiThread {
+                    if(result.isNotEmpty()) {
+                        Toast.makeText(this@DrawingActivity,"File saved successfully: $result",Toast.LENGTH_SHORT).show()
                     }
-
-
+                    else{
+                        Toast.makeText(this@DrawingActivity,"File not saved.",Toast.LENGTH_SHORT).show()
+                    }
                 }
-                catch (e: Exception){
-                    result = ""
-                    e.printStackTrace()
-                }
+            }
+            catch (e: Exception){
+                result = ""
+                e.printStackTrace()
             }
         }
         return result
     }
-    private fun showProgressDialog() {
-        customProgressDialog = Dialog(this)
-
-        /*Set the screen content from a layout resource.
-        The resource will be inflated, adding all top-level views to the screen.*/
-        customProgressDialog?.setContentView(R.layout.dialog_custom_progress)
-
-        //Start the dialog and display it on screen.
-        customProgressDialog?.show()
-    }
-
-
-    private fun cancelProgressDialog() {
-        if (customProgressDialog != null) {
-            customProgressDialog?.dismiss()
-            customProgressDialog = null
-        }
-    }
 }
+
