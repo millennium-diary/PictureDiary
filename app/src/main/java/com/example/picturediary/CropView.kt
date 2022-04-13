@@ -1,5 +1,6 @@
 package com.example.picturediary
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
@@ -8,22 +9,32 @@ import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
 import android.view.View.OnTouchListener
+import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.picturediary.navigation.model.ObjectDTO
+import kotlinx.android.synthetic.main.activity_crop.*
 import kotlinx.android.synthetic.main.activity_crop.view.*
+import kotlinx.android.synthetic.main.chosen_object_item.view.*
+import kotlinx.android.synthetic.main.fragment_detail.view.*
 
 
 class CropView(context: Context, attributeSet: AttributeSet) : View(context, attributeSet), OnTouchListener {
     var flgPathDraw = true
+    private var cropPath = arrayListOf<Path?>()
     private var points = arrayListOf<Point?>()
-    private var objects = arrayListOf<Bitmap>()
     private var bitmap: Bitmap? = null
     private var paint: Paint? = null
     private var mfirstpoint: Point? = null
     private var bfirstpoint = false
     private var mlastpoint: Point? = null
 
+    lateinit var objectArrayList: ArrayList<ObjectDTO>
+    lateinit var objectListAdapter: ObjectListAdapter
 
-    init {
+    init { initDrawing() }
+
+    private fun initDrawing() {
         isFocusable = true
         isFocusableInTouchMode = true
         paint = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -39,6 +50,7 @@ class CropView(context: Context, attributeSet: AttributeSet) : View(context, att
         bitmap = picture
     }
 
+    @SuppressLint("DrawAllocation")
     public override fun onDraw(canvas: Canvas) {
         canvas.drawBitmap(bitmap!!, 0f, 0f, null)
         val path = Path()
@@ -63,12 +75,17 @@ class CropView(context: Context, attributeSet: AttributeSet) : View(context, att
             i += 2
         }
         canvas.drawPath(path, paint!!)
+
+        invalidate()
+        path.reset()
     }
 
     override fun onTouch(view: View, event: MotionEvent): Boolean {
         val point = Point()
         point.x = event.x
         point.y = event.y
+
+        // 크롭의 마지막 좌표가 첫번째 좌표와 일치할 때
         if (flgPathDraw) {
             if (bfirstpoint) {
                 if (comparePoint(mfirstpoint, point)) {
@@ -76,7 +93,10 @@ class CropView(context: Context, attributeSet: AttributeSet) : View(context, att
                     flgPathDraw = false
 //                    showCropDialog()
                     val path = getPath()
-                    getObject(bitmap!!, path)
+                    val croppedImage = getObject(bitmap!!, path)
+
+                    // 어댑터에 객체 추가
+                    setObject(croppedImage!!)
                 }
                 else points.add(point)
             }
@@ -88,17 +108,20 @@ class CropView(context: Context, attributeSet: AttributeSet) : View(context, att
             }
         }
         invalidate()
-        if (event.action == MotionEvent.ACTION_UP) {
+
+        // 크롭의 마지막 좌표가 첫번째 좌표와 일치하지 않을 때때
+       if (event.action == MotionEvent.ACTION_UP) {
             mlastpoint = point
-            if (flgPathDraw) {
-                if (points.size > 12) {
-                    if (!comparePoint(mfirstpoint, mlastpoint)) {
-                        flgPathDraw = false
-                        points.add(mfirstpoint)
+            if (flgPathDraw && points.size > 12) {
+                if (!comparePoint(mfirstpoint, mlastpoint)) {
+                    flgPathDraw = false
+                    points.add(mfirstpoint)
 //                        showCropDialog()
-                        val path = getPath()
-                        getObject(bitmap!!, path)
-                    }
+                    val path = getPath()
+                    val croppedImage = getObject(bitmap!!, path)
+
+                    // 어댑터에 객체 추가
+                    setObject(croppedImage!!)
                 }
             }
         }
@@ -124,17 +147,39 @@ class CropView(context: Context, attributeSet: AttributeSet) : View(context, att
         return path
     }
 
-    private fun getObject(bitmap: Bitmap, path: Path) {
-        val view = this.parent.parent as ConstraintLayout
+    private fun getObject(bitmap: Bitmap, path: Path): Bitmap? {
+        // 선택한 객체만 추출
         val resultingImage = Bitmap.createBitmap(crop_view.width, crop_view.height, bitmap.config)
-
         val canvas = Canvas(resultingImage)
         val paint = Paint()
 
         canvas.drawPath(path, paint)
         paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_IN)
         canvas.drawBitmap(bitmap, 0f, 0f, paint)
-        view.cropped.setImageBitmap(resultingImage)
+
+        return resultingImage
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    fun setObject(croppedBitmap: Bitmap) {
+        val view = this.parent.parent as ConstraintLayout
+        val emptyBitmap = Bitmap.createBitmap(croppedBitmap.width, croppedBitmap.height, croppedBitmap.config)
+
+        objectArrayList = arrayListOf()
+        objectListAdapter = ObjectListAdapter(objectArrayList)
+
+        view.objectRecycler.apply {
+            view.objectRecycler.layoutManager = LinearLayoutManager(context)
+            view.objectRecycler.adapter = objectListAdapter
+        }
+
+        if (!croppedBitmap.sameAs(emptyBitmap)) {
+            val objectDTO = ObjectDTO()
+            objectDTO.objId = objectArrayList.size
+            objectDTO.drawObj = croppedBitmap
+            objectArrayList.add(objectDTO)
+            objectListAdapter.notifyDataSetChanged()
+        }
     }
 
     private fun showCropDialog() {

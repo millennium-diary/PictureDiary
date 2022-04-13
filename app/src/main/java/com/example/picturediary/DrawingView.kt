@@ -18,9 +18,7 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context,attrs){
     private var mPaths = ArrayList<CustomPath>();
     private val mUndoPaths = ArrayList<CustomPath>()
 
-    init {
-        setUpDrawing()
-    }
+    init { setUpDrawing() }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
@@ -103,7 +101,6 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context,attrs){
 
     fun onClickRedo() {
         if (mUndoPaths.size > 0) {
-
             mPaths.add(mUndoPaths.removeAt(mUndoPaths.size - 1))
             invalidate() // Invalidate the whole view. If the view is visible
         }

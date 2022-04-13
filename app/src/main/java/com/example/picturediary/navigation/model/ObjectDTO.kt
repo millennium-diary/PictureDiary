@@ -1,10 +1,12 @@
 package com.example.picturediary.navigation.model
 
+import android.graphics.Bitmap
 import androidx.room.*
 import android.graphics.drawable.BitmapDrawable
 
 @Entity(
     tableName = "ObjectDTO",
+    primaryKeys = ["drawId", "objId"],
     foreignKeys = [
         ForeignKey(
             entity = DrawingDTO::class,
@@ -14,8 +16,8 @@ import android.graphics.drawable.BitmapDrawable
     ]
 )
 data class ObjectDTO(
-    @PrimaryKey(autoGenerate = true) val objId: Int,
-    @ColumnInfo(name = "drawId") var drawId: Int,
-    @ColumnInfo(name = "drawObj") var drawObj: BitmapDrawable?,
-    @ColumnInfo(name = "motion") var motion: String?
+    @ColumnInfo(name = "drawId") var drawId: Int? = null,
+    @ColumnInfo(name = "objId") var objId: Int? = null,
+    @ColumnInfo(name = "drawObj") var drawObj: Bitmap? = null,
+    @ColumnInfo(name = "motion") var motion: String? = null
 )
