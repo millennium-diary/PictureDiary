@@ -40,7 +40,7 @@ class DrawingActivity : AppCompatActivity() {
     private var auth : FirebaseAuth? = null
     private var firestore : FirebaseFirestore? = null
 
-    private var drawingView:DrawingView? = null
+    private var drawingView: DrawingView? = null
     private var mImageButtonCurrentPaint: ImageButton? = null
     var customProgressDialog: Dialog? = null
 
@@ -52,20 +52,20 @@ class DrawingActivity : AppCompatActivity() {
         firestore = FirebaseFirestore.getInstance()
         val username = auth?.currentUser?.displayName.toString()
 
-        GlobalScope.launch(Dispatchers.IO) {
-            val groupDTOs = firestore!!.collection("groups")
-                .whereArrayContains("shareWith", username)
-                .get()
-                .await()
-                .toObjects(GroupDTO::class.java) as ArrayList<GroupDTO>
-
-            val groups = arrayListOf<String>()
-            for (groupDTO in groupDTOs) {
-                val groupName = groupDTO.grpname.toString()
-                groups.add(groupName)
-            }
-            val finalGroups = groups.toTypedArray()
-            val checkArray = BooleanArray(groups.size)
+//        GlobalScope.launch(Dispatchers.IO) {
+//            val groupDTOs = firestore!!.collection("groups")
+//                .whereArrayContains("shareWith", username)
+//                .get()
+//                .await()
+//                .toObjects(GroupDTO::class.java) as ArrayList<GroupDTO>
+//
+//            val groups = arrayListOf<String>()
+//            for (groupDTO in groupDTOs) {
+//                val groupName = groupDTO.grpname.toString()
+//                groups.add(groupName)
+//            }
+//            val finalGroups = groups.toTypedArray()
+//            val checkArray = BooleanArray(groups.size)
 
             // 그룹 선택창
 //            select_grp.setOnClickListener {
@@ -84,7 +84,7 @@ class DrawingActivity : AppCompatActivity() {
 //                dlg.setPositiveButton("확인", null)
 //                dlg.show()
 //            }
-        }
+//        }
 
         drawingView = findViewById(R.id.drawing_view)
         val ibBrush: Button = findViewById(R.id.ib_brush)
@@ -105,8 +105,8 @@ class DrawingActivity : AppCompatActivity() {
             val intent = Intent(this, CropActivity::class.java)
             lifecycleScope.launch {
                 val stream = ByteArrayOutputStream()
-                val picture = getBitmapFromView(fl_drawing_view_container)
-                picture.compress(Bitmap.CompressFormat.PNG, 100, stream)
+                val picture = getBitmapFromView(drawing_view)
+                picture.compress(Bitmap.CompressFormat.PNG, 50, stream)
                 val byteArray = stream.toByteArray()
                 intent.putExtra("picture", byteArray)
             }
@@ -132,7 +132,7 @@ class DrawingActivity : AppCompatActivity() {
         val ibSave: Button = findViewById(R.id.ib_save)
         ibSave.setOnClickListener {
             if(isReadStorageAllowed()) {
-                lifecycleScope.launch{
+                lifecycleScope.launch {
 //                    val fl: FrameLayout = findViewById(R.id.fl_drawing_view_container)
                     saveBitmapFile(getBitmapFromView(fl_drawing_view_container))
                 }
@@ -146,7 +146,11 @@ class DrawingActivity : AppCompatActivity() {
             val imageBackground: ImageView = findViewById(R.id.iv_background)
             imageBackground.setImageResource(0)
         }
+    }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.clear()
     }
 
 //    val openGalleryLauncher: ActivityResultLauncher<Intent> = registerForActivityResult(ActivityResultContracts.StartActivityForResult()){ result->
@@ -179,7 +183,6 @@ class DrawingActivity : AppCompatActivity() {
                         ).show()
                 }
             }
-
         }
 
     private fun showBrushSizeChooserDialog() {
@@ -264,13 +267,14 @@ class DrawingActivity : AppCompatActivity() {
     }
 
     private fun getBitmapFromView(view : View): Bitmap{
-        val returnedBitmap = Bitmap.createBitmap(view.width,view.height,Bitmap.Config.ARGB_8888)
+        val returnedBitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(returnedBitmap)
+
         val bgDrawable = view.background
         if(bgDrawable != null) {
             bgDrawable.draw(canvas)
-        }else{
-            canvas.drawColor(Color.WHITE)
+        } else {
+            canvas.drawColor(Color.TRANSPARENT)
         }
         view.draw(canvas)
         return returnedBitmap

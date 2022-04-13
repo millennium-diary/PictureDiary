@@ -42,8 +42,9 @@
 //        paint.isAntiAlias = true
 //
 //        val path = Path()
-//        for (i in CropView) {
-//            path.lineTo(imageCropActivity.points[i]!!.x, imageCropActivity.points[i]!!.y)
+//        val cropView = CropView(this)
+//        for (i in cropView.points) {
+//            path.lineTo(CropView.points[i]!!.x, CropView.points[i]!!.y)
 //        }
 //        canvas.drawPath(path, paint)
 //        if (crop) {

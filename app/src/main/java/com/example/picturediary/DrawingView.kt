@@ -30,13 +30,13 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context,attrs){
 
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
-        canvas?.drawBitmap(mCanvasBitmap!!,0f,0f,mCanvasPaint)
+        canvas?.drawBitmap(mCanvasBitmap!!,0f,0f, mCanvasPaint)
         for (path in mPaths) {
             mDrawPaint!!.strokeWidth = path.brushThickness
             mDrawPaint!!.color = path.color
             canvas?.drawPath(path,mDrawPaint!!)
         }
-        if(!mDrawPath!!.isEmpty) {
+        if (!mDrawPath!!.isEmpty) {
             mDrawPaint!!.strokeWidth = mDrawPath!!.brushThickness
             mDrawPaint!!.color = mDrawPath!!.color
             canvas?.drawPath(mDrawPath!!,mDrawPaint!!)
@@ -46,7 +46,7 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context,attrs){
     override fun onTouchEvent(event: MotionEvent?): Boolean {
         val touchX = event?.x
         val touchY = event?.y
-        when(event?.action){
+        when(event?.action) {
             MotionEvent.ACTION_DOWN ->{
                 mDrawPath!!.color = color
                 mDrawPath!!.brushThickness = mBrushSize
@@ -66,8 +66,7 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context,attrs){
             }
             MotionEvent.ACTION_UP ->{
                 mPaths.add(mDrawPath!!)
-                mDrawPath = CustomPath(color,mBrushSize)
-
+                mDrawPath = CustomPath(color, mBrushSize)
             }
             else -> return false
         }
@@ -88,7 +87,6 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context,attrs){
     fun setBrushSize(newSize: Float) {
         mBrushSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,newSize,resources.displayMetrics)
         mDrawPaint!!.strokeWidth = mBrushSize
-
     }
 
     fun setColor(newColor: String) {
@@ -111,10 +109,9 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context,attrs){
         }
     }
 
-    fun onReset(){
+    fun onReset() {
         mPaths = ArrayList<CustomPath>()
         invalidate()
-
     }
 
     internal inner class CustomPath(var color: Int, var brushThickness: Float) : Path() { }
