@@ -30,6 +30,9 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.get
 import androidx.lifecycle.lifecycleScope
+import androidx.room.Room
+import com.example.picturediary.navigation.dao.AppDatabase
+import com.example.picturediary.navigation.model.DrawingDTO
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -39,10 +42,12 @@ import java.io.FileOutputStream
 class DrawingActivity : AppCompatActivity() {
     private var auth : FirebaseAuth? = null
     private var firestore : FirebaseFirestore? = null
+    private var db: AppDatabase? = null
 
     private var drawingView: DrawingView? = null
     private var mImageButtonCurrentPaint: ImageButton? = null
     var customProgressDialog: Dialog? = null
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -88,7 +93,7 @@ class DrawingActivity : AppCompatActivity() {
 
         drawingView = findViewById(R.id.drawing_view)
         val ibBrush: Button = findViewById(R.id.ib_brush)
-        ibBrush.setOnClickListener {
+        ibBrush.setOnClickListener{
             showBrushSizeChooserDialog()
         }
         val linearLayoutPaintColors = findViewById<LinearLayout>(R.id.ll_paint_colors)
@@ -103,14 +108,28 @@ class DrawingActivity : AppCompatActivity() {
         val ibMotion: Button = findViewById(R.id.ib_motion)
         ibMotion.setOnClickListener {
             val intent = Intent(this, CropActivity::class.java)
-            lifecycleScope.launch {
-                val stream = ByteArrayOutputStream()
-                val picture = getBitmapFromView(drawing_view)
-                picture.compress(Bitmap.CompressFormat.PNG, 50, stream)
-                val byteArray = stream.toByteArray()
-                intent.putExtra("picture", byteArray)
+            val stream = ByteArrayOutputStream()
+            val picture = getBitmapFromView(drawing_view)
+            picture.compress(Bitmap.CompressFormat.PNG, 50, stream)
+            val byteArray = stream.toByteArray()
+            intent.putExtra("picture", byteArray)
+            
+            // 내장 데이터베이스 저장 코드
+            db = AppDatabase.getInstance(this)
+            val insertRunnable = Runnable {
+                val newDrawing = DrawingDTO()
+                newDrawing.user = username
+                newDrawing.image = picture
+                newDrawing.group = null
+                db?.drawingDAO()?.insertAll(newDrawing)
             }
+
+            // 저장 스레드 시작
+            val addThread = Thread(insertRunnable)
+            addThread.start()
+
             startActivity(intent)
+            finish()
         }
 
         val ibEraser : Button = findViewById(R.id.ib_eraser)
