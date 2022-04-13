@@ -12,8 +12,10 @@
         android:gravity="center_vertical"
         android:orientation="horizontal">
         <ImageView
-            android:layout_width="50dp"
-            android:layout_height="50dp"/>
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_margin="7.5dp"
+            android:id="@+id/detailviewitem_profile_image"/>
         <TextView
             android:id="@+id/profile_textview"
             android:layout_width="wrap_content"
@@ -37,6 +39,7 @@
         <ImageView
             android:layout_width="35dp"
             android:layout_height="35dp"
+            android:src="@drawable/ic_favorite_border"
             android:id="@+id/favorite_imageview"/>
         <ImageView
             android:layout_width="35dp"

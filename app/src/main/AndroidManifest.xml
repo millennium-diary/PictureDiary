@@ -29,6 +29,7 @@
         <activity android:name=".DrawingActivity" />
         <activity android:name=".ImageCropActivity" />
         <activity android:name=".MotionActivity" />
+        <activity android:name=".DiarytimelineActivity"/>
         <provider
             android:authorities="com.example.paint.fileprovider"
             android:name="androidx.core.content.FileProvider"
