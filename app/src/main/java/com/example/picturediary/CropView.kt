@@ -1,27 +1,21 @@
 package com.example.picturediary
 
 import android.annotation.SuppressLint
-import android.content.Context
-import android.content.DialogInterface
-import android.content.Intent
+import android.content.*
 import android.graphics.*
 import android.util.AttributeSet
-import android.view.MotionEvent
-import android.view.View
+import android.view.*
 import android.view.View.OnTouchListener
 import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.picturediary.navigation.model.ObjectDTO
-import kotlinx.android.synthetic.main.activity_crop.*
 import kotlinx.android.synthetic.main.activity_crop.view.*
-import kotlinx.android.synthetic.main.chosen_object_item.view.*
-import kotlinx.android.synthetic.main.fragment_detail.view.*
 
 
-class CropView(context: Context, attributeSet: AttributeSet) : View(context, attributeSet), OnTouchListener {
+class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), OnTouchListener {
     var flgPathDraw = true
-    private var cropPath = arrayListOf<Path?>()
+//    private var path = Path()
     private var points = arrayListOf<Point?>()
     private var bitmap: Bitmap? = null
     private var paint: Paint? = null
@@ -29,19 +23,26 @@ class CropView(context: Context, attributeSet: AttributeSet) : View(context, att
     private var bfirstpoint = false
     private var mlastpoint: Point? = null
 
+//    private var db: AppDatabase? = null
     lateinit var objectArrayList: ArrayList<ObjectDTO>
     lateinit var objectListAdapter: ObjectListAdapter
 
-    init { initDrawing() }
+    init {
+        initPaint()
+        initDrawing()
+    }
 
-    private fun initDrawing() {
-        isFocusable = true
-        isFocusableInTouchMode = true
+    private fun initPaint() {
         paint = Paint(Paint.ANTI_ALIAS_FLAG)
         paint!!.style = Paint.Style.STROKE
         paint!!.pathEffect = DashPathEffect(floatArrayOf(10f, 20f), 0F)
         paint!!.color = Color.MAGENTA
         paint!!.strokeWidth = 5f
+    }
+
+    private fun initDrawing() {
+        isFocusable = true
+        isFocusableInTouchMode = true
         setOnTouchListener(this)
         bfirstpoint = false
     }
@@ -56,6 +57,7 @@ class CropView(context: Context, attributeSet: AttributeSet) : View(context, att
         val path = Path()
         var first = true
         var i = 0
+
         while (i < points.size) {
             val point: Point? = points[i]
             when {
@@ -75,28 +77,25 @@ class CropView(context: Context, attributeSet: AttributeSet) : View(context, att
             i += 2
         }
         canvas.drawPath(path, paint!!)
-
-        invalidate()
-        path.reset()
     }
 
     override fun onTouch(view: View, event: MotionEvent): Boolean {
+        var path: Path
         val point = Point()
         point.x = event.x
         point.y = event.y
 
-        // 크롭의 마지막 좌표가 첫번째 좌표와 일치할 때
         if (flgPathDraw) {
             if (bfirstpoint) {
                 if (comparePoint(mfirstpoint, point)) {
                     points.add(mfirstpoint)
                     flgPathDraw = false
 //                    showCropDialog()
-                    val path = getPath()
+                    path = getPath()
                     val croppedImage = getObject(bitmap!!, path)
 
                     // 어댑터에 객체 추가
-                    setObject(croppedImage!!)
+                    setObject(croppedImage)
                 }
                 else points.add(point)
             }
@@ -107,9 +106,7 @@ class CropView(context: Context, attributeSet: AttributeSet) : View(context, att
                 bfirstpoint = true
             }
         }
-        invalidate()
 
-        // 크롭의 마지막 좌표가 첫번째 좌표와 일치하지 않을 때때
        if (event.action == MotionEvent.ACTION_UP) {
             mlastpoint = point
             if (flgPathDraw && points.size > 12) {
@@ -117,14 +114,17 @@ class CropView(context: Context, attributeSet: AttributeSet) : View(context, att
                     flgPathDraw = false
                     points.add(mfirstpoint)
 //                        showCropDialog()
-                    val path = getPath()
+                    path = getPath()
                     val croppedImage = getObject(bitmap!!, path)
 
                     // 어댑터에 객체 추가
-                    setObject(croppedImage!!)
+                    setObject(croppedImage)
                 }
             }
         }
+        flgPathDraw = true
+        invalidate()
+
         return true
     }
 
@@ -144,14 +144,15 @@ class CropView(context: Context, attributeSet: AttributeSet) : View(context, att
         val path = Path()
         for (point in points)
             path.lineTo(point!!.x, point.y)
+        points.removeAll(points)
         return path
     }
 
-    private fun getObject(bitmap: Bitmap, path: Path): Bitmap? {
+    private fun getObject(bitmap: Bitmap, path: Path): Bitmap {
         // 선택한 객체만 추출
         val resultingImage = Bitmap.createBitmap(crop_view.width, crop_view.height, bitmap.config)
-        val canvas = Canvas(resultingImage)
         val paint = Paint()
+        val canvas = Canvas(resultingImage)     // 어댑터 캔버스
 
         canvas.drawPath(path, paint)
         paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_IN)
@@ -166,6 +167,9 @@ class CropView(context: Context, attributeSet: AttributeSet) : View(context, att
         val emptyBitmap = Bitmap.createBitmap(croppedBitmap.width, croppedBitmap.height, croppedBitmap.config)
 
         objectArrayList = arrayListOf()
+//        val getRunnable = Runnable {
+//            objectArrayList =
+//        }
         objectListAdapter = ObjectListAdapter(objectArrayList)
 
         view.objectRecycler.apply {

@@ -167,13 +167,13 @@
                 android:layout_weight="1"
                 android:tooltipText="브러쉬"
                 android:textSize="12sp"
-                android:text="펜"/>
+                android:text="펜 크기"/>
             <android.widget.Button
                 android:id="@+id/ib_eraser"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:tag="@color/white"
+                android:tag="@color/transparent"
                 android:textSize="11dp"
                 android:text="지우개"/>
             <ImageButton
@@ -203,13 +203,13 @@
                 android:layout_weight="1"
                 android:src="@drawable/ic_redo"
                 android:visibility="visible" />
-            <android.widget.Button
-                android:id="@+id/ib_save"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:textSize="12sp"
-                android:text="저장"/>
+<!--            <android.widget.Button-->
+<!--                android:id="@+id/ib_save"-->
+<!--                android:layout_width="0dp"-->
+<!--                android:layout_height="match_parent"-->
+<!--                android:layout_weight="1"-->
+<!--                android:textSize="12sp"-->
+<!--                android:text="저장"/>-->
             <android.widget.Button
                 android:id="@+id/ib_motion"
                 android:layout_width="0dp"

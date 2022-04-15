@@ -10,15 +10,14 @@
         android:id="@+id/objectView"
         android:layout_width="100dp"
         android:layout_height="100dp"
-        android:background="@color/white"
-        android:src="@drawable/imsi"
+        android:background="@color/black"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"/>
 
     <ImageButton
         android:id="@+id/delete_object"
-        android:layout_width="10dp"
-        android:layout_height="10dp"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
         android:layout_margin="5dp"
         android:adjustViewBounds="true"
         android:scaleType="fitCenter"
