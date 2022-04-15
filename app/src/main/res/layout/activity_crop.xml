@@ -8,66 +8,75 @@
     android:background="#BDBDBD"
     tools:context=".CropActivity">
 
-    <LinearLayout
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/objectRecycler"
         android:layout_width="match_parent"
-        android:layout_height="100dp"
-        app:layout_constraintTop_toTopOf="parent">
-        <ImageView
-            android:id="@+id/cropped"
-            android:padding="5dp"
-            android:background="@color/white"
-            android:layout_width="100dp"
-            android:layout_height="match_parent"/>
-    </LinearLayout>
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:listitem="@layout/chosen_object_item"/>
+
+<!--    <LinearLayout-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="100dp"-->
+<!--        app:layout_constraintTop_toTopOf="parent">-->
+<!--        <ImageView-->
+<!--            android:id="@+id/cropped"-->
+<!--            android:padding="5dp"-->
+<!--            android:background="@color/white"-->
+<!--            android:layout_width="100dp"-->
+<!--            android:layout_height="match_parent"/>-->
+<!--    </LinearLayout>-->
 
     <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/constraintLayout"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:background="@drawable/background_drawing_view_layout"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintDimensionRatio="1:1"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent">
+        app:layout_constraintTop_toTopOf="parent">
 
         <ImageView
             android:id="@+id/mo_background"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_marginEnd="0dp"
             android:layout_marginStart="0dp"
             android:layout_marginTop="0dp"
+            android:layout_marginEnd="0dp"
             android:scaleType="centerCrop"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintDimensionRatio="1:1"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"/>
+            app:layout_constraintTop_toTopOf="parent" />
 
         <com.example.picturediary.CropView
             android:id="@+id/crop_view"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:background="#80FFFFFF"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintDimensionRatio="1:1"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintVertical_bias="1.0" />
 
         <ImageView
             android:id="@+id/secret"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_marginEnd="0dp"
             android:layout_marginStart="0dp"
             android:layout_marginTop="0dp"
+            android:layout_marginEnd="0dp"
             android:scaleType="centerCrop"
+            android:visibility="invisible"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintDimensionRatio="1:1"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            android:visibility="invisible"/>
+            app:layout_constraintTop_toTopOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

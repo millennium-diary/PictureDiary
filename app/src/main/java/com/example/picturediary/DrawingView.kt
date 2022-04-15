@@ -15,12 +15,10 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context,attrs){
     private var mBrushSize: Float = 0.toFloat()
     private var color = Color.BLACK
     private var canvas: Canvas? = null
-    private var mPaths = ArrayList<CustomPath>();
+    private var mPaths = ArrayList<CustomPath>()
     private val mUndoPaths = ArrayList<CustomPath>()
 
-    init {
-        setUpDrawing()
-    }
+    init { setUpDrawing() }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
@@ -46,7 +44,7 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context,attrs){
     override fun onTouchEvent(event: MotionEvent?): Boolean {
         val touchX = event?.x
         val touchY = event?.y
-        when(event?.action) {
+        when (event?.action) {
             MotionEvent.ACTION_DOWN ->{
                 mDrawPath!!.color = color
                 mDrawPath!!.brushThickness = mBrushSize
@@ -90,8 +88,13 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context,attrs){
     }
 
     fun setColor(newColor: String) {
-        color = Color.parseColor(newColor)
-        mDrawPaint?.color = color
+//        if (newColor == "eraser") {
+//            mDrawPaint?.xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR)
+//        }
+//        else {
+            color = Color.parseColor(newColor)
+            mDrawPaint?.color = color
+//        }
     }
 
     fun onClickUndo() {
@@ -103,7 +106,6 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context,attrs){
 
     fun onClickRedo() {
         if (mUndoPaths.size > 0) {
-
             mPaths.add(mUndoPaths.removeAt(mUndoPaths.size - 1))
             invalidate() // Invalidate the whole view. If the view is visible
         }

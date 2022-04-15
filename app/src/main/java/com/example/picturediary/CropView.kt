@@ -1,36 +1,48 @@
 package com.example.picturediary
 
-import android.content.Context
-import android.content.DialogInterface
-import android.content.Intent
+import android.annotation.SuppressLint
+import android.content.*
 import android.graphics.*
 import android.util.AttributeSet
-import android.view.MotionEvent
-import android.view.View
+import android.view.*
 import android.view.View.OnTouchListener
+import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.picturediary.navigation.model.ObjectDTO
 import kotlinx.android.synthetic.main.activity_crop.view.*
 
 
-class CropView(context: Context, attributeSet: AttributeSet) : View(context, attributeSet), OnTouchListener {
+class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), OnTouchListener {
     var flgPathDraw = true
+//    private var path = Path()
     private var points = arrayListOf<Point?>()
-    private var objects = arrayListOf<Bitmap>()
     private var bitmap: Bitmap? = null
     private var paint: Paint? = null
     private var mfirstpoint: Point? = null
     private var bfirstpoint = false
     private var mlastpoint: Point? = null
 
+//    private var db: AppDatabase? = null
+    lateinit var objectArrayList: ArrayList<ObjectDTO>
+    lateinit var objectListAdapter: ObjectListAdapter
 
     init {
-        isFocusable = true
-        isFocusableInTouchMode = true
+        initPaint()
+        initDrawing()
+    }
+
+    private fun initPaint() {
         paint = Paint(Paint.ANTI_ALIAS_FLAG)
         paint!!.style = Paint.Style.STROKE
         paint!!.pathEffect = DashPathEffect(floatArrayOf(10f, 20f), 0F)
         paint!!.color = Color.MAGENTA
         paint!!.strokeWidth = 5f
+    }
+
+    private fun initDrawing() {
+        isFocusable = true
+        isFocusableInTouchMode = true
         setOnTouchListener(this)
         bfirstpoint = false
     }
@@ -39,11 +51,13 @@ class CropView(context: Context, attributeSet: AttributeSet) : View(context, att
         bitmap = picture
     }
 
+    @SuppressLint("DrawAllocation")
     public override fun onDraw(canvas: Canvas) {
         canvas.drawBitmap(bitmap!!, 0f, 0f, null)
         val path = Path()
         var first = true
         var i = 0
+
         while (i < points.size) {
             val point: Point? = points[i]
             when {
@@ -66,17 +80,22 @@ class CropView(context: Context, attributeSet: AttributeSet) : View(context, att
     }
 
     override fun onTouch(view: View, event: MotionEvent): Boolean {
+        var path: Path
         val point = Point()
         point.x = event.x
         point.y = event.y
+
         if (flgPathDraw) {
             if (bfirstpoint) {
                 if (comparePoint(mfirstpoint, point)) {
                     points.add(mfirstpoint)
                     flgPathDraw = false
 //                    showCropDialog()
-                    val path = getPath()
-                    getObject(bitmap!!, path)
+                    path = getPath()
+                    val croppedImage = getObject(bitmap!!, path)
+
+                    // 어댑터에 객체 추가
+                    setObject(croppedImage)
                 }
                 else points.add(point)
             }
@@ -87,21 +106,25 @@ class CropView(context: Context, attributeSet: AttributeSet) : View(context, att
                 bfirstpoint = true
             }
         }
-        invalidate()
-        if (event.action == MotionEvent.ACTION_UP) {
+
+       if (event.action == MotionEvent.ACTION_UP) {
             mlastpoint = point
-            if (flgPathDraw) {
-                if (points.size > 12) {
-                    if (!comparePoint(mfirstpoint, mlastpoint)) {
-                        flgPathDraw = false
-                        points.add(mfirstpoint)
+            if (flgPathDraw && points.size > 12) {
+                if (!comparePoint(mfirstpoint, mlastpoint)) {
+                    flgPathDraw = false
+                    points.add(mfirstpoint)
 //                        showCropDialog()
-                        val path = getPath()
-                        getObject(bitmap!!, path)
-                    }
+                    path = getPath()
+                    val croppedImage = getObject(bitmap!!, path)
+
+                    // 어댑터에 객체 추가
+                    setObject(croppedImage)
                 }
             }
         }
+        flgPathDraw = true
+        invalidate()
+
         return true
     }
 
@@ -121,20 +144,46 @@ class CropView(context: Context, attributeSet: AttributeSet) : View(context, att
         val path = Path()
         for (point in points)
             path.lineTo(point!!.x, point.y)
+        points.removeAll(points)
         return path
     }
 
-    private fun getObject(bitmap: Bitmap, path: Path) {
-        val view = this.parent.parent as ConstraintLayout
+    private fun getObject(bitmap: Bitmap, path: Path): Bitmap {
+        // 선택한 객체만 추출
         val resultingImage = Bitmap.createBitmap(crop_view.width, crop_view.height, bitmap.config)
-
-        val canvas = Canvas(resultingImage)
         val paint = Paint()
+        val canvas = Canvas(resultingImage)     // 어댑터 캔버스
 
         canvas.drawPath(path, paint)
         paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_IN)
         canvas.drawBitmap(bitmap, 0f, 0f, paint)
-        view.cropped.setImageBitmap(resultingImage)
+
+        return resultingImage
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    fun setObject(croppedBitmap: Bitmap) {
+        val view = this.parent.parent as ConstraintLayout
+        val emptyBitmap = Bitmap.createBitmap(croppedBitmap.width, croppedBitmap.height, croppedBitmap.config)
+
+        objectArrayList = arrayListOf()
+//        val getRunnable = Runnable {
+//            objectArrayList =
+//        }
+        objectListAdapter = ObjectListAdapter(objectArrayList)
+
+        view.objectRecycler.apply {
+            view.objectRecycler.layoutManager = LinearLayoutManager(context)
+            view.objectRecycler.adapter = objectListAdapter
+        }
+
+        if (!croppedBitmap.sameAs(emptyBitmap)) {
+            val objectDTO = ObjectDTO()
+            objectDTO.objId = objectArrayList.size
+            objectDTO.drawObj = croppedBitmap
+            objectArrayList.add(objectDTO)
+            objectListAdapter.notifyDataSetChanged()
+        }
     }
 
     private fun showCropDialog() {
