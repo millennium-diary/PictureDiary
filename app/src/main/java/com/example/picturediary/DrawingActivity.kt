@@ -2,6 +2,7 @@ package com.example.picturediary
 
 import android.app.Dialog
 import android.content.Intent
+import android.database.sqlite.SQLiteDatabase
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
@@ -17,17 +18,16 @@ import android.view.View
 import android.widget.*
 import androidx.core.content.ContextCompat
 import androidx.core.view.get
-import com.example.picturediary.navigation.model.DrawingDTO
-import kotlinx.coroutines.withContext
+import com.example.picturediary.navigation.dao.DBHelper
 import java.io.ByteArrayOutputStream
-import java.io.File
-import java.io.FileOutputStream
 
 
 class DrawingActivity : AppCompatActivity() {
     private var auth : FirebaseAuth? = null
     private var firestore : FirebaseFirestore? = null
-//    private var db: AppDatabase? = null
+
+    private val dbName = "pictureDiary.db"
+    lateinit var dbHelper: DBHelper
 
     private var drawingView: DrawingView? = null
     private var mImageButtonCurrentPaint: ImageButton? = null
@@ -38,7 +38,11 @@ class DrawingActivity : AppCompatActivity() {
 
         auth = Firebase.auth
         firestore = FirebaseFirestore.getInstance()
+
+        dbHelper = DBHelper(this, dbName, null, 1)
+
         val username = auth?.currentUser?.displayName.toString()
+        val pickedDate = intent.getStringExtra("pickedDate")
 
 //        GlobalScope.launch(Dispatchers.IO) {
 //            val groupDTOs = firestore!!.collection("groups")
@@ -79,6 +83,7 @@ class DrawingActivity : AppCompatActivity() {
         ibBrush.setOnClickListener {
             showBrushSizeChooserDialog()
         }
+
         val linearLayoutPaintColors = findViewById<LinearLayout>(R.id.ll_paint_colors)
         mImageButtonCurrentPaint = linearLayoutPaintColors[1] as ImageButton
         mImageButtonCurrentPaint?.setImageDrawable(
@@ -90,29 +95,21 @@ class DrawingActivity : AppCompatActivity() {
 
         val ibMotion: Button = findViewById(R.id.ib_motion)
         ibMotion.setOnClickListener {
+            // 다음 액티비티에 인텐트 넘겨줌 (그림 & 날짜)
             val intent = Intent(this, CropActivity::class.java)
+
             val stream = ByteArrayOutputStream()
             val picture = getBitmapFromView(drawing_view)
             picture.compress(Bitmap.CompressFormat.PNG, 50, stream)
             val byteArray = stream.toByteArray()
+
+            intent.putExtra("pickedDate", pickedDate)
             intent.putExtra("picture", byteArray)
 
-//            // 내장 데이터베이스 저장 코드
-//            db = AppDatabase.getInstance(this)
-//            val insertRunnable = Runnable {
-//                val newDrawing = DrawingDTO()
-//                newDrawing.user = username
-//                newDrawing.image = picture
-//                newDrawing.group = null
-//                db?.drawingDAO()?.insertAll(newDrawing)
-//            }
-//
-//            // 저장 스레드 시작
-//            val addThread = Thread(insertRunnable)
-//            addThread.start()
-
-            startActivity(intent)
-            finish()
+            // 내장 DB에 데이터 저장
+            if (!dbHelper.insertDrawing(pickedDate!!, username, byteArray))
+                Toast.makeText(applicationContext, "오류가 생겼습니다. 다시 시도해 주세요", Toast.LENGTH_SHORT).show()
+            else startActivity(intent)
         }
 
         val ibEraser : Button = findViewById(R.id.ib_eraser)
