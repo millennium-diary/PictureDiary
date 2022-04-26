@@ -7,24 +7,22 @@ import android.util.AttributeSet
 import android.view.*
 import android.view.View.OnTouchListener
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.lifecycle.LiveData
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.picturediary.navigation.dao.DBHelper
 import com.example.picturediary.navigation.model.ObjectDTO
 import kotlinx.android.synthetic.main.activity_crop.view.*
-import kotlinx.android.synthetic.main.activity_drawing.*
 import java.io.ByteArrayOutputStream
 
 
 class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), OnTouchListener {
     private var flgPathDraw = true
-//    private var path = Path()
     private var points = arrayListOf<Point?>()
     private var bitmap: Bitmap? = null
     private var paint: Paint? = null
+    private var firstPointExist = false     // 첫 좌표 존재 여부
     private var mfirstpoint: Point? = null
-    private var bfirstpoint = false
     private var mlastpoint: Point? = null
+    private var isNewObject = false
 
     private val dbName = "pictureDiary.db"
     private var dbHelper: DBHelper = DBHelper(context, dbName, null, 1)
@@ -41,7 +39,7 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
         isFocusable = true
         isFocusableInTouchMode = true
         setOnTouchListener(this)
-        bfirstpoint = false
+        firstPointExist = false
         paint = Paint(Paint.ANTI_ALIAS_FLAG)
         paint!!.style = Paint.Style.STROKE
         paint!!.pathEffect = DashPathEffect(floatArrayOf(10f, 20f), 0F)
@@ -64,21 +62,20 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
             when {
                 first -> {
                     first = false
-                    path.moveTo(point!!.x, point.y)
+                    path.moveTo(point!!.x, point.y)     // 기준점 이동
                 }
                 i < points.size - 1 -> {
                     val next: Point? = points[i + 1]
-                    path.quadTo(point!!.x, point.y, next!!.x, next.y)
+                    path.quadTo(point!!.x, point.y, next!!.x, next.y)   // 곡선
                 }
                 else -> {
                     mlastpoint = points[i]
-                    path.lineTo(point!!.x, point.y)
+                    path.lineTo(point!!.x, point.y)     // 경로 추가
                 }
             }
             i += 2
         }
         canvas.drawPath(path, paint!!)
-        path.reset()
     }
 
     override fun onTouch(view: View, event: MotionEvent): Boolean {
@@ -87,45 +84,47 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
         point.x = event.x
         point.y = event.y
 
+        if (isNewObject) {
+            firstPointExist = false
+            isNewObject = false
+        }
+
         if (flgPathDraw) {
-            if (bfirstpoint) {
-                if (comparePoint(mfirstpoint, point)) {
+            if (firstPointExist) {
+                if (mfirstpoint == point) {
                     points.add(mfirstpoint)
                     flgPathDraw = false
-//                    showCropDialog()
+
                     path = getPath()
                     val croppedImage = getObject(bitmap!!, path)
-
-                    // 어댑터에 객체 추가
-                    setObject(croppedImage)
+                    setObject(croppedImage)     // 어댑터에 객체 추가
+                    isNewObject = true
                 }
                 else points.add(point)
             }
-            else points.add(point)
-
-            if (!bfirstpoint) {
+            else {
+                points.add(point)
                 mfirstpoint = point
-                bfirstpoint = true
+                firstPointExist = true
             }
         }
 
-       if (event.action == MotionEvent.ACTION_UP) {
+        if (event.action == MotionEvent.ACTION_UP) {
             mlastpoint = point
             if (flgPathDraw && points.size > 12) {
-                if (!comparePoint(mfirstpoint, mlastpoint)) {
+                if (mfirstpoint != point) {
                     flgPathDraw = false
                     points.add(mfirstpoint)
-//                        showCropDialog()
+
                     path = getPath()
                     val croppedImage = getObject(bitmap!!, path)
-
-                    // 어댑터에 객체 추가
-                    setObject(croppedImage)
+                    setObject(croppedImage)     // 어댑터에 객체 추가
+                    isNewObject = true
                 }
             }
         }
         flgPathDraw = true
-        invalidate()
+        invalidate()    // onDraw() 실행
 
         return true
     }
@@ -173,7 +172,6 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
         val emptyBitmap = Bitmap.createBitmap(croppedBitmap.width, croppedBitmap.height, croppedBitmap.config)
 
         objectArrayList = dbHelper.readObject(pickedDate!!)
-        println("얍얍 " + objectArrayList.size)
         objectListAdapter = ObjectListAdapter(objectArrayList)
         val objId = objectArrayList.size
 
@@ -188,39 +186,9 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
             objectDTO.objId = objId
             objectDTO.drawObj = byteArray
             objectArrayList.add(objectDTO)
-            println("얍얍숍 " + objectArrayList.size)
             objectListAdapter.notifyDataSetChanged()
 
             dbHelper.insertObject(pickedDate!!, objId, byteArray, "")
         }
-    }
-
-    private fun showCropDialog() {
-        val dialogClickListener =
-            DialogInterface.OnClickListener { dialog, which ->
-                val intent: Intent
-                when (which) {
-                    DialogInterface.BUTTON_POSITIVE -> {
-//                        intent = Intent(context, TestActivity::class.java)
-//                        context.startActivity(intent)
-
-//                        intent = Intent(mContext, MotionActivity::class.java)
-//                        intent.putExtra("crop", true)
-//                        mContext.startActivity(intent)
-                    }
-//                        DialogInterface.BUTTON_NEGATIVE -> {
-//                            intent = Intent(mContext, MotionActivity::class.java)
-//                            intent.putExtra("crop", false)
-//                            mContext.startActivity(intent)
-//                            bfirstpoint = false
-//                        }
-                }
-            }
-        val builder = androidx.appcompat.app.AlertDialog.Builder(context)
-        builder.setMessage("Do you Want to save Crop or Non-crop image?")
-            .setPositiveButton("Crop", dialogClickListener)
-//                .setNegativeButton("Non-crop", dialogClickListener).show()
-            .setCancelable(true)
-            .show()
     }
 }
