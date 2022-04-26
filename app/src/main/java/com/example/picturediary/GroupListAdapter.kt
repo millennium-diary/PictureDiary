@@ -1,28 +1,37 @@
 package com.example.picturediary
 
+import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.example.picturediary.GroupListAdapter.ViewHolder
 import com.example.picturediary.databinding.UserGroupItemBinding
 import com.example.picturediary.navigation.model.GroupDTO
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.ktx.Firebase
+import kotlinx.android.synthetic.main.user_group_item.view.*
+
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
 
 
-class GroupListAdapter(var items: ArrayList<GroupDTO>) : RecyclerView.Adapter<GroupListAdapter.ViewHolder>() {
+class GroupListAdapter(var items: ArrayList<GroupDTO>) : RecyclerView.Adapter<ViewHolder>() {
+    private var auth: FirebaseAuth? = null
+    private var firestore: FirebaseFirestore? = null
+
     interface ItemClickListener {
         fun onClick(view: View, position: Int)
     }
 
-    // 클릭리스너 선언
+    //클릭리스너 선언
     private lateinit var itemClickListener: ItemClickListener
 
-    // 클릭리스너 등록 매소드
+    //클릭리스너 등록 매소드
     fun setItemClickListener(itemClickListener: ItemClickListener) {
         this.itemClickListener = itemClickListener
     }
@@ -33,9 +42,15 @@ class GroupListAdapter(var items: ArrayList<GroupDTO>) : RecyclerView.Adapter<Gr
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.bind(items[position])
+
+        val groupId = holder.itemView.groupId.text
+        println(groupId)
+
         holder.itemView.setOnClickListener {
-//            val intent = Intent(holder.itemView.context, TimelineActivity::class.java)
-//            ContextCompat.startActivity(holder.itemView.context, intent, null)
+            val intent = Intent(holder.itemView.context, DiarytimelineActivity::class.java)
+            intent.putExtra("GroupID", groupId)
+            println(groupId)
+            ContextCompat.startActivity(holder.itemView.context, intent, null)
 //            itemClickListener.onClick(it, position)
         }
     }

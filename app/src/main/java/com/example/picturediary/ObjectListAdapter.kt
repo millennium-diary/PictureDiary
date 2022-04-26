@@ -1,11 +1,11 @@
 package com.example.picturediary
 
+import android.graphics.BitmapFactory
 import android.view.*
 import androidx.recyclerview.widget.RecyclerView
 import com.example.picturediary.databinding.ChosenObjectItemBinding
 import com.example.picturediary.navigation.model.ObjectDTO
 import kotlin.collections.ArrayList
-
 
 
 class ObjectListAdapter(var items: ArrayList<ObjectDTO>) : RecyclerView.Adapter<ObjectListAdapter.ViewHolder>() {
@@ -24,8 +24,10 @@ class ObjectListAdapter(var items: ArrayList<ObjectDTO>) : RecyclerView.Adapter<
 
     inner class ViewHolder(private val binding: ChosenObjectItemBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(item: ObjectDTO) {
-            binding.objectView.setImageBitmap(item.drawObj)
-            println("뭐야 " + item.drawObj)
+            val bitmap = BitmapFactory.decodeByteArray(item.drawObj, 0, item.drawObj!!.size)
+            binding.objectParentId.text = item.fullDraw
+            binding.objectId.text = item.objId.toString()
+            binding.objectView.setImageBitmap(bitmap)
             binding.objectMotion.text = item.motion
         }
     }

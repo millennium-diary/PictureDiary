@@ -60,7 +60,6 @@ class CalendarAdapter(context: Context?): BaseAdapter() {
         if (!(mDateManager!!.isCurrentMonth(dateArray[position]))) {
             holder.dateText!!.alpha = 0.4f
         }
-
         return convertView
     }
 

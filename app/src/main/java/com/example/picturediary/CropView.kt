@@ -7,15 +7,17 @@ import android.util.AttributeSet
 import android.view.*
 import android.view.View.OnTouchListener
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.lifecycle.LiveData
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.picturediary.navigation.dao.AppDatabase
+import com.example.picturediary.navigation.dao.DBHelper
 import com.example.picturediary.navigation.model.ObjectDTO
 import kotlinx.android.synthetic.main.activity_crop.view.*
+import kotlinx.android.synthetic.main.activity_drawing.*
+import java.io.ByteArrayOutputStream
 
 
 class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), OnTouchListener {
-    var flgPathDraw = true
-    private val cropActivity = CropActivity()
+    private var flgPathDraw = true
 //    private var path = Path()
     private var points = arrayListOf<Point?>()
     private var bitmap: Bitmap? = null
@@ -24,21 +26,15 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
     private var bfirstpoint = false
     private var mlastpoint: Point? = null
 
-    private var db: AppDatabase? = null
-    lateinit var objectArrayList: ArrayList<ObjectDTO>
+    private val dbName = "pictureDiary.db"
+    private var dbHelper: DBHelper = DBHelper(context, dbName, null, 1)
+    private var pickedDate: String? = null
+
+    private var objectArrayList = arrayListOf<ObjectDTO>()
     lateinit var objectListAdapter: ObjectListAdapter
 
     init {
-        initPaint()
         initDrawing()
-    }
-
-    private fun initPaint() {
-        paint = Paint(Paint.ANTI_ALIAS_FLAG)
-        paint!!.style = Paint.Style.STROKE
-        paint!!.pathEffect = DashPathEffect(floatArrayOf(10f, 20f), 0F)
-        paint!!.color = Color.MAGENTA
-        paint!!.strokeWidth = 5f
     }
 
     private fun initDrawing() {
@@ -46,11 +42,15 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
         isFocusableInTouchMode = true
         setOnTouchListener(this)
         bfirstpoint = false
+        paint = Paint(Paint.ANTI_ALIAS_FLAG)
+        paint!!.style = Paint.Style.STROKE
+        paint!!.pathEffect = DashPathEffect(floatArrayOf(10f, 20f), 0F)
+        paint!!.color = Color.MAGENTA
+        paint!!.strokeWidth = 5f
     }
 
-    fun setDrawing(picture: Bitmap) {
-        bitmap = picture
-    }
+    fun setDrawing(picture: Bitmap) { bitmap = picture }
+    fun setDrawId(drawId: String) { pickedDate = drawId }
 
     @SuppressLint("DrawAllocation")
     public override fun onDraw(canvas: Canvas) {
@@ -78,6 +78,7 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
             i += 2
         }
         canvas.drawPath(path, paint!!)
+        path.reset()
     }
 
     override fun onTouch(view: View, event: MotionEvent): Boolean {
@@ -164,29 +165,33 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
 
     @SuppressLint("NotifyDataSetChanged")
     fun setObject(croppedBitmap: Bitmap) {
+        val stream = ByteArrayOutputStream()
+        croppedBitmap.compress(Bitmap.CompressFormat.PNG, 50, stream)
+        val byteArray = stream.toByteArray()
+
         val view = this.parent.parent as ConstraintLayout
         val emptyBitmap = Bitmap.createBitmap(croppedBitmap.width, croppedBitmap.height, croppedBitmap.config)
 
-        db = AppDatabase.getInstance(context)
-        val getRunnable = Runnable {
-            objectArrayList = db?.objectDAO()?.getObjectsInDrawing(cropActivity.pickedDate)!!
-        }
+        objectArrayList = dbHelper.readObject(pickedDate!!)
+        println("얍얍 " + objectArrayList.size)
         objectListAdapter = ObjectListAdapter(objectArrayList)
+        val objId = objectArrayList.size
 
         view.objectRecycler.apply {
-            view.objectRecycler.layoutManager = LinearLayoutManager(context)
+            view.objectRecycler.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
             view.objectRecycler.adapter = objectListAdapter
         }
 
         if (!croppedBitmap.sameAs(emptyBitmap)) {
-            val objectDTO = ObjectDTO(drawId = cropActivity.pickedDate,
-                                      objId = objectArrayList.size,
-                                      drawObj = croppedBitmap)
-//            objectDTO.objId = objectArrayList.size
-//            objectDTO.drawObj = croppedBitmap
+            val objectDTO = ObjectDTO()
+            objectDTO.fullDraw = pickedDate
+            objectDTO.objId = objId
+            objectDTO.drawObj = byteArray
             objectArrayList.add(objectDTO)
+            println("얍얍숍 " + objectArrayList.size)
             objectListAdapter.notifyDataSetChanged()
-            db?.objectDAO()?.insertAll(objectDTO)
+
+            dbHelper.insertObject(pickedDate!!, objId, byteArray, "")
         }
     }
 

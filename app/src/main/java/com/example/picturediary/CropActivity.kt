@@ -6,7 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 
 class CropActivity: AppCompatActivity() {
     var picture : Bitmap? = null
-    var pickedDate : String = ""
+    var pickedDate: String? = null
     private var cropView: CropView? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -14,10 +14,11 @@ class CropActivity: AppCompatActivity() {
         setContentView(R.layout.activity_crop)
 
         val arr = intent.getByteArrayExtra("picture")
-        pickedDate = intent.getStringExtra("pickedDate")!!
+        pickedDate = intent.getStringExtra("pickedDate")
         picture = BitmapFactory.decodeByteArray(arr, 0, arr!!.size)
 
         cropView = findViewById(R.id.crop_view)
+        cropView?.setDrawId(pickedDate!!)
         cropView?.setDrawing(picture!!)
     }
 }
