@@ -5,6 +5,7 @@ import androidx.room.*
 
 @Entity(
     tableName = "ObjectDTO",
+    primaryKeys = ["drawId", "objId"],
     foreignKeys = [
         ForeignKey(
             entity = DrawingDTO::class,
@@ -14,8 +15,8 @@ import androidx.room.*
     ]
 )
 data class ObjectDTO(
-    @PrimaryKey(autoGenerate = true) val objId: Int,
-    @ColumnInfo(name = "drawId") var drawId: Int,
-    @ColumnInfo(name = "drawObj") var drawObj: Bitmap?,
-    @ColumnInfo(name = "motion") var motion: String?
+    @ColumnInfo(name = "drawId") var drawId: String,
+    @ColumnInfo(name = "objId") var objId: Int,
+    @ColumnInfo(name = "drawObj") var drawObj: Bitmap? = null,
+    @ColumnInfo(name = "motion") var motion: String? = null
 )

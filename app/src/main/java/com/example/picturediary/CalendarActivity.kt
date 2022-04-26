@@ -36,9 +36,9 @@ class CalendarActivity : AppCompatActivity() {
 
         // 해당 날짜 선택 --> 그림판 이동
         calendarGridView.setOnItemClickListener { parent, view, position, id ->
-            val element = mCalendarAdapter.getItemId(position)
-            println(element)
+            val pickedDate = mCalendarAdapter.getItem(position)
             val intent = Intent(this, DrawingActivity::class.java)
+            intent.putExtra("pickedDate", pickedDate)
             startActivity(intent)
         }
     }

@@ -6,15 +6,16 @@ import android.graphics.*
 import android.util.AttributeSet
 import android.view.*
 import android.view.View.OnTouchListener
-import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.picturediary.navigation.dao.AppDatabase
 import com.example.picturediary.navigation.model.ObjectDTO
 import kotlinx.android.synthetic.main.activity_crop.view.*
 
 
 class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), OnTouchListener {
     var flgPathDraw = true
+    private val cropActivity = CropActivity()
 //    private var path = Path()
     private var points = arrayListOf<Point?>()
     private var bitmap: Bitmap? = null
@@ -23,7 +24,7 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
     private var bfirstpoint = false
     private var mlastpoint: Point? = null
 
-//    private var db: AppDatabase? = null
+    private var db: AppDatabase? = null
     lateinit var objectArrayList: ArrayList<ObjectDTO>
     lateinit var objectListAdapter: ObjectListAdapter
 
@@ -166,10 +167,10 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
         val view = this.parent.parent as ConstraintLayout
         val emptyBitmap = Bitmap.createBitmap(croppedBitmap.width, croppedBitmap.height, croppedBitmap.config)
 
-        objectArrayList = arrayListOf()
-//        val getRunnable = Runnable {
-//            objectArrayList =
-//        }
+        db = AppDatabase.getInstance(context)
+        val getRunnable = Runnable {
+            objectArrayList = db?.objectDAO()?.getObjectsInDrawing(cropActivity.pickedDate)!!
+        }
         objectListAdapter = ObjectListAdapter(objectArrayList)
 
         view.objectRecycler.apply {
@@ -178,11 +179,14 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
         }
 
         if (!croppedBitmap.sameAs(emptyBitmap)) {
-            val objectDTO = ObjectDTO()
-            objectDTO.objId = objectArrayList.size
-            objectDTO.drawObj = croppedBitmap
+            val objectDTO = ObjectDTO(drawId = cropActivity.pickedDate,
+                                      objId = objectArrayList.size,
+                                      drawObj = croppedBitmap)
+//            objectDTO.objId = objectArrayList.size
+//            objectDTO.drawObj = croppedBitmap
             objectArrayList.add(objectDTO)
             objectListAdapter.notifyDataSetChanged()
+            db?.objectDAO()?.insertAll(objectDTO)
         }
     }
 

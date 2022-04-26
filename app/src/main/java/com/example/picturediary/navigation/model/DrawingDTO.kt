@@ -7,7 +7,7 @@ import java.io.ByteArrayOutputStream
 
 @Entity(tableName = "DrawingDTO")
 data class DrawingDTO(
-    @PrimaryKey(autoGenerate = true) val drawId: Int? = null,
+    @PrimaryKey(autoGenerate = false) var drawId: String,
     @ColumnInfo(name = "user") var user: String? = null,
     @ColumnInfo(name = "image") var image: Bitmap? = null,
     @ColumnInfo(name = "group") var group: String? = null

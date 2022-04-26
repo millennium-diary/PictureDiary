@@ -7,7 +7,6 @@ import com.example.picturediary.navigation.model.DrawingDTO
 @Dao
 interface DrawingDAO {
     @Query("SELECT * FROM DrawingDTO")
-//    fun getAll(): ArrayList<DrawingDTO>
     fun getAll(): LiveData<List<DrawingDTO>>
 
     @Insert

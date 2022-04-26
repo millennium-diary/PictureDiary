@@ -17,14 +17,10 @@ import android.view.View
 import android.widget.*
 import androidx.core.content.ContextCompat
 import androidx.core.view.get
-import androidx.room.Room
 import com.example.picturediary.navigation.dao.AppDatabase
 
 import com.example.picturediary.navigation.model.DrawingDTO
-import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
-import java.io.File
-import java.io.FileOutputStream
 
 
 class DrawingActivity : AppCompatActivity() {
@@ -43,6 +39,7 @@ class DrawingActivity : AppCompatActivity() {
         auth = Firebase.auth
         firestore = FirebaseFirestore.getInstance()
         val username = auth?.currentUser?.displayName.toString()
+        val pickedDate = intent.getStringExtra("pickedDate")!!
 
 //        GlobalScope.launch(Dispatchers.IO) {
 //            val groupDTOs = firestore!!.collection("groups")
@@ -100,14 +97,15 @@ class DrawingActivity : AppCompatActivity() {
             picture.compress(Bitmap.CompressFormat.PNG, 50, stream)
             val byteArray = stream.toByteArray()
             intent.putExtra("picture", byteArray)
+            intent.putExtra("pickedDate", pickedDate)
             
             // 내장 데이터베이스 저장 코드
             db = AppDatabase.getInstance(this)
             val insertRunnable = Runnable {
-                val newDrawing = DrawingDTO()
-                newDrawing.user = username
-                newDrawing.image = picture
-                newDrawing.group = null
+                val newDrawing = DrawingDTO(drawId = pickedDate,
+                                            user = username,
+                                            image = picture,
+                                            group = null)
                 db?.drawingDAO()?.insertAll(newDrawing)
             }
 

@@ -10,7 +10,6 @@ import com.example.picturediary.navigation.model.ObjectDTO
 @Dao
 interface ObjectDAO {
     @Query("SELECT * FROM ObjectDTO")
-//    fun getAll(): ArrayList<DrawingDTO>
     fun getAll(): LiveData<List<ObjectDTO>>
 
     @Insert
@@ -18,4 +17,7 @@ interface ObjectDAO {
 
     @Delete
     fun delete(ObjectDTO: ObjectDTO)
+
+    @Query("SELECT * FROM ObjectDTO WHERE drawId = :drawId")
+    fun getObjectsInDrawing(drawId: String): ArrayList<ObjectDTO>
 }
