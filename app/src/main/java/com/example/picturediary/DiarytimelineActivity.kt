@@ -1,11 +1,17 @@
 package com.example.picturediary
 
 
+import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
+import android.text.InputType
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
+import android.widget.EditText
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -19,11 +25,19 @@ import com.example.picturediary.navigation.model.GroupDTO
 import com.example.picturediary.navigation.model.UserDTO
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.ktx.Firebase
+import kotlinx.android.synthetic.main.fragment_user.*
 import kotlinx.android.synthetic.main.user_group_item.*
 import kotlinx.android.synthetic.main.user_group_item.view.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 class DiarytimelineActivity : AppCompatActivity() {
 
+    var auth: FirebaseAuth? = null
     var firestore: FirebaseFirestore? = null
     var user: FirebaseUser? = null
 
@@ -39,8 +53,52 @@ class DiarytimelineActivity : AppCompatActivity() {
         recyclerViewtimeline.adapter = RecyclerViewAdapter()
         recyclerViewtimeline.layoutManager = LinearLayoutManager(this)
 
+        var btnaddM: Button
 
+        btnaddM = findViewById<Button>(R.id.add_memeber)
+
+        btnaddM.setOnClickListener {
+            var membername: String
+
+            // 팝업 설정
+            val dlg = AlertDialog.Builder(DiarytimelineActivity())
+            val input = EditText(DiarytimelineActivity())
+            input.inputType = InputType.TYPE_CLASS_TEXT
+            dlg.setTitle("추가할 멤버의 아이디를 입력하세요")
+            dlg.setView(input)
+            dlg.setPositiveButton("확인", DialogInterface.OnClickListener { _, _ ->
+                membername = input.text.toString()
+                addmember(membername)
+            })
+            dlg.show()
+        }
     }
+
+    fun addmember(membername: String) {
+        auth = Firebase.auth
+        val uid = auth?.currentUser?.uid.toString()
+        val groupId = intent.getStringExtra("GroupID")
+
+        var tsDocGroup = groupId?.let { firestore?.collection("groups")?.document(it) }
+        firestore?.runTransaction { transaction ->
+
+            var groupDTO = tsDocGroup?.let { transaction.get(it).toObject(GroupDTO::class.java) }
+
+
+            if (groupDTO?.shareWith?.contains(membername)!!) {
+                    Toast.makeText(applicationContext,"이미 있는 멤버입니다",Toast.LENGTH_SHORT).show()
+            }
+            else {
+                    groupDTO?.shareWith!!.add(membername)
+                    Toast.makeText(applicationContext,"멤버를 추가하였습니다.",Toast.LENGTH_SHORT).show()
+            }
+
+            transaction.set(tsDocGroup!!, groupDTO!!)
+            return@runTransaction
+
+        }
+    }
+
 
     inner class RecyclerViewAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         // Diary 클래스 ArrayList 생성성
@@ -162,6 +220,7 @@ class DiarytimelineActivity : AppCompatActivity() {
         }
     }
 }
+
 
 
 
