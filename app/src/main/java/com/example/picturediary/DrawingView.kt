@@ -17,7 +17,7 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context,attrs){
     private var canvas: Canvas? = null
     private var mPaths = ArrayList<CustomPath>();
     private val mUndoPaths = ArrayList<CustomPath>()
-
+//ssdsds
     init {
         setUpDrawing()
     }
