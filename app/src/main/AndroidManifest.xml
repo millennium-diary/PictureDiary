@@ -25,7 +25,7 @@
         </activity>
         <activity android:name=".MainActivity" />
         <activity android:name=".CalendarActivity" />
-        <activity android:name=".GroupActivity" />
+        <activity android:name=".FragmentActivity" />
         <activity android:name=".DrawingActivity" />
         <activity android:name=".CropActivity" />
         <provider

@@ -3,8 +3,11 @@ package com.example.picturediary.navigation.dao
 import android.annotation.SuppressLint
 import android.content.ContentValues
 import android.content.Context
+import android.database.sqlite.SQLiteConstraintException
 import android.database.sqlite.SQLiteDatabase
+import android.database.sqlite.SQLiteException
 import android.database.sqlite.SQLiteOpenHelper
+import com.example.picturediary.navigation.model.DrawingDTO
 import com.example.picturediary.navigation.model.ObjectDTO
 
 class DBHelper(
@@ -51,16 +54,55 @@ class DBHelper(
         onCreate(db)
     }
 
-    fun insertDrawing(drawId: String, username:String, image: ByteArray): Boolean {
+    // DRAWING 테이블 ===============================================================================
+    fun insertDrawing(drawDate: String, username:String, image: ByteArray): Boolean {
         val db = writableDatabase
         val cv = ContentValues()
+        val drawId = "$username@$drawDate"
         cv.put("drawId", drawId)
         cv.put("user", username)
         cv.put("image", image)
 
-        return db.insert("drawing", null, cv) > 0
+        val result: Boolean = try {
+            db.insert("drawing", null, cv)
+            true
+        } catch (e: SQLiteException) {
+            false
+        }
+        return result
     }
 
+    @SuppressLint("Recycle")
+    fun readDrawing(drawDate: String, username: String): DrawingDTO? {
+        var fullDrawingDTO: DrawingDTO? = null
+        val sql = "SELECT * FROM drawing WHERE drawId = ?"
+        val drawId = "$username@$drawDate"
+        val cursor = readableDatabase.rawQuery(sql, arrayOf(drawId))
+
+        while (cursor.moveToNext()) {
+            val drawingId = cursor.getString(0)
+            val user = cursor.getString(1)
+            val image = cursor.getBlob(2)
+
+            fullDrawingDTO = DrawingDTO(drawingId, user, image)
+        }
+        cursor.close()
+        return fullDrawingDTO
+    }
+
+    fun updateDrawing(drawDate: String, username: String, image: ByteArray): Boolean {
+        val db = writableDatabase
+        val cv = ContentValues()
+        val drawId = "$username@$drawDate"
+        cv.put("drawId", drawId)
+        cv.put("user", username)
+        cv.put("image", image)
+
+        return db.update("drawing", cv, "drawId = ?", arrayOf(drawId)) > 0
+    }
+
+
+    // OBJECT 테이블 ================================================================================
     fun insertObject(fullDraw: String, objId: Int, drawObj: ByteArray, motion: String): Boolean {
         val db = writableDatabase
         val cv = ContentValues()
@@ -73,39 +115,27 @@ class DBHelper(
     }
 
     @SuppressLint("Recycle")
-    fun readObject(fullDraw: String): ArrayList<ObjectDTO> {
+    fun readObject(drawDate: String, username: String): ArrayList<ObjectDTO> {
+        val drawId = "$username@$drawDate"
         val objectArrayList = arrayListOf<ObjectDTO>()
         val sql = "SELECT * FROM object WHERE fullDraw = ?"
-        val cursor = readableDatabase.rawQuery(sql, arrayOf(fullDraw))
+        val cursor = readableDatabase.rawQuery(sql, arrayOf(drawId))
 
         while (cursor.moveToNext()) {
-            val drawId = cursor.getString(0)
+            val drawingId = cursor.getString(0)
             val objId = cursor.getInt(1)
             val drawObj = cursor.getBlob(2)
             val motion = cursor.getString(3)
 
-            objectArrayList.add(ObjectDTO(drawId, objId, drawObj, motion))
+            objectArrayList.add(ObjectDTO(drawingId, objId, drawObj, motion))
         }
         cursor.close()
         return objectArrayList
     }
 
-//
-//    fun getAllImages(): ArrayList<Image> {
-//        val arr = arrayListOf<Image>()
-//        val cursor = readableDatabase.rawQuery("SELECT * FROM drawing", null)
-//
-//        if (cursor.count > 0) {
-//            cursor.moveToFirst()
-//            while (!cursor.isAfterLast) {
-//                val id = cursor.getString(0)
-//                val user = cursor.getString(1)
-//                val byteArray = cursor.getBlob(2)
-//                val bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
-//            }
-//        }
-//
-//        cursor.close()
-//        return arr
-//    }
+    fun deleteAllObject(drawDate: String, username: String): Boolean {
+        val db = writableDatabase
+        val drawId = "$username@$drawDate"
+        return db.delete("object", "fullDraw = ?", arrayOf(drawId)) > 0
+    }
 }

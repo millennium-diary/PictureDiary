@@ -2,17 +2,12 @@ package com.example.picturediary
 
 import android.app.Dialog
 import android.content.Intent
-import android.database.sqlite.SQLiteDatabase
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.os.Bundle
 
 import androidx.appcompat.app.AppCompatActivity
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.ktx.Firebase
 import kotlinx.android.synthetic.main.activity_drawing.*
 import android.view.View
 import android.widget.*
@@ -23,9 +18,8 @@ import java.io.ByteArrayOutputStream
 
 
 class DrawingActivity : AppCompatActivity() {
-    private var auth : FirebaseAuth? = null
-    private var firestore : FirebaseFirestore? = null
-
+    private val loggedInUser = PrefApplication.prefs.getString("loggedInUser", "")
+    private val username = loggedInUser.split("★")[0]
     private val dbName = "pictureDiary.db"
     lateinit var dbHelper: DBHelper
 
@@ -36,49 +30,12 @@ class DrawingActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_drawing)
 
-        auth = Firebase.auth
-        firestore = FirebaseFirestore.getInstance()
-
         dbHelper = DBHelper(this, dbName, null, 1)
-
-        val username = auth?.currentUser?.displayName.toString()
         val pickedDate = intent.getStringExtra("pickedDate")
 
-//        GlobalScope.launch(Dispatchers.IO) {
-//            val groupDTOs = firestore!!.collection("groups")
-//                .whereArrayContains("shareWith", username)
-//                .get()
-//                .await()
-//                .toObjects(GroupDTO::class.java) as ArrayList<GroupDTO>
-//
-//            val groups = arrayListOf<String>()
-//            for (groupDTO in groupDTOs) {
-//                val groupName = groupDTO.grpname.toString()
-//                groups.add(groupName)
-//            }
-//            val finalGroups = groups.toTypedArray()
-//            val checkArray = BooleanArray(groups.size)
-
-            // 그룹 선택창
-//            select_grp.setOnClickListener {
-//                val dlg = AlertDialog.Builder(this@DrawingActivity)
-//
-//                if (groups.size == 0) {
-//                    dlg.setTitle("공유할 그룹이 존재하지 않습니다")
-//                }
-//                else {
-//                    dlg.setTitle("일기를 함께 공유할 그룹을 선택하세요")
-//                    dlg.setMultiChoiceItems(finalGroups, checkArray) { dialog, which, isChecked ->
-//                        // 해당 그룹에 일기 공유
-//                        select_grp.text = groups[which]
-//                    }
-//                }
-//                dlg.setPositiveButton("확인", null)
-//                dlg.show()
-//            }
-//        }
-
         drawingView = findViewById(R.id.drawing_view)
+        drawingView?.setDrawId(pickedDate!!)
+
         val ibBrush: Button = findViewById(R.id.ib_brush)
         ibBrush.setOnClickListener {
             showBrushSizeChooserDialog()
@@ -103,13 +60,23 @@ class DrawingActivity : AppCompatActivity() {
             picture.compress(Bitmap.CompressFormat.PNG, 50, stream)
             val byteArray = stream.toByteArray()
 
+            val fullDrawing = dbHelper.readDrawing(pickedDate!!, username)
+            // 그림 존재하지 않음 --> DB에 추가
+            if (fullDrawing == null)
+                dbHelper.insertDrawing(pickedDate, username, byteArray)
+            // 그림 존재 --> 그림 수정 --> 그림 업데이트 & 객체 삭제
+            else {
+                val drawing = fullDrawing.image
+                if (!drawing.contentEquals(byteArray)) {
+                    dbHelper.updateDrawing(pickedDate, username, byteArray)
+                    dbHelper.deleteAllObject(pickedDate, username)
+                }
+            }
+
             intent.putExtra("pickedDate", pickedDate)
             intent.putExtra("picture", byteArray)
 
-            // 내장 DB에 데이터 저장
-            if (!dbHelper.insertDrawing(pickedDate!!, username, byteArray))
-                Toast.makeText(applicationContext, "오류가 생겼습니다. 다시 시도해 주세요", Toast.LENGTH_SHORT).show()
-            else startActivity(intent)
+            startActivity(intent)
         }
 
         val ibEraser : Button = findViewById(R.id.ib_eraser)
@@ -199,7 +166,7 @@ class DrawingActivity : AppCompatActivity() {
         }
     }
 
-    private fun getBitmapFromView(view : View): Bitmap{
+    private fun getBitmapFromView(view : View): Bitmap {
         val returnedBitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(returnedBitmap)
 
