@@ -8,8 +8,10 @@ import android.graphics.BitmapFactory
 import android.graphics.ImageDecoder
 import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -22,6 +24,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
+import com.google.firebase.storage.UploadTask
 import kotlinx.android.synthetic.main.diary_text.*
 import kotlinx.android.synthetic.main.fragment_user.*
 import kotlinx.coroutines.Dispatchers
@@ -38,6 +41,7 @@ class TextActivity  : AppCompatActivity() {
     var storage : FirebaseStorage? = null
     var picture : Bitmap? = null
     var fileUri : Uri? = null
+    var pickedDate: String? = null
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -45,18 +49,16 @@ class TextActivity  : AppCompatActivity() {
         setContentView(R.layout.diary_text)
 
         val arr = intent.getByteArrayExtra("picture")
+        pickedDate = intent.getStringExtra("pickedDate")
         picture = BitmapFactory.decodeByteArray(arr, 0, arr!!.size)
 
         diaryImg.setImageBitmap(picture)
 
-        fileUri = getImageUri(this@TextActivity, picture)
+        val baos = ByteArrayOutputStream()
 
         firestore = FirebaseFirestore.getInstance()
         auth = Firebase.auth
         storage = FirebaseStorage.getInstance()
-
-        val dbName = "pictureDiary.db"
-        val dbHelper = DBHelper(applicationContext, dbName, null, 1)
 
 
 
@@ -108,25 +110,48 @@ class TextActivity  : AppCompatActivity() {
                             val checked = checkArray[i]
                             if(checked){
                                 finalGroups[i]
-                                finalGroupsID[i]
+                                var groupID=finalGroupsID[i]
                                 val diarystory =editTextTextMultiLine.text.toString()
 
                                 val filename = "picturediary_$username$.png"
-                                storage!!.getReference().child("/images/$filename").putFile(fileUri!!)
+//                                storage!!.getReference().child("/images/$filename").putFile(fileUri!!)
 
-                                val contentDTO = ContentDTO()
-                                contentDTO.uid = uid
-                                contentDTO.explain = diarystory
-                                contentDTO.username = username
-                                contentDTO.groupId = finalGroupsID[i]
-                                contentDTO.timestamp = System.currentTimeMillis()
-                                contentDTO.imageUrl = fileUri.toString()
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                                    picture!!.compress(Bitmap.CompressFormat.WEBP_LOSSLESS, 100, baos)
+                                } else {
+                                    picture!!.compress(Bitmap.CompressFormat.PNG, 100, baos)
+                                }
+                                val data = baos.toByteArray()
+                                // FirebaseStorage
+                                val storageRef = storage!!.reference
+                                // storage의 폴더는 자동 생성된다.
 
+                                storageRef.child("images/$username-$groupID-$pickedDate").putBytes(data)
+                                    .addOnSuccessListener {
+                                        val result = it.metadata!!.reference!!.downloadUrl;
+                                        result.addOnSuccessListener {
 
-                                firestore!!.collection("images")
-                                    .document()
-                                    .set(contentDTO)
-                                    //.await()
+                                            var imageLink = it.toString()
+
+                                            val contentDTO = ContentDTO()
+                                            contentDTO.uid = uid
+                                            contentDTO.contentId = "$username-$groupID-$pickedDate"
+                                            contentDTO.explain = diarystory
+                                            contentDTO.username = username
+                                            contentDTO.groupId = finalGroupsID[i]
+                                            contentDTO.timestamp = System.currentTimeMillis()
+                                            contentDTO.imageUrl = imageLink
+                                            contentDTO.diaryDate = pickedDate
+
+                                            firestore!!.collection("images")
+                                                .document()
+                                                .set(contentDTO)
+                                        }
+                                    .addOnFailureListener {
+                                        Toast.makeText(this@TextActivity, "처리하는 중 오류가 발생했습니다", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+
                                 startActivity(intent)
                             }
                         }
@@ -136,13 +161,29 @@ class TextActivity  : AppCompatActivity() {
         }
     }
 
-    fun getImageUri(inContext: Context?, inImage: Bitmap?): Uri? {
-        val bytes = ByteArrayOutputStream()
-        if (inImage != null) {
-            inImage.compress(Bitmap.CompressFormat.JPEG, 100, bytes)
-        }
-        val path = MediaStore.Images.Media.insertImage(inContext?.getContentResolver(), inImage, "Title" + " - " + Calendar.getInstance().getTime(), null)
-        return Uri.parse(path)
-    }
+//    fun getImageUri(inContext: Context?, inImage: Bitmap?): Uri? {
+////        val bytes = ByteArrayOutputStream()
+//        if (inImage != null) {
+//            inImage.compress(Bitmap.CompressFormat.JPEG, 100, bytes)
+//        }
+//        val path = MediaStore.Images.Media.insertImage(inContext?.getContentResolver(), inImage, "Title" + " - " + Calendar.getInstance().getTime(), null)
+//        return Uri.parse(path)
+
+
+
+
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+//            bitmap.compress(Bitmap.CompressFormat.WEBP_LOSSLESS, 100, baos)
+//        } else {
+//            bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos)
+//        }
+//        val data = baos.toByteArray()
+//        // FirebaseStorage
+//        val storageRef = storage.reference
+//        // storage의 폴더는 자동 생성된다.
+//        val bitmapRef = storageRef.child("imageView/$uid/$name")
+//        val uploadTask: UploadTask = bitmapRef.putBytes(data)
+//    }
+
 
 }

@@ -27,6 +27,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.Query
 import com.google.firebase.ktx.Firebase
 import kotlinx.android.synthetic.main.fragment_user.*
 import kotlinx.android.synthetic.main.user_group_item.*
@@ -34,9 +35,11 @@ import kotlinx.android.synthetic.main.user_group_item.view.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class DiarytimelineActivity : AppCompatActivity() {
 
+    private val utils = Utils()
     var auth: FirebaseAuth? = null
     var firestore: FirebaseFirestore? = null
     var user: FirebaseUser? = null
@@ -53,49 +56,50 @@ class DiarytimelineActivity : AppCompatActivity() {
         recyclerViewtimeline.adapter = RecyclerViewAdapter()
         recyclerViewtimeline.layoutManager = LinearLayoutManager(this)
 
-        var btnaddM: Button
-
-        btnaddM = findViewById<Button>(R.id.add_memeber)
-
-        btnaddM.setOnClickListener {
-            var membername: String
+        add_memeber.setOnClickListener {
+            var memberName: String
 
             // 팝업 설정
-            val dlg = AlertDialog.Builder(DiarytimelineActivity())
-            val input = EditText(DiarytimelineActivity())
+            val dlg = AlertDialog.Builder(this)
+            val input = EditText(this)
             input.inputType = InputType.TYPE_CLASS_TEXT
             dlg.setTitle("추가할 멤버의 아이디를 입력하세요")
             dlg.setView(input)
             dlg.setPositiveButton("확인", DialogInterface.OnClickListener { _, _ ->
-                membername = input.text.toString()
-                addmember(membername)
+                memberName = input.text.toString()
+                GlobalScope.launch(Dispatchers.IO) {
+                    // 사용자명이 비어있을 경우
+                    if (memberName.isBlank()) {
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(applicationContext, "사용자명을 다시 확인해 주세요", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                    // 사용자가 이미 존재할 경우
+                    else if (utils.userExists(memberName)) {
+                        val groupId = intent.getStringExtra("GroupID")
+                        // 사용자가 이미 그룹에 존재할 경우
+                        if (utils.userExistsInGroup(groupId!!, memberName)) {
+                            withContext(Dispatchers.Main) {
+                                Toast.makeText(applicationContext, "그룹에 이미 존재하는 사용자입니다", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                        else {
+                            utils.addToUserGroups(groupId, memberName)
+                            utils.addToShareWith(groupId, memberName)
+                            withContext(Dispatchers.Main) {
+                                Toast.makeText(applicationContext, "$memberName 님이 $groupId 그룹에 추가되었습니다", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+                    // 사용자가 존재하지 않을 경우
+                    else if (!utils.userExists(memberName)) {
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(applicationContext, "존재하지 않는 사용자입니다", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
             })
             dlg.show()
-        }
-    }
-
-    fun addmember(membername: String) {
-        auth = Firebase.auth
-        val uid = auth?.currentUser?.uid.toString()
-        val groupId = intent.getStringExtra("GroupID")
-
-        var tsDocGroup = groupId?.let { firestore?.collection("groups")?.document(it) }
-        firestore?.runTransaction { transaction ->
-
-            var groupDTO = tsDocGroup?.let { transaction.get(it).toObject(GroupDTO::class.java) }
-
-
-            if (groupDTO?.shareWith?.contains(membername)!!) {
-                    Toast.makeText(applicationContext,"이미 있는 멤버입니다",Toast.LENGTH_SHORT).show()
-            }
-            else {
-                    groupDTO?.shareWith!!.add(membername)
-                    Toast.makeText(applicationContext,"멤버를 추가하였습니다.",Toast.LENGTH_SHORT).show()
-            }
-
-            transaction.set(tsDocGroup!!, groupDTO!!)
-            return@runTransaction
-
         }
     }
 
@@ -127,7 +131,7 @@ class DiarytimelineActivity : AppCompatActivity() {
         }
 
         private fun getCotents(shareWith: ArrayList<String>?) {
-            firestore?.collection("images")
+            firestore?.collection("images")?.orderBy("timestamp", Query.Direction.DESCENDING)
                 ?.addSnapshotListener { querySnapshot, firebaseFirestoreException ->
                     // ArrayList 비워줌
                     contentDTOs.clear()
@@ -167,22 +171,28 @@ class DiarytimelineActivity : AppCompatActivity() {
             firestore?.collection("users")?.document(contentDTOs[p1].uid!!)
                 ?.get()?.addOnCompleteListener { task ->
                     if (task.isSuccessful) {
-
                         val url = task.result.toObject(UserDTO::class.java)?.imageUrl
-                        Glide.with(p0.itemView.context)
-                            .load(url)
-                            .apply(RequestOptions().circleCrop())
-                            .into(viewHolder.detailviewitem_profile_image)
+                        if (url == "") {
+                            viewHolder.detailviewitem_profile_image.setImageResource(R.drawable.user)
+                        }
+                        else {
+                            Glide.with(p0.itemView.context)
+                                .load(url)
+                                .apply(RequestOptions().circleCrop())
+                                .into(viewHolder.detailviewitem_profile_image)
+                        }
                     }
                 }
-            viewHolder.profile_textview.text = contentDTOs!![p1].username
+            viewHolder.profile_textview.text = contentDTOs[p1].username
 
-            viewHolder.explain_textview.text = contentDTOs!![p1].explain
+            viewHolder.explain_textview.text = contentDTOs[p1].explain
 
-            Glide.with(p0.itemView.context).load(contentDTOs!![p1].imageUrl)
+            Glide.with(p0.itemView.context).load(contentDTOs[p1].imageUrl)
                 .into(viewHolder.Diary_image)
 
             viewHolder.favorite_imageview.setOnClickListener { favoriteEvent(p1) }
+
+            viewHolder.diary_date.text = contentDTOs[p1].diaryDate
 
             if (contentDTOs[p1].favorites.containsKey(FirebaseAuth.getInstance().currentUser!!.uid)) {
                 //클릭 되었을 경우
@@ -219,7 +229,6 @@ class DiarytimelineActivity : AppCompatActivity() {
                 }
                 transaction.set(tsDoc, contentDTO)
             }
-
         }
     }
 }
