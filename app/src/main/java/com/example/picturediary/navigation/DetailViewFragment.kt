@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.picturediary.GroupListAdapter
 import com.example.picturediary.GroupSwipeHelperCallback
 import com.example.picturediary.R
+import com.example.picturediary.Utils
 import com.example.picturediary.navigation.model.GroupDTO
 import com.example.picturediary.navigation.model.UserDTO
 import com.google.firebase.auth.*
@@ -31,6 +32,7 @@ import java.util.function.Predicate
 
 
 class DetailViewFragment : Fragment() {
+    private val utils = Utils()
     private var auth: FirebaseAuth? = null
     private var firestore: FirebaseFirestore? = null
     private lateinit var groupArrayList: ArrayList<GroupDTO>
@@ -79,7 +81,22 @@ class DetailViewFragment : Fragment() {
             dlg.setPositiveButton("확인", DialogInterface.OnClickListener { _, _ ->
                 grpname = input.text.toString()
                 GlobalScope.launch(Dispatchers.IO) {
-                    addToGroup(grpname)
+                    // 그룹명이 비어있을 경우
+                    if (grpname.isBlank()) {
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(activity, "그룹명을 다시 확인해 주세요", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                    // 그룹이 이미 존재할 경우
+                    else if (utils.groupExists(grpname)) {
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(activity, "이미 존재하는 그룹입니다", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                    // 그룹이 존재하지 않을 경우
+                    else if (!utils.groupExists(grpname)) {
+                        utils.addToGroup(grpname, requireActivity())
+                    }
                 }
             })
             dlg.show()
@@ -89,55 +106,6 @@ class DetailViewFragment : Fragment() {
         eventChangeListener(view)
 
         return view
-    }
-
-    // groups 컬렉션에 그룹 추가
-    private suspend fun addToGroup(grpname: String) = withContext(Dispatchers.IO) {
-        auth = Firebase.auth
-        firestore = FirebaseFirestore.getInstance()
-        val uid = auth?.currentUser?.uid.toString()
-        val username = auth?.currentUser?.displayName.toString()
-
-        // 그룹명이 비어있을 경우
-        if (grpname.isBlank())
-            Toast.makeText(activity, "그룹명을 다시 확인해 주세요", Toast.LENGTH_SHORT).show()
-
-        // 그룹명을 제대로 입력했을 경우
-        else {
-            // 그룹 형식에 정보 입력
-            val groupDTO = GroupDTO()
-            groupDTO.grpid = "$grpname@$username"
-            groupDTO.grpname = grpname
-            groupDTO.leader = username
-            groupDTO.timestamp = System.currentTimeMillis()
-            groupDTO.shareWith = arrayListOf(groupDTO.leader.toString())
-
-            // 그룹 데이터베이스 확인
-            firestore!!.collection("groups")
-                .document("$grpname@$username").get()
-                .addOnCompleteListener { task ->
-                    val document = task.result
-                    val group = document["grpid"]
-
-                    // 그룹 데이터베이스에 이미 존재
-                    if (group == "$grpname@$username")
-                        Toast.makeText(activity, "이미 존재하는 그룹입니다", Toast.LENGTH_SHORT).show()
-
-                    // 그룹 데이터베이스에 없으면
-                    else {
-                        // 그룹 데이터베이스에 추가
-                        firestore!!.collection("groups")
-                            .document("$grpname@$username")
-                            .set(groupDTO)
-
-                        // 사용자 데이터베이스에 추가
-                        firestore!!.collection("users")
-                            .document(uid)
-                            .update("userGroups", FieldValue.arrayUnion("$grpname@$username"))
-                        Toast.makeText(activity, "$grpname 그룹을 생성했습니다", Toast.LENGTH_SHORT).show()
-                    }
-            }
-        }
     }
 
     private fun eventChangeListener(view: View) {

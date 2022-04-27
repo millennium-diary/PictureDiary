@@ -1,9 +1,16 @@
 package com.example.picturediary
 
 import android.content.Context
+import android.graphics.BitmapFactory
+import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.Paint
+import android.media.Image
 import android.view.*
 import android.widget.*
+import com.example.picturediary.navigation.dao.DBHelper
+import com.example.picturediary.navigation.model.DrawingDTO
+import com.google.type.DateTime
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -14,9 +21,16 @@ class CalendarAdapter(context: Context?): BaseAdapter() {
     private var dateArray: List<Date> = mDateManager!!.days
     private var mLayoutInflater: LayoutInflater? = LayoutInflater.from(mContext)
 
+    private val dbName = "pictureDiary.db"
+    private var dbHelper: DBHelper = DBHelper(context, dbName, null, 1)
+    private var fullDrawing: DrawingDTO? = null
+    private val loggedInUser = PrefApplication.prefs.getString("loggedInUser", "")
+    private val username = loggedInUser.split("★")[0]
+
     // After expanding the custom cell, define Widget here
     private class ViewHolder {
         var dateText: TextView? = null
+        var dateImg: ImageView? = null
     }
 
     override fun getCount(): Int {
@@ -30,6 +44,7 @@ class CalendarAdapter(context: Context?): BaseAdapter() {
             convertView = mLayoutInflater!!.inflate(R.layout.calendar_cell, null)
             holder = ViewHolder()
             holder.dateText = convertView.findViewById(R.id.dateText)
+            holder.dateImg = convertView.findViewById(R.id.dateImg)
             convertView.tag = holder
         } else {
             holder = convertView.tag as ViewHolder
@@ -46,6 +61,15 @@ class CalendarAdapter(context: Context?): BaseAdapter() {
         // Display only the date
         val dateFormat = SimpleDateFormat("d", Locale.KOREA)
         holder.dateText!!.text = dateFormat.format(dateArray[position])
+        holder.dateImg!!.setImageBitmap(null)
+
+        val datetime = SimpleDateFormat("yyyy.MM.dd").format(dateArray[position])
+        fullDrawing = dbHelper.readDrawing(datetime, username)
+        // 해당 날짜에 저장된 그림이 있으면 해당 그림 띄우기
+        if (fullDrawing != null) {
+            val bitmap = BitmapFactory.decodeByteArray(fullDrawing!!.image, 0, fullDrawing!!.image!!.size)
+            holder.dateImg!!.setImageBitmap(bitmap!!)
+        }
 
         // 일요일 --> 빨강, 토요일 --> 파랑
         val colorId: Int = when (mDateManager!!.getDayOfWeek(dateArray[position])) {
@@ -57,10 +81,10 @@ class CalendarAdapter(context: Context?): BaseAdapter() {
         convertView.setBackgroundColor(Color.WHITE)
 
         // 이번 달 아니면 텍스트 색 연하게
+        holder.dateText!!.alpha = 1f
         if (!(mDateManager!!.isCurrentMonth(dateArray[position]))) {
             holder.dateText!!.alpha = 0.4f
         }
-
         return convertView
     }
 
@@ -68,14 +92,33 @@ class CalendarAdapter(context: Context?): BaseAdapter() {
         return 0
     }
 
-    override fun getItem(position: Int): Any? {
-        return null
+    override fun getItem(position: Int): String {
+        val datetime = dateArray[position]
+        return SimpleDateFormat("yyyy.MM.dd").format(datetime)
     }
 
     fun getTitle(): String? {
         val format = SimpleDateFormat("yyyy년 MM월", Locale.KOREA)
         return format.format(mDateManager!!.mCalendar.time)
     }
+
+    // 두 날짜 간의 차이를 구하는 메소드
+    // input: "yyyy-MM-dd" 형식의 String
+    fun getDifferenceTwoDates(startDate: String, endDate: String) : Long{
+        var result: Long = 0
+        val sdf = SimpleDateFormat("yyyy.MM.dd", Locale.getDefault())
+        val firstDate = sdf.parse(startDate)
+        val secondDate = sdf.parse(endDate)
+        val firstTime = firstDate?.time ?: 0L
+        val secondTime = secondDate?.time ?: 0L
+
+        result = firstTime - secondTime
+        return result
+    }
+
+//    fun getDifferenceTwoDates(startDate: String, endDate: String) : Long {
+//
+//    }
 
     // 다음 달
     fun nextMonth() {

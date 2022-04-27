@@ -1,153 +1,199 @@
 package com.example.picturediary
 
-import android.app.AlertDialog
-import android.content.Context
-import android.content.DialogInterface
-import android.content.Intent
+import android.annotation.SuppressLint
+import android.content.*
 import android.graphics.*
 import android.util.AttributeSet
-import android.view.MotionEvent
-import android.view.View
+import android.view.*
 import android.view.View.OnTouchListener
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.picturediary.navigation.dao.DBHelper
+import com.example.picturediary.navigation.model.DrawingDTO
+import com.example.picturediary.navigation.model.ObjectDTO
+import kotlinx.android.synthetic.main.activity_crop.view.*
+import java.io.ByteArrayOutputStream
 
 
-class CropView : View, OnTouchListener {
-    private var paint: Paint
+class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), OnTouchListener {
+    private var flgPathDraw = true
+    private var points = arrayListOf<Point?>()
+    private var bitmap: Bitmap? = null
+    private var paint: Paint? = null
+    private var firstPointExist = false     // 첫 좌표 존재 여부
+    private var mfirstpoint: Point? = null
+    private var mlastpoint: Point? = null
+    private var isNewObject = false
 
-    var points = arrayListOf<Point?>()
-    var flgPathDraw = true
-    var mfirstpoint: Point? = null
-    var bfirstpoint = false
-    var mlastpoint: Point? = null
-    var bitmap = BitmapFactory.decodeResource(
-        resources,
-        R.drawable.pk
-    )
-    var mContext: Context
+    private val dbName = "pictureDiary.db"
+    private var dbHelper: DBHelper = DBHelper(context, dbName, null, 1)
+    private var pickedDate: String? = null
+    private val loggedInUser = PrefApplication.prefs.getString("loggedInUser", "")
+    private val username = loggedInUser.split("★")[0]
 
-    constructor(c: Context) : super(c) {
-        mContext = c
-        isFocusable = true
-        isFocusableInTouchMode = true
-        paint = Paint(Paint.ANTI_ALIAS_FLAG)
-        paint.style = Paint.Style.STROKE
-        paint.pathEffect = DashPathEffect(floatArrayOf(10f, 20f), 0F)
-        paint.strokeWidth = 5f
-        paint.color = Color.WHITE
-        setOnTouchListener(this)
-        bfirstpoint = false
+    private var objectArrayList = arrayListOf<ObjectDTO>()
+    lateinit var objectListAdapter: ObjectListAdapter
+
+    init {
+        initDrawing()
     }
 
-    constructor(context: Context, attrs: AttributeSet?) : super(context, attrs) {
-        mContext = context
+    private fun initDrawing() {
         isFocusable = true
         isFocusableInTouchMode = true
-        paint = Paint(Paint.ANTI_ALIAS_FLAG)
-        paint.style = Paint.Style.STROKE
-        paint.strokeWidth = 2f
-        paint.color = Color.WHITE
         setOnTouchListener(this)
-        bfirstpoint = false
+        firstPointExist = false
+        paint = Paint(Paint.ANTI_ALIAS_FLAG)
+        paint!!.style = Paint.Style.STROKE
+        paint!!.pathEffect = DashPathEffect(floatArrayOf(10f, 20f), 0F)
+        paint!!.color = Color.MAGENTA
+        paint!!.strokeWidth = 5f
     }
 
+    fun setDrawing(picture: Bitmap) { bitmap = picture }
+    fun setDrawId(drawId: String) { pickedDate = drawId }
+
+    @SuppressLint("DrawAllocation")
     public override fun onDraw(canvas: Canvas) {
-        canvas.drawBitmap(bitmap, 0f, 0f, null)
+        canvas.drawBitmap(bitmap!!, 0f, 0f, null)
         val path = Path()
         var first = true
         var i = 0
+
         while (i < points.size) {
             val point: Point? = points[i]
-            if (first) {
-                first = false
-                path.moveTo(point!!.x, point!!.y)
-            } else if (i < points.size - 1) {
-                val next: Point? = points[i + 1]
-                path.quadTo(point!!.x, point!!.y, next!!.x, next!!.y)
-            } else {
-                mlastpoint = points[i]
-                path.lineTo(point!!.x, point!!.y)
+            when {
+                first -> {
+                    first = false
+                    path.moveTo(point!!.x, point.y)     // 기준점 이동
+                }
+                i < points.size - 1 -> {
+                    val next: Point? = points[i + 1]
+                    path.quadTo(point!!.x, point.y, next!!.x, next.y)   // 곡선
+                }
+                else -> {
+                    mlastpoint = points[i]
+                    path.lineTo(point!!.x, point.y)     // 경로 추가
+                }
             }
             i += 2
         }
-        canvas.drawPath(path, paint)
+        canvas.drawPath(path, paint!!)
     }
 
     override fun onTouch(view: View, event: MotionEvent): Boolean {
+        var path: Path
         val point = Point()
         point.x = event.x
         point.y = event.y
+
+        if (isNewObject) {
+            firstPointExist = false
+            isNewObject = false
+        }
+
         if (flgPathDraw) {
-            if (bfirstpoint) {
-                if (comparepoint(mfirstpoint, point)) {
+            if (firstPointExist) {
+                if (mfirstpoint == point) {
                     points.add(mfirstpoint)
                     flgPathDraw = false
-                    showcropdialog()
-                } else {
-                    points.add(point)
+
+                    path = getPath()
+                    val croppedImage = getObject(bitmap!!, path)
+                    setObject(croppedImage)     // 어댑터에 객체 추가
+                    isNewObject = true
                 }
-            } else {
-                points.add(point)
+                else points.add(point)
             }
-            if (!bfirstpoint) {
+            else {
+                points.add(point)
                 mfirstpoint = point
-                bfirstpoint = true
+                firstPointExist = true
             }
         }
-        invalidate()
+
         if (event.action == MotionEvent.ACTION_UP) {
             mlastpoint = point
-            if (flgPathDraw) {
-                if (points.size > 12) {
-                    if (!comparepoint(mfirstpoint, mlastpoint)) {
-                        flgPathDraw = false
-                        points.add(mfirstpoint)
-                        showcropdialog()
-                    }
+            if (flgPathDraw && points.size > 12) {
+                if (mfirstpoint != point) {
+                    flgPathDraw = false
+                    points.add(mfirstpoint)
+
+                    path = getPath()
+                    val croppedImage = getObject(bitmap!!, path)
+                    setObject(croppedImage)     // 어댑터에 객체 추가
+                    isNewObject = true
                 }
             }
         }
+        flgPathDraw = true
+        invalidate()    // onDraw() 실행
+
         return true
     }
 
-    private fun comparepoint(first: Point?, current: Point?): Boolean {
-        val left_range_x = (current!!.x - 3).toInt()
-        val left_range_y = (current.y - 3).toInt()
-        val right_range_x = (current.x + 3).toInt()
-        val right_range_y = (current.y + 3).toInt()
-        return if (left_range_x < first!!.x && first.x < right_range_x
-            && left_range_y < first.y && first.y < right_range_y) {
-            points.size >= 10
-        } else {
-            false
+//    private fun comparePoint(first: Point?, current: Point?): Boolean {
+//        val left_range_x = (current!!.x - 3).toInt()
+//        val left_range_y = (current.y - 3).toInt()
+//        val right_range_x = (current.x + 3).toInt()
+//        val right_range_y = (current.y + 3).toInt()
+//        return if (left_range_x < first!!.x && first.x < right_range_x
+//            && left_range_y < first.y && first.y < right_range_y
+//        ) {
+//            points.size >= 10
+//        } else false
+//    }
+
+    private fun getPath(): Path {
+        val path = Path()
+        for (point in points)
+            path.lineTo(point!!.x, point.y)
+        points.removeAll(points)
+        return path
+    }
+
+    // 선택한 객체만 추출
+    private fun getObject(bitmap: Bitmap, path: Path): Bitmap {
+        val resultingImage = Bitmap.createBitmap(crop_view.width, crop_view.height, bitmap.config)
+        val paint = Paint()
+        val canvas = Canvas(resultingImage)     // 어댑터 캔버스
+
+        canvas.drawPath(path, paint)
+        paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_IN)
+        canvas.drawBitmap(bitmap, 0f, 0f, paint)
+
+        return resultingImage
+    }
+
+    // 선택한 객체를 어댑터에 추가
+    @SuppressLint("NotifyDataSetChanged")
+    fun setObject(croppedBitmap: Bitmap) {
+        val stream = ByteArrayOutputStream()
+        croppedBitmap.compress(Bitmap.CompressFormat.PNG, 50, stream)
+        val byteArray = stream.toByteArray()
+
+        val view = this.parent.parent as ConstraintLayout
+        val emptyBitmap = Bitmap.createBitmap(croppedBitmap.width, croppedBitmap.height, croppedBitmap.config)
+
+        objectArrayList = dbHelper.readObject(pickedDate!!, username)
+        objectListAdapter = ObjectListAdapter(objectArrayList)
+        val objId = objectArrayList.size
+        objectListAdapter.notifyDataSetChanged()
+
+        view.objectRecycler.apply {
+            view.objectRecycler.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+            view.objectRecycler.adapter = objectListAdapter
+        }
+
+        if (!croppedBitmap.sameAs(emptyBitmap)) {
+            val objectDTO = ObjectDTO()
+            objectDTO.fullDraw = pickedDate
+            objectDTO.objId = objId
+            objectDTO.drawObj = byteArray
+            objectArrayList.add(objectDTO)
+            objectListAdapter.notifyDataSetChanged()
+
+            dbHelper.insertObject("$username@$pickedDate", objId, byteArray, "")
         }
     }
-
-    private fun showcropdialog() {
-        val dialogClickListener =
-            DialogInterface.OnClickListener { dialog, which ->
-                val intent: Intent
-                when (which) {
-                    DialogInterface.BUTTON_POSITIVE -> {
-                        intent = Intent(mContext, MotionActivity::class.java)
-                        intent.putExtra("crop", true)
-                        mContext.startActivity(intent)
-                    }
-                    DialogInterface.BUTTON_NEGATIVE -> {
-                        intent = Intent(mContext, MotionActivity::class.java)
-                        intent.putExtra("crop", false)
-                        mContext.startActivity(intent)
-                        bfirstpoint = false
-                    }
-                }
-            }
-        val builder = AlertDialog.Builder(mContext)
-        builder.setMessage("Do you Want to save Crop or Non-crop image?")
-            .setPositiveButton("Crop", dialogClickListener)
-            .setNegativeButton("Non-crop", dialogClickListener).show()
-            .setCancelable(false)
-    }
-
-//    companion object {
-//        lateinit var points: MutableList<Point?>
-//    }
 }
