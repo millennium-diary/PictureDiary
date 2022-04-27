@@ -8,10 +8,12 @@ import android.view.*
 import android.view.View.OnTouchListener
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.example.picturediary.databinding.ChosenObjectItemBinding
 import com.example.picturediary.navigation.dao.DBHelper
-import com.example.picturediary.navigation.model.DrawingDTO
 import com.example.picturediary.navigation.model.ObjectDTO
 import kotlinx.android.synthetic.main.activity_crop.view.*
+import kotlinx.android.synthetic.main.chosen_object_item.view.*
 import java.io.ByteArrayOutputStream
 
 
@@ -32,7 +34,7 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
     private val username = loggedInUser.split("★")[0]
 
     private var objectArrayList = arrayListOf<ObjectDTO>()
-    lateinit var objectListAdapter: ObjectListAdapter
+    private var objectListAdapter: ObjectListAdapter? = null
 
     init {
         initDrawing()
@@ -132,18 +134,6 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
         return true
     }
 
-//    private fun comparePoint(first: Point?, current: Point?): Boolean {
-//        val left_range_x = (current!!.x - 3).toInt()
-//        val left_range_y = (current.y - 3).toInt()
-//        val right_range_x = (current.x + 3).toInt()
-//        val right_range_y = (current.y + 3).toInt()
-//        return if (left_range_x < first!!.x && first.x < right_range_x
-//            && left_range_y < first.y && first.y < right_range_y
-//        ) {
-//            points.size >= 10
-//        } else false
-//    }
-
     private fun getPath(): Path {
         val path = Path()
         for (point in points)
@@ -175,10 +165,10 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
         val view = this.parent.parent as ConstraintLayout
         val emptyBitmap = Bitmap.createBitmap(croppedBitmap.width, croppedBitmap.height, croppedBitmap.config)
 
-        objectArrayList = dbHelper.readObject(pickedDate!!, username)
+        objectArrayList = dbHelper.readObjects(pickedDate!!, username)
         objectListAdapter = ObjectListAdapter(objectArrayList)
-        val objId = objectArrayList.size
-        objectListAdapter.notifyDataSetChanged()
+        val objId = dbHelper.readLastIndex(pickedDate!!, username)
+        objectListAdapter?.notifyDataSetChanged()
 
         view.objectRecycler.apply {
             view.objectRecycler.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
@@ -191,9 +181,45 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
             objectDTO.objId = objId
             objectDTO.drawObj = byteArray
             objectArrayList.add(objectDTO)
-            objectListAdapter.notifyDataSetChanged()
+            objectListAdapter?.notifyDataSetChanged()
 
             dbHelper.insertObject("$username@$pickedDate", objId, byteArray, "")
+        }
+    }
+
+    // 어댑터 내부 클래스
+    inner class ObjectListAdapter(var items: ArrayList<ObjectDTO>) : RecyclerView.Adapter<ObjectListAdapter.ViewHolder>() {
+        override fun getItemCount(): Int {
+            return items.size
+        }
+
+        @SuppressLint("NotifyDataSetChanged")
+        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+            holder.bind(items[position])
+
+            val drawId = items[position].fullDraw.toString()
+            val objId = items[position].objId.toString()
+            holder.itemView.delete_object.setOnClickListener {
+                items.removeAt(position)
+                objectListAdapter?.notifyDataSetChanged()
+
+                dbHelper.deleteObject(drawId, objId)
+            }
+        }
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+            val binding = ChosenObjectItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+            return ViewHolder(binding)
+        }
+
+        inner class ViewHolder(private val binding: ChosenObjectItemBinding) : RecyclerView.ViewHolder(binding.root) {
+            fun bind(item: ObjectDTO) {
+                val bitmap = BitmapFactory.decodeByteArray(item.drawObj, 0, item.drawObj!!.size)
+                binding.objectParentId.text = item.fullDraw
+                binding.objectId.text = item.objId.toString()
+                binding.objectView.setImageBitmap(bitmap)
+                binding.objectMotion.text = item.motion
+            }
         }
     }
 }
