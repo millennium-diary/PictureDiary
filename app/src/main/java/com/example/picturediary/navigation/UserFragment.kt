@@ -77,6 +77,7 @@ class UserFragment: Fragment() {
         auth = Firebase.auth
         firestore = FirebaseFirestore.getInstance()
         firebaseStorage = FirebaseStorage.getInstance()
+        val user = Firebase.auth.currentUser!!
         val uid = auth?.currentUser?.uid.toString()
         val username = auth?.currentUser?.displayName.toString()
 
@@ -205,11 +206,28 @@ class UserFragment: Fragment() {
                         else -> utils.exitGroup(groupId)
                     }
                 }
-
-                utils.removeUser(requireContext())
                 val intent = Intent(context, LoginActivity::class.java)
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                requireContext().startActivity(intent)
+                firestore!!.collection("users")
+                    .document(uid)
+                    .delete()
+                    .addOnSuccessListener {
+                        Toast.makeText(context, "계정을 성공적으로 삭제했습니다", Toast.LENGTH_SHORT).show()
+                        PrefApplication.prefs.setString("loggedInUser", "")
+
+                        FirebaseAuth.getInstance().signOut()
+                        user.delete()
+                        requireContext().startActivity(intent)
+                    }
+                    .addOnFailureListener {
+                        Toast.makeText(context, "계정을 삭제하는 중 문제가 생겼습니다", Toast.LENGTH_SHORT).show()
+                    }
+
+//                withContext(Dispatchers.Main) {
+//                    Toast.makeText(context, "계정을 성공적으로 삭제했습니다", Toast.LENGTH_SHORT).show()
+//                }
+//                PrefApplication.prefs.setString("loggedInUser", "")
+//                requireContext().startActivity(intent)
             }
         }
 

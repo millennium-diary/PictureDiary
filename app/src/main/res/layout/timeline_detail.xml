@@ -28,7 +28,7 @@
     <ImageView
         android:id="@+id/Diary_image"
         android:layout_width="match_parent"
-        android:layout_height="250dp"
+        android:layout_height="600dp"
         android:scaleType="fitXY"
         android:layout_marginHorizontal="20dp"/>
 
@@ -46,17 +46,20 @@
             android:layout_height="35dp"
             android:id="@+id/comment_imageview"/>
     </LinearLayout>
+
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="3dp"
         android:layout_marginLeft="8dp"
         android:text="좋아요 0개"
         android:id="@+id/like_number"/>
+
     <TextView
         android:id="@+id/explain_textview"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="35dp"
+        android:layout_marginBottom="3dp"
         android:layout_marginLeft="8dp"
         android:text="일기 텍스트"/>
 

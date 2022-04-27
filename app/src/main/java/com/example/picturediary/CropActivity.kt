@@ -29,7 +29,7 @@ class CropActivity: AppCompatActivity() {
         // 어댑터 띄우기
         val dbName = "pictureDiary.db"
         val dbHelper = DBHelper(applicationContext, dbName, null, 1)
-        val objectArrayList = dbHelper.readObject(pickedDate!!, username)
+        val objectArrayList = dbHelper.readObjects(pickedDate!!, username)
         val objectListAdapter = ObjectListAdapter(objectArrayList)
         objectRecycler.apply {
             objectRecycler.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)

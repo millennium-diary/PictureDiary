@@ -30,6 +30,7 @@
         <activity android:name=".CropActivity" />
         <activity android:name=".TextActivity" />
         <activity android:name=".DiarytimelineActivity"/>
+        <activity android:name=".AnimExamActivity"/>
         <provider
             android:authorities="com.example.paint.fileprovider"
             android:name="androidx.core.content.FileProvider"

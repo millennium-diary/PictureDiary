@@ -21,26 +21,30 @@ class Utils {
     private var auth: FirebaseAuth? = null
     private var firestore: FirebaseFirestore? = null
 
-    suspend fun removeUser(context: Context) = withContext(Dispatchers.IO) {
-        val user = Firebase.auth.currentUser!!
-        val uid = user.uid
-
-        // users 컬렉션에서 사용자 삭제
-        firestore!!.collection("users")
-            .document(uid)
-            .delete()
-            .await()
-
-        FirebaseAuth.getInstance().signOut()
-        user.delete()
-            .addOnSuccessListener {
-                Toast.makeText(context, "계정을 성공적으로 삭제했습니다", Toast.LENGTH_SHORT).show()
-                PrefApplication.prefs.setString("loggedInUser", "")
-            }
-            .addOnFailureListener {
-                Toast.makeText(context, "계정을 삭제하는 중 문제가 생겼습니다", Toast.LENGTH_SHORT).show()
-            }
-    }
+//    suspend fun removeUser() = withContext(Dispatchers.IO) {
+//            auth = Firebase.auth
+//            firestore = FirebaseFirestore.getInstance()
+//
+//            val user = Firebase.auth.currentUser!!
+//            val uid = user.uid
+//
+//            // users 컬렉션에서 사용자 삭제
+//            firestore!!.collection("users")
+//                .document(uid)
+//                .delete()
+//                .addOnSuccessListener {
+//                    Toast.makeText(context, "계정을 성공적으로 삭제했습니다", Toast.LENGTH_SHORT).show()
+//                    PrefApplication.prefs.setString("loggedInUser", "")
+//                    context.startActivity(intent)
+//                    println("삭제됨")
+//                }
+//                .addOnFailureListener {
+//                    Toast.makeText(context, "계정을 삭제하는 중 문제가 생겼습니다", Toast.LENGTH_SHORT).show()
+//                }
+//
+//            FirebaseAuth.getInstance().signOut()
+//            user.delete()
+//    }
 
     suspend fun userExistsInGroup(groupId: String, username: String): Boolean {
         auth = Firebase.auth

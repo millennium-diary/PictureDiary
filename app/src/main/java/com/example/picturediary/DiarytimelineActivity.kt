@@ -86,7 +86,8 @@ class DiarytimelineActivity : AppCompatActivity() {
                             utils.addToUserGroups(groupId, memberName)
                             utils.addToShareWith(groupId, memberName)
                             withContext(Dispatchers.Main) {
-                                Toast.makeText(applicationContext, "$memberName 님이 $groupId 그룹에 추가되었습니다", Toast.LENGTH_SHORT).show()
+                                val groupName = groupId.split("@")[0]
+                                Toast.makeText(applicationContext, "$memberName 님이 $groupName 그룹에 추가되었습니다", Toast.LENGTH_SHORT).show()
                             }
                         }
                     }
