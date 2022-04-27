@@ -1,13 +1,23 @@
 package com.example.picturediary
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.MotionEvent
 import android.view.View
+import com.example.picturediary.navigation.dao.DBHelper
+import com.example.picturediary.navigation.model.DrawingDTO
 
-class DrawingView(context: Context, attrs: AttributeSet) : View(context,attrs){
+class DrawingView(context: Context, attrs: AttributeSet) : View(context,attrs) {
+    private val dbName = "pictureDiary.db"
+    private var dbHelper: DBHelper = DBHelper(context, dbName, null, 1)
+    private var fullDrawing: DrawingDTO? = null
+    private var pickedDate: String? = null
+    private val loggedInUser = PrefApplication.prefs.getString("loggedInUser", "")
+    private val username = loggedInUser.split("★")[0]
+
     private var mDrawPath: CustomPath? = null
     private var mCanvasBitmap: Bitmap? = null
     private var mDrawPaint: Paint? = null
@@ -20,15 +30,27 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context,attrs){
 
     init { setUpDrawing() }
 
+    fun setDrawId(drawId: String) { pickedDate = drawId }
+
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
         mCanvasBitmap = Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888)
         canvas = Canvas(mCanvasBitmap!!)
     }
 
+    @SuppressLint("DrawAllocation")
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
-        canvas?.drawBitmap(mCanvasBitmap!!,0f,0f, mCanvasPaint)
+
+        fullDrawing = dbHelper.readDrawing(pickedDate!!, username)
+        // 해당 날짜에 저장된 그림이 있으면 그림판에 해당 그림 띄우기
+        if (fullDrawing != null) {
+            val bitmap = BitmapFactory.decodeByteArray(fullDrawing!!.image, 0, fullDrawing!!.image!!.size)
+            canvas?.drawBitmap(bitmap!!,0f,0f, mCanvasPaint)
+        }
+        // 저장된 그림이 없으면 빈 캔버스 띄우기
+        else canvas?.drawBitmap(mCanvasBitmap!!,0f,0f, mCanvasPaint)
+
         for (path in mPaths) {
             mDrawPaint!!.strokeWidth = path.brushThickness
             mDrawPaint!!.color = path.color

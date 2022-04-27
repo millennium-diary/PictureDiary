@@ -19,7 +19,7 @@ class MainActivity : AppCompatActivity() {
 
         // 일기 공유 갤러리
         shareDiary.setOnClickListener {
-            val intent = Intent(this, GroupActivity::class.java)
+            val intent = Intent(this, FragmentActivity::class.java)
             startActivity(intent)
         }
     }
