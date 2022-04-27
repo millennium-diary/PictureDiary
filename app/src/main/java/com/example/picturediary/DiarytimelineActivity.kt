@@ -7,7 +7,6 @@ import android.text.InputType
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -24,11 +23,6 @@ import com.example.picturediary.navigation.model.GroupDTO
 import com.example.picturediary.navigation.model.UserDTO
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.ktx.Firebase
-import kotlinx.android.synthetic.main.fragment_user.*
-import kotlinx.android.synthetic.main.user_group_item.*
-import kotlinx.android.synthetic.main.user_group_item.view.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -99,43 +93,15 @@ class DiarytimelineActivity : AppCompatActivity() {
         }
     }
 
-//    private fun addMember(memberName: String) {
-//        auth = Firebase.auth
-//        val uid = auth?.currentUser?.uid.toString()
-//        val groupId = intent.getStringExtra("GroupID")
-
-//        var tsDocGroup = groupId?.let { firestore?.collection("groups")?.document(it) }
-//        firestore?.runTransaction { transaction ->
-//
-//            var groupDTO = tsDocGroup?.let { transaction.get(it).toObject(GroupDTO::class.java) }
-//
-//
-//            if (groupDTO?.shareWith?.contains(memberName)!!) {
-//                    Toast.makeText(applicationContext,"이미 있는 멤버입니다",Toast.LENGTH_SHORT).show()
-//            }
-//            else {
-//                    groupDTO?.shareWith!!.add(memberName)
-//                    Toast.makeText(applicationContext,"멤버를 추가하였습니다.",Toast.LENGTH_SHORT).show()
-//            }
-//
-//            transaction.set(tsDocGroup!!, groupDTO!!)
-//            return@runTransaction
-//
-//        }
-//    }
-
-
     inner class RecyclerViewAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         // Diary 클래스 ArrayList 생성성
-        var contentDTOs: ArrayList<ContentDTO>
-        var contentUidList: ArrayList<String>
+        var contentDTOs: ArrayList<ContentDTO> = ArrayList()
+        var contentUidList: ArrayList<String> = ArrayList()
 
-        val groupId = intent.getStringExtra("GroupID")
+        private val groupId = intent.getStringExtra("GroupID")
         var uid = FirebaseAuth.getInstance().currentUser?.uid
 
         init {
-            contentDTOs = ArrayList()
-            contentUidList = ArrayList()
             if (groupId != null) {
 
                 firestore?.collection("groups")?.document(groupId)?.get()
@@ -143,15 +109,14 @@ class DiarytimelineActivity : AppCompatActivity() {
                         if (task.isSuccessful) {
                             var GroupDTO = task.result.toObject(GroupDTO::class.java)
                             if (GroupDTO?.shareWith != null) {
-                                getCotents(GroupDTO.shareWith!!)
+                                getContents(GroupDTO.shareWith!!)
                             }
                         }
                     }
             }
-
         }
 
-        private fun getCotents(shareWith: ArrayList<String>?) {
+        private fun getContents(shareWith: ArrayList<String>?) {
             firestore?.collection("images")
                 ?.addSnapshotListener { querySnapshot, firebaseFirestoreException ->
                     // ArrayList 비워줌
@@ -169,11 +134,9 @@ class DiarytimelineActivity : AppCompatActivity() {
                             }
                             contentUidList.add(snapshot.id)
                         }
-
                     }
                     notifyDataSetChanged()
                 }
-
         }
 
         override fun onCreateViewHolder(p0: ViewGroup, p1: Int): RecyclerView.ViewHolder {
@@ -186,25 +149,26 @@ class DiarytimelineActivity : AppCompatActivity() {
 
         // onCreateViewHolder에서 만든 view와 실제 데이터를 연결
         override fun onBindViewHolder(p0: RecyclerView.ViewHolder, p1: Int) {
-            var viewHolder = (p0 as ViewHolder).itemView
-
+            val viewHolder = (p0 as ViewHolder).itemView
 
             firestore?.collection("users")?.document(contentDTOs[p1].uid!!)
                 ?.get()?.addOnCompleteListener { task ->
                     if (task.isSuccessful) {
-
                         val url = task.result.toObject(UserDTO::class.java)?.imageUrl
-                        Glide.with(p0.itemView.context)
-                            .load(url)
-                            .apply(RequestOptions().circleCrop())
-                            .into(viewHolder.detailviewitem_profile_image)
+                        if (url == "") {
+                            viewHolder.detailviewitem_profile_image.setImageResource(R.drawable.user)
+                        }
+                        else {
+                            Glide.with(p0.itemView.context)
+                                .load(url)
+                                .apply(RequestOptions().circleCrop())
+                                .into(viewHolder.detailviewitem_profile_image)
+                        }
                     }
                 }
-            viewHolder.profile_textview.text = contentDTOs!![p1].username
-
-            viewHolder.explain_textview.text = contentDTOs!![p1].explain
-
-            Glide.with(p0.itemView.context).load(contentDTOs!![p1].imageUrl)
+            viewHolder.profile_textview.text = contentDTOs[p1].username
+            viewHolder.explain_textview.text = contentDTOs[p1].explain
+            Glide.with(p0.itemView.context).load(contentDTOs[p1].imageUrl)
                 .into(viewHolder.Diary_image)
 
             viewHolder.favorite_imageview.setOnClickListener { favoriteEvent(p1) }
@@ -226,7 +190,7 @@ class DiarytimelineActivity : AppCompatActivity() {
         }
 
         private fun favoriteEvent(position: Int) {
-            var tsDoc = firestore?.collection("images")?.document(contentUidList[position])
+            val tsDoc = firestore?.collection("images")?.document(contentUidList[position])
             firestore?.runTransaction { transaction ->
 
                 val uid = FirebaseAuth.getInstance().currentUser!!.uid
@@ -234,13 +198,13 @@ class DiarytimelineActivity : AppCompatActivity() {
 
                 if (contentDTO!!.favorites.containsKey(uid)) {
                     // Unstar the post and remove self from stars
-                    contentDTO?.favoriteCount = contentDTO?.favoriteCount!! - 1
-                    contentDTO?.favorites?.remove(uid)
+                    contentDTO.favoriteCount = contentDTO.favoriteCount - 1
+                    contentDTO.favorites.remove(uid)
 
                 } else {
                     // Star the post and add self to stars
-                    contentDTO?.favoriteCount = contentDTO?.favoriteCount!! + 1
-                    contentDTO?.favorites?.set(uid, true)
+                    contentDTO.favoriteCount = contentDTO.favoriteCount + 1
+                    contentDTO.favorites.set(uid, true)
                 }
                 transaction.set(tsDoc, contentDTO)
             }

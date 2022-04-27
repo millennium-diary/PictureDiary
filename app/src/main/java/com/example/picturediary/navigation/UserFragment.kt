@@ -9,6 +9,7 @@ import android.content.Intent
 import android.graphics.ImageDecoder.*
 import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.text.InputType
 import android.view.LayoutInflater
@@ -19,6 +20,7 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
@@ -49,6 +51,8 @@ class UserFragment: Fragment() {
     private var firestore: FirebaseFirestore? = null
     private var firebaseStorage: FirebaseStorage? = null
     private var photoUrl: Uri? = null
+
+    @RequiresApi(Build.VERSION_CODES.P)
     private val getResult = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
         if (it.resultCode == RESULT_OK && it.data != null) {
             photoUrl = it.data!!.data!!
@@ -61,6 +65,7 @@ class UserFragment: Fragment() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.P)
     @SuppressLint("UseCompatLoadingForDrawables")
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -249,6 +254,7 @@ class UserFragment: Fragment() {
         return view
     }
 
+    @RequiresApi(Build.VERSION_CODES.P)
     private fun selectImage() {
         val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
         intent.type = "image/*"
