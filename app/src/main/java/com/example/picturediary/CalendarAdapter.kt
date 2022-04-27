@@ -60,7 +60,6 @@ class CalendarAdapter(context: Context?): BaseAdapter() {
         if (!(mDateManager!!.isCurrentMonth(dateArray[position]))) {
             holder.dateText!!.alpha = 0.4f
         }
-
         return convertView
     }
 
@@ -68,8 +67,9 @@ class CalendarAdapter(context: Context?): BaseAdapter() {
         return 0
     }
 
-    override fun getItem(position: Int): Any? {
-        return null
+    override fun getItem(position: Int): String {
+        val datetime = dateArray[position]
+        return SimpleDateFormat("yyyy.MM.dd").format(datetime)
     }
 
     fun getTitle(): String? {

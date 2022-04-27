@@ -48,5 +48,17 @@
             android:layout_marginTop="15dp"
             android:textColor="@color/white"
             android:text="갤러리"/>
+
+        <Button
+            android:id="@+id/animExam"
+            android:backgroundTint="#555555"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginBottom="100dp"
+            android:layout_marginEnd="20dp"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="15dp"
+            android:textColor="@color/white"
+            android:text="모션 예제"/>
     </LinearLayout>
 </RelativeLayout>
