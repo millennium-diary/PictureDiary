@@ -125,6 +125,7 @@ class UserFragment: Fragment() {
             view.info_update_complete.visibility = View.VISIBLE
             view.info_message_edit.visibility = View.VISIBLE
 
+            // 프로필 사진 눌러 사진 변경
             view.info_profile_pic.setOnClickListener {
                 val choose_pic = arrayOf("기본 이미지로 변경", "앨범에서 사진 선택")
                 val dlg = AlertDialog.Builder(requireContext())
@@ -138,7 +139,7 @@ class UserFragment: Fragment() {
             }
         }
 
-        // 카메라 버튼 또는 프로필 사진 눌러 사진 변경
+        // 카메라 버튼 사진 눌러 사진 변경
         view.change_pic.setOnClickListener {
             val choose_pic = arrayOf("기본 이미지로 변경", "앨범에서 사진 선택")
             val dlg = AlertDialog.Builder(requireContext())
