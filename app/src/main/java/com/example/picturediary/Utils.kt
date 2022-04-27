@@ -5,6 +5,7 @@ import android.content.Intent
 import android.widget.Toast
 import androidx.core.content.ContextCompat.startActivity
 import com.example.picturediary.navigation.model.GroupDTO
+import com.example.picturediary.navigation.model.UserDTO
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FieldValue
@@ -40,6 +41,61 @@ class Utils {
                 Toast.makeText(context, "계정을 삭제하는 중 문제가 생겼습니다", Toast.LENGTH_SHORT).show()
             }
     }
+
+    suspend fun userExistsInGroup(groupId: String, username: String): Boolean {
+        auth = Firebase.auth
+        firestore = FirebaseFirestore.getInstance()
+
+        val returnGroup = firestore!!.collection("groups")
+            .document(groupId)
+            .get()
+            .await()
+            .toObject(GroupDTO::class.java)
+
+        val members = returnGroup!!.shareWith
+        return members!!.contains(username)
+    }
+
+    suspend fun userExists(username: String): Boolean {
+        auth = Firebase.auth
+        firestore = FirebaseFirestore.getInstance()
+
+        val returnGroup = firestore!!.collection("groups")
+            .whereEqualTo("username", username)
+            .get()
+            .await()
+
+        return returnGroup != null
+    }
+
+    // groups 컬렉션의 shareWith 필드에 사용자 추가
+    suspend fun addToShareWith(groupId: String, username: String) {
+        withContext(Dispatchers.IO) {
+            firestore = FirebaseFirestore.getInstance()
+            firestore!!.collection("groups")
+                .document(groupId)
+                .update("shareWith", FieldValue.arrayUnion(username))
+                .await()
+        }
+    }
+
+    // users 컬렉션의 userGroups 필드에 사용자 추가
+    suspend fun addToUserGroups(groupId: String, username: String) {
+        withContext(Dispatchers.IO) {
+            firestore = FirebaseFirestore.getInstance()
+            val userDTO = firestore!!.collection("users")
+                .whereEqualTo("username", username).get()
+                .await()
+                .toObjects(UserDTO::class.java)[0]
+            val uid = userDTO.uid.toString()
+
+            firestore!!.collection("users")
+                .document(uid)
+                .update("userGroups", FieldValue.arrayUnion(groupId))
+                .await()
+        }
+    }
+
 
     // groups 컬렉션에 그룹 추가
     suspend fun addToGroup(grpname: String, activity: Context) {
