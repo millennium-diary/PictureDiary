@@ -29,7 +29,7 @@ class CropActivity: AppCompatActivity() {
         // 어댑터 띄우기
         val dbName = "pictureDiary.db"
         val dbHelper = DBHelper(applicationContext, dbName, null, 1)
-        val objectArrayList = dbHelper.readObjects(pickedDate!!, username)
+        val objectArrayList = dbHelper.readObject(pickedDate!!, username)
         val objectListAdapter = ObjectListAdapter(objectArrayList)
         objectRecycler.apply {
             objectRecycler.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
@@ -41,14 +41,19 @@ class CropActivity: AppCompatActivity() {
         cropView?.setDrawId(pickedDate!!)
         cropView?.setDrawing(picture!!)
 
-        completeBtn.setOnClickListener { // 완료버튼
+        completeBtn.setOnClickListener {//완료버튼
             val intent = Intent(this, TextActivity::class.java)
+            intent.putExtra("picture", arr)
+            intent.putExtra("pickedDate", pickedDate)
             startActivity(intent)
         }
 
-        playAll.setOnClickListener { // 모두재생 버튼
+        playAll.setOnClickListener {//모두재생 버튼val intent = Intent(this, CropActivity::class.java)
 
         }
+
+
+
 
 
     }

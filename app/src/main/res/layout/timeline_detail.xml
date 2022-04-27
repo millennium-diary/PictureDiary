@@ -5,6 +5,7 @@
     android:layout_height="wrap_content"
     android:orientation="vertical">
 
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="50dp"
@@ -24,11 +25,10 @@
             android:textSize="20dp"/>
     </LinearLayout>
 
-
     <ImageView
         android:id="@+id/Diary_image"
         android:layout_width="match_parent"
-        android:layout_height="300dp"
+        android:layout_height="250dp"
         android:scaleType="fitXY"
         android:layout_marginHorizontal="20dp"/>
 
@@ -59,6 +59,16 @@
         android:layout_marginBottom="35dp"
         android:layout_marginLeft="8dp"
         android:text="일기 텍스트"/>
+
+    <TextView
+        android:id="@+id/diary_date"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="35dp"
+        android:layout_marginLeft="8dp"
+        android:text="날짜"
+        android:textSize="15dp"/>
+
 
 
 </LinearLayout>

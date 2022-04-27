@@ -2,11 +2,13 @@ package com.example.picturediary
 
 
 import android.content.DialogInterface
+import android.content.Intent
 import android.os.Bundle
 import android.text.InputType
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -23,6 +25,13 @@ import com.example.picturediary.navigation.model.GroupDTO
 import com.example.picturediary.navigation.model.UserDTO
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.Query
+import com.google.firebase.ktx.Firebase
+import kotlinx.android.synthetic.main.fragment_user.*
+import kotlinx.android.synthetic.main.user_group_item.*
+import kotlinx.android.synthetic.main.user_group_item.view.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -109,15 +118,16 @@ class DiarytimelineActivity : AppCompatActivity() {
                         if (task.isSuccessful) {
                             var GroupDTO = task.result.toObject(GroupDTO::class.java)
                             if (GroupDTO?.shareWith != null) {
-                                getContents(GroupDTO.shareWith!!)
+                                getCotents(GroupDTO.shareWith!!)
                             }
                         }
                     }
             }
+
         }
 
-        private fun getContents(shareWith: ArrayList<String>?) {
-            firestore?.collection("images")
+        private fun getCotents(shareWith: ArrayList<String>?) {
+            firestore?.collection("images")?.orderBy("timestamp", Query.Direction.DESCENDING)
                 ?.addSnapshotListener { querySnapshot, firebaseFirestoreException ->
                     // ArrayList 비워줌
                     contentDTOs.clear()
@@ -134,9 +144,11 @@ class DiarytimelineActivity : AppCompatActivity() {
                             }
                             contentUidList.add(snapshot.id)
                         }
+
                     }
                     notifyDataSetChanged()
                 }
+
         }
 
         override fun onCreateViewHolder(p0: ViewGroup, p1: Int): RecyclerView.ViewHolder {
@@ -149,7 +161,8 @@ class DiarytimelineActivity : AppCompatActivity() {
 
         // onCreateViewHolder에서 만든 view와 실제 데이터를 연결
         override fun onBindViewHolder(p0: RecyclerView.ViewHolder, p1: Int) {
-            val viewHolder = (p0 as ViewHolder).itemView
+            var viewHolder = (p0 as ViewHolder).itemView
+
 
             firestore?.collection("users")?.document(contentDTOs[p1].uid!!)
                 ?.get()?.addOnCompleteListener { task ->
@@ -167,11 +180,15 @@ class DiarytimelineActivity : AppCompatActivity() {
                     }
                 }
             viewHolder.profile_textview.text = contentDTOs[p1].username
+
             viewHolder.explain_textview.text = contentDTOs[p1].explain
+
             Glide.with(p0.itemView.context).load(contentDTOs[p1].imageUrl)
                 .into(viewHolder.Diary_image)
 
             viewHolder.favorite_imageview.setOnClickListener { favoriteEvent(p1) }
+
+            viewHolder.diary_date.text = contentDTOs[p1].diaryDate
 
             if (contentDTOs[p1].favorites.containsKey(FirebaseAuth.getInstance().currentUser!!.uid)) {
                 //클릭 되었을 경우
@@ -190,7 +207,7 @@ class DiarytimelineActivity : AppCompatActivity() {
         }
 
         private fun favoriteEvent(position: Int) {
-            val tsDoc = firestore?.collection("images")?.document(contentUidList[position])
+            var tsDoc = firestore?.collection("images")?.document(contentUidList[position])
             firestore?.runTransaction { transaction ->
 
                 val uid = FirebaseAuth.getInstance().currentUser!!.uid
@@ -198,17 +215,16 @@ class DiarytimelineActivity : AppCompatActivity() {
 
                 if (contentDTO!!.favorites.containsKey(uid)) {
                     // Unstar the post and remove self from stars
-                    contentDTO.favoriteCount = contentDTO.favoriteCount - 1
-                    contentDTO.favorites.remove(uid)
+                    contentDTO?.favoriteCount = contentDTO?.favoriteCount!! - 1
+                    contentDTO?.favorites?.remove(uid)
 
                 } else {
                     // Star the post and add self to stars
-                    contentDTO.favoriteCount = contentDTO.favoriteCount + 1
-                    contentDTO.favorites.set(uid, true)
+                    contentDTO?.favoriteCount = contentDTO?.favoriteCount!! + 1
+                    contentDTO?.favorites?.set(uid, true)
                 }
                 transaction.set(tsDoc, contentDTO)
             }
-
         }
     }
 }
