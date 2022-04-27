@@ -43,12 +43,17 @@ class CropActivity: AppCompatActivity() {
 
         completeBtn.setOnClickListener {//완료버튼
             val intent = Intent(this, TextActivity::class.java)
+            intent.putExtra("picture", arr)
+            intent.putExtra("pickedDate", pickedDate)
             startActivity(intent)
         }
 
-        playAll.setOnClickListener {//모두재생 버튼
+        playAll.setOnClickListener {//모두재생 버튼val intent = Intent(this, CropActivity::class.java)
 
         }
+
+
+
 
 
     }
