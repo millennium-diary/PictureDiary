@@ -22,5 +22,12 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this, FragmentActivity::class.java)
             startActivity(intent)
         }
+
+        animExam.setOnClickListener {
+            val intent = Intent(this, AnimExamActivity::class.java)
+            startActivity(intent)
+        }
+
     }
+
 }
