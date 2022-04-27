@@ -9,7 +9,6 @@ import android.view.View.OnTouchListener
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.picturediary.navigation.dao.DBHelper
-import com.example.picturediary.navigation.model.DrawingDTO
 import com.example.picturediary.navigation.model.ObjectDTO
 import kotlinx.android.synthetic.main.activity_crop.view.*
 import java.io.ByteArrayOutputStream
@@ -31,7 +30,7 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
     private val loggedInUser = PrefApplication.prefs.getString("loggedInUser", "")
     private val username = loggedInUser.split("★")[0]
 
-    private var objectArrayList = arrayListOf<ObjectDTO>()
+    var objectArrayList = arrayListOf<ObjectDTO>()
     lateinit var objectListAdapter: ObjectListAdapter
 
     init {
@@ -52,6 +51,9 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
 
     fun setDrawing(picture: Bitmap) { bitmap = picture }
     fun setDrawId(drawId: String) { pickedDate = drawId }
+    fun deleteObject() {
+        dbHelper.deleteObject(pickedDate!!, username)
+    }
 
     @SuppressLint("DrawAllocation")
     public override fun onDraw(canvas: Canvas) {
@@ -132,18 +134,6 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
         return true
     }
 
-//    private fun comparePoint(first: Point?, current: Point?): Boolean {
-//        val left_range_x = (current!!.x - 3).toInt()
-//        val left_range_y = (current.y - 3).toInt()
-//        val right_range_x = (current.x + 3).toInt()
-//        val right_range_y = (current.y + 3).toInt()
-//        return if (left_range_x < first!!.x && first.x < right_range_x
-//            && left_range_y < first.y && first.y < right_range_y
-//        ) {
-//            points.size >= 10
-//        } else false
-//    }
-
     private fun getPath(): Path {
         val path = Path()
         for (point in points)
@@ -175,9 +165,9 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
         val view = this.parent.parent as ConstraintLayout
         val emptyBitmap = Bitmap.createBitmap(croppedBitmap.width, croppedBitmap.height, croppedBitmap.config)
 
-        objectArrayList = dbHelper.readObject(pickedDate!!, username)
+        objectArrayList = dbHelper.readObjects(pickedDate!!, username)
         objectListAdapter = ObjectListAdapter(objectArrayList)
-        val objId = objectArrayList.size
+        val objId = dbHelper.readLastIndex(pickedDate!!, username)
         objectListAdapter.notifyDataSetChanged()
 
         view.objectRecycler.apply {
@@ -193,7 +183,7 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
             objectArrayList.add(objectDTO)
             objectListAdapter.notifyDataSetChanged()
 
-            dbHelper.insertObject("$username@$pickedDate", objId, byteArray, "")
+            dbHelper.insertObject("$username@$pickedDate", objId!!, byteArray, "")
         }
     }
 }

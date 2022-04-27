@@ -115,7 +115,7 @@ class DBHelper(
     }
 
     @SuppressLint("Recycle")
-    fun readObject(drawDate: String, username: String): ArrayList<ObjectDTO> {
+    fun readObjects(drawDate: String, username: String): ArrayList<ObjectDTO> {
         val drawId = "$username@$drawDate"
         val objectArrayList = arrayListOf<ObjectDTO>()
         val sql = "SELECT * FROM object WHERE fullDraw = ?"
@@ -131,6 +131,46 @@ class DBHelper(
         }
         cursor.close()
         return objectArrayList
+    }
+
+    @SuppressLint("Recycle")
+    fun readSingleObject(drawId: String, objId: String): ObjectDTO {
+        var objectDTO = ObjectDTO()
+        val sql = "SELECT * FROM object WHERE fullDraw = ? AND objId = ?"
+        val cursor = readableDatabase.rawQuery(sql, arrayOf(drawId, objId))
+
+        while (cursor.moveToNext()) {
+            val drawingId = cursor.getString(0)
+            val objectId = cursor.getInt(1)
+            val drawObj = cursor.getBlob(2)
+            val motion = cursor.getString(3)
+
+            objectDTO = ObjectDTO(drawingId, objectId, drawObj, motion)
+        }
+        cursor.close()
+        return objectDTO
+    }
+
+    fun readLastIndex(drawDate: String, username: String): Int? {
+        var objectId: Int? = null
+        val drawId = "$username@$drawDate"
+        val sql = "SELECT * FROM object WHERE fullDraw = ? ORDER BY objId DESC LIMIT 1"
+        val cursor = readableDatabase.rawQuery(sql, arrayOf(drawId))
+
+        while (cursor.moveToNext()) {
+            objectId = cursor.getInt(1)
+        }
+        cursor.close()
+
+        if (objectId == null) objectId = 0
+        else objectId += 1
+
+        return objectId
+    }
+
+    fun deleteObject(drawId: String, objId: String):Boolean {
+        val db = writableDatabase
+        return db.delete("object", "fullDraw = ? AND objId = ?", arrayOf(drawId, objId)) > 0
     }
 
     fun deleteAllObject(drawDate: String, username: String): Boolean {

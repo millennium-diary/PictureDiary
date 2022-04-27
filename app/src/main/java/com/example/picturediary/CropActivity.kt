@@ -1,9 +1,9 @@
 package com.example.picturediary
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.*
 import android.os.Bundle
-import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.picturediary.navigation.dao.DBHelper
@@ -17,6 +17,7 @@ class CropActivity: AppCompatActivity() {
     private val loggedInUser = PrefApplication.prefs.getString("loggedInUser", "")
     private val username = loggedInUser.split("★")[0]
 
+    @SuppressLint("NotifyDataSetChanged")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_crop)
@@ -29,7 +30,7 @@ class CropActivity: AppCompatActivity() {
         // 어댑터 띄우기
         val dbName = "pictureDiary.db"
         val dbHelper = DBHelper(applicationContext, dbName, null, 1)
-        val objectArrayList = dbHelper.readObject(pickedDate!!, username)
+        val objectArrayList = dbHelper.readObjects(pickedDate!!, username)
         val objectListAdapter = ObjectListAdapter(objectArrayList)
         objectRecycler.apply {
             objectRecycler.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
@@ -41,15 +42,13 @@ class CropActivity: AppCompatActivity() {
         cropView?.setDrawId(pickedDate!!)
         cropView?.setDrawing(picture!!)
 
-        completeBtn.setOnClickListener {//완료버튼
+        completeBtn.setOnClickListener {    //완료버튼
             val intent = Intent(this, TextActivity::class.java)
             startActivity(intent)
         }
 
-        playAll.setOnClickListener {//모두재생 버튼
+        playAll.setOnClickListener {    //모두재생 버튼
 
         }
-
-
     }
 }

@@ -27,6 +27,7 @@
         <activity android:name=".CalendarActivity" />
         <activity android:name=".FragmentActivity" />
         <activity android:name=".DrawingActivity" />
+        <activity android:name=".DiarytimelineActivity" />
         <activity android:name=".CropActivity" />
         <activity android:name=".TextActivity" />
         <provider

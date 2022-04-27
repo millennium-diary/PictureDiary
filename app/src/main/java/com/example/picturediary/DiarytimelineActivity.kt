@@ -2,7 +2,6 @@ package com.example.picturediary
 
 
 import android.content.DialogInterface
-import android.content.Intent
 import android.os.Bundle
 import android.text.InputType
 import android.view.LayoutInflater
@@ -26,14 +25,7 @@ import com.example.picturediary.navigation.model.UserDTO
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.ktx.auth
-import com.google.firebase.firestore.FieldValue
 import com.google.firebase.ktx.Firebase
-import kotlinx.android.synthetic.main.fragment_user.*
-import kotlinx.android.synthetic.main.user_group_item.*
-import kotlinx.android.synthetic.main.user_group_item.view.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 
 class DiarytimelineActivity : AppCompatActivity() {
 
@@ -106,6 +98,7 @@ class DiarytimelineActivity : AppCompatActivity() {
         var contentUidList: ArrayList<String>
 
         val groupId = intent.getStringExtra("GroupID")
+
         var uid = FirebaseAuth.getInstance().currentUser?.uid
 
         init {
@@ -118,7 +111,7 @@ class DiarytimelineActivity : AppCompatActivity() {
                         if (task.isSuccessful) {
                             var GroupDTO = task.result.toObject(GroupDTO::class.java)
                             if (GroupDTO?.shareWith != null) {
-                                getCotents(GroupDTO.shareWith!!)
+                                getContents(GroupDTO.shareWith!!)
                             }
                         }
                     }
@@ -126,7 +119,7 @@ class DiarytimelineActivity : AppCompatActivity() {
 
         }
 
-        private fun getCotents(shareWith: ArrayList<String>?) {
+        private fun getContents(shareWith: ArrayList<String>?) {
             firestore?.collection("images")
                 ?.addSnapshotListener { querySnapshot, firebaseFirestoreException ->
                     // ArrayList 비워줌
