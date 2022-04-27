@@ -130,8 +130,11 @@ class DiarytimelineActivity : AppCompatActivity() {
                     for (snapshot in querySnapshot!!.documents) {
                         var item = snapshot.toObject(ContentDTO::class.java)
                         if (item != null) {
-                            if (shareWith?.contains(item.username) == true)
-                                contentDTOs.add(item)
+                            if (shareWith != null) {
+                                if (shareWith.contains(item.username)==true)
+                                    if(groupId==item.groupId.toString())
+                                        contentDTOs.add(item)
+                            }
                             contentUidList.add(snapshot.id)
                         }
 
