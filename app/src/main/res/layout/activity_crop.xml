@@ -8,13 +8,45 @@
     android:background="#BDBDBD"
     tools:context=".CropActivity">
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/objectRecycler"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
+
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/objectRecycler"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            tools:listitem="@layout/chosen_object_item"/>
+
+
+    <Button
+        android:id="@+id/completeBtn"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
         app:layout_constraintTop_toTopOf="parent"
-        tools:listitem="@layout/chosen_object_item"/>
+        app:layout_constraintRight_toRightOf="parent"
+        android:text="완료"
+        />
+    <Button
+        android:id="@+id/playAll"
+        android:layout_width="80dp"
+        android:layout_height="50dp"
+        app:layout_constraintTop_toBottomOf="@id/completeBtn"
+        app:layout_constraintRight_toRightOf="parent"
+        android:text="모두 재생"
+        />
+<!--    <LinearLayout-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="100dp"-->
+<!--        app:layout_constraintTop_toTopOf="parent">-->
+<!--        <ImageView-->
+<!--            android:id="@+id/cropped"-->
+<!--            android:padding="5dp"-->
+<!--            android:background="@color/white"-->
+<!--            android:layout_width="100dp"-->
+<!--            android:layout_height="match_parent"/>-->
+<!--    </LinearLayout>-->
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/constraintLayout"

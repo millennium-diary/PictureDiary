@@ -26,6 +26,7 @@ class DrawingActivity : AppCompatActivity() {
     private var drawingView: DrawingView? = null
     private var mImageButtonCurrentPaint: ImageButton? = null
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_drawing)
@@ -37,7 +38,7 @@ class DrawingActivity : AppCompatActivity() {
         drawingView?.setDrawId(pickedDate!!)
 
         val ibBrush: Button = findViewById(R.id.ib_brush)
-        ibBrush.setOnClickListener {
+        ibBrush.setOnClickListener{
             showBrushSizeChooserDialog()
         }
 
