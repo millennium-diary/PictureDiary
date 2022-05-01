@@ -15,14 +15,13 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 
-class CalendarAdapter(context: Context?): BaseAdapter() {
+class CalendarAdapter(context: Context): BaseAdapter() {
     private var mContext: Context? = context
     private var mDateManager: DateManager? = DateManager()
     private var dateArray: List<Date> = mDateManager!!.days
     private var mLayoutInflater: LayoutInflater? = LayoutInflater.from(mContext)
 
-    private val dbName = "pictureDiary.db"
-    private var dbHelper: DBHelper = DBHelper(context, dbName, null, 1)
+    private val dbHelper = Utils().createDBHelper(context)
     private var fullDrawing: DrawingDTO? = null
     private val loggedInUser = PrefApplication.prefs.getString("loggedInUser", "")
     private val username = loggedInUser.split("★")[0]

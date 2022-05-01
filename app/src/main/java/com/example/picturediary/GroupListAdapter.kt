@@ -10,9 +10,7 @@ import com.example.picturediary.GroupListAdapter.ViewHolder
 import com.example.picturediary.databinding.UserGroupItemBinding
 import com.example.picturediary.navigation.model.GroupDTO
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.ktx.Firebase
 import kotlinx.android.synthetic.main.user_group_item.view.*
 
 import java.text.SimpleDateFormat
@@ -44,12 +42,10 @@ class GroupListAdapter(var items: ArrayList<GroupDTO>) : RecyclerView.Adapter<Vi
         holder.bind(items[position])
 
         val groupId = holder.itemView.groupId.text
-        println(groupId)
 
         holder.itemView.setOnClickListener {
-            val intent = Intent(holder.itemView.context, DiarytimelineActivity::class.java)
+            val intent = Intent(holder.itemView.context, TimelineActivity::class.java)
             intent.putExtra("GroupID", groupId)
-            println(groupId)
             ContextCompat.startActivity(holder.itemView.context, intent, null)
 //            itemClickListener.onClick(it, position)
         }

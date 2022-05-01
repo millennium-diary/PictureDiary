@@ -20,7 +20,6 @@ import java.io.ByteArrayOutputStream
 class DrawingActivity : AppCompatActivity() {
     private val loggedInUser = PrefApplication.prefs.getString("loggedInUser", "")
     private val username = loggedInUser.split("★")[0]
-    private val dbName = "pictureDiary.db"
     lateinit var dbHelper: DBHelper
 
     private var drawingView: DrawingView? = null
@@ -31,7 +30,7 @@ class DrawingActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_drawing)
 
-        dbHelper = DBHelper(this, dbName, null, 1)
+        dbHelper = Utils().createDBHelper(this)
         val pickedDate = intent.getStringExtra("pickedDate")
 
         drawingView = findViewById(R.id.drawing_view)
@@ -64,12 +63,12 @@ class DrawingActivity : AppCompatActivity() {
             val fullDrawing = dbHelper.readDrawing(pickedDate!!, username)
             // 그림 존재하지 않음 --> DB에 추가
             if (fullDrawing == null)
-                dbHelper.insertDrawing(pickedDate, username, byteArray)
+                dbHelper.insertDrawing(pickedDate, username, "", byteArray)
             // 그림 존재 --> 그림 수정 --> 그림 업데이트 & 객체 삭제
             else {
                 val drawing = fullDrawing.image
                 if (!drawing.contentEquals(byteArray)) {
-                    dbHelper.updateDrawing(pickedDate, username, byteArray)
+                    dbHelper.updateDrawing(pickedDate, username, fullDrawing.content!!, byteArray)
                     dbHelper.deleteAllObject(pickedDate, username)
                 }
             }

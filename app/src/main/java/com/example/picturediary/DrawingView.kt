@@ -11,10 +11,9 @@ import com.example.picturediary.navigation.dao.DBHelper
 import com.example.picturediary.navigation.model.DrawingDTO
 
 class DrawingView(context: Context, attrs: AttributeSet) : View(context,attrs) {
-    private val dbName = "pictureDiary.db"
-    private var dbHelper: DBHelper = DBHelper(context, dbName, null, 1)
     private var fullDrawing: DrawingDTO? = null
     private var pickedDate: String? = null
+    private val dbHelper = Utils().createDBHelper(context)
     private val loggedInUser = PrefApplication.prefs.getString("loggedInUser", "")
     private val username = loggedInUser.split("★")[0]
 

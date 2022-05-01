@@ -27,8 +27,7 @@ class CropActivity: AppCompatActivity() {
         picture = BitmapFactory.decodeByteArray(arr, 0, arr!!.size)
 
         // 어댑터 띄우기
-        val dbName = "pictureDiary.db"
-        val dbHelper = DBHelper(applicationContext, dbName, null, 1)
+        val dbHelper = Utils().createDBHelper(applicationContext)
         val objectArrayList = dbHelper.readObjects(pickedDate!!, username)
         val objectListAdapter = ObjectListAdapter(objectArrayList)
         objectRecycler.apply {
@@ -41,7 +40,8 @@ class CropActivity: AppCompatActivity() {
         cropView?.setDrawId(pickedDate!!)
         cropView?.setDrawing(picture!!)
 
-        completeBtn.setOnClickListener {//완료버튼
+        // 완료 버튼
+        completeBtn.setOnClickListener {
             val intent = Intent(this, TextActivity::class.java)
             intent.putExtra("picture", arr)
             intent.putExtra("pickedDate", pickedDate)
@@ -51,10 +51,5 @@ class CropActivity: AppCompatActivity() {
         playAll.setOnClickListener {//모두재생 버튼val intent = Intent(this, CropActivity::class.java)
 
         }
-
-
-
-
-
     }
 }

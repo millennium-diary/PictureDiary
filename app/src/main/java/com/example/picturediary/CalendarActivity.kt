@@ -19,6 +19,7 @@ class CalendarActivity : AppCompatActivity() {
         val mCalendarAdapter = CalendarAdapter(this)
 
         // 이전 달 이동 버튼
+        // 이전 달 이동 버튼
         prevButton.setOnClickListener {
             mCalendarAdapter.prevMonth()
             titleText.text = mCalendarAdapter.getTitle()

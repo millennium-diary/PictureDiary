@@ -27,7 +27,5 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this, AnimExamActivity::class.java)
             startActivity(intent)
         }
-
     }
-
 }

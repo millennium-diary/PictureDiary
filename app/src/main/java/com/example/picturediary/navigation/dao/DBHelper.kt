@@ -21,6 +21,7 @@ class DBHelper(
         val createDrawingTable = "CREATE TABLE IF NOT EXISTS drawing (" +
                 "drawId TEXT PRIMARY KEY," +
                 "user TEXT," +
+                "content TEXT," +
                 "image BLOB );"
 
         val createObjectTable = "CREATE TABLE IF NOT EXISTS object (" +
@@ -55,12 +56,13 @@ class DBHelper(
     }
 
     // DRAWING 테이블 ===============================================================================
-    fun insertDrawing(drawDate: String, username:String, image: ByteArray): Boolean {
+    fun insertDrawing(drawDate: String, username:String, content: String, image: ByteArray): Boolean {
         val db = writableDatabase
         val cv = ContentValues()
         val drawId = "$username@$drawDate"
         cv.put("drawId", drawId)
         cv.put("user", username)
+        cv.put("content", "")
         cv.put("image", image)
 
         val result: Boolean = try {
@@ -82,20 +84,22 @@ class DBHelper(
         while (cursor.moveToNext()) {
             val drawingId = cursor.getString(0)
             val user = cursor.getString(1)
-            val image = cursor.getBlob(2)
+            val content = cursor.getString(2)
+            val image = cursor.getBlob(3)
 
-            fullDrawingDTO = DrawingDTO(drawingId, user, image)
+            fullDrawingDTO = DrawingDTO(drawingId, user, content, image)
         }
         cursor.close()
         return fullDrawingDTO
     }
 
-    fun updateDrawing(drawDate: String, username: String, image: ByteArray): Boolean {
+    fun updateDrawing(drawDate: String, username: String, content: String, image: ByteArray): Boolean {
         val db = writableDatabase
         val cv = ContentValues()
         val drawId = "$username@$drawDate"
         cv.put("drawId", drawId)
         cv.put("user", username)
+        cv.put("content", content)
         cv.put("image", image)
 
         return db.update("drawing", cv, "drawId = ?", arrayOf(drawId)) > 0

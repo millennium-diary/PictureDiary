@@ -1,9 +1,8 @@
 package com.example.picturediary
 
 import android.content.Context
-import android.content.Intent
 import android.widget.Toast
-import androidx.core.content.ContextCompat.startActivity
+import com.example.picturediary.navigation.dao.DBHelper
 import com.example.picturediary.navigation.model.GroupDTO
 import com.example.picturediary.navigation.model.UserDTO
 import com.google.firebase.auth.FirebaseAuth
@@ -12,8 +11,6 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 
@@ -46,6 +43,12 @@ class Utils {
 //            user.delete()
 //    }
 
+    fun createDBHelper(context: Context): DBHelper {
+        val dbName = "pictureDiary.db"
+        return DBHelper(context, dbName, null, 2)
+    }
+
+    // 현재 그룹에 사용자가 있는지 확인
     suspend fun userExistsInGroup(groupId: String, username: String): Boolean {
         auth = Firebase.auth
         firestore = FirebaseFirestore.getInstance()
@@ -64,12 +67,13 @@ class Utils {
         auth = Firebase.auth
         firestore = FirebaseFirestore.getInstance()
 
-        val returnGroup = firestore!!.collection("groups")
+        val returnGroup = firestore!!.collection("users")
             .whereEqualTo("username", username)
             .get()
             .await()
+            .toObjects(UserDTO::class.java)
 
-        return returnGroup != null
+        return returnGroup.isNotEmpty()
     }
 
     // groups 컬렉션의 shareWith 필드에 사용자 추가
@@ -99,9 +103,6 @@ class Utils {
                 .await()
         }
     }
-
-
-
 
     // groups 컬렉션에 그룹 추가
     suspend fun addToGroup(grpname: String, activity: Context) {

@@ -27,8 +27,7 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
     private var mlastpoint: Point? = null
     private var isNewObject = false
 
-    private val dbName = "pictureDiary.db"
-    private var dbHelper: DBHelper = DBHelper(context, dbName, null, 1)
+    val dbHelper = Utils().createDBHelper(context)
     private var pickedDate: String? = null
     private val loggedInUser = PrefApplication.prefs.getString("loggedInUser", "")
     private val username = loggedInUser.split("★")[0]
