@@ -6,7 +6,6 @@ import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.example.picturediary.navigation.dao.DBHelper
 import com.example.picturediary.navigation.model.UserDTO
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -22,11 +21,6 @@ class LoginActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        // 데이터베이스 생성
-        val dbHelper = Utils().createDBHelper(applicationContext)
-        dbHelper.writableDatabase
-        dbHelper.readableDatabase
 
         // Firebase 로그인 통합 관리하는 객체
         auth = FirebaseAuth.getInstance()

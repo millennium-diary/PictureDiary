@@ -28,7 +28,9 @@ import com.example.picturediary.LoginActivity
 import com.example.picturediary.PrefApplication
 import com.example.picturediary.R
 import com.example.picturediary.Utils
+import com.example.picturediary.navigation.dao.DBHelper
 import com.example.picturediary.navigation.model.GroupDTO
+import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FieldValue
@@ -74,7 +76,7 @@ class UserFragment: Fragment() {
     ): View {
         requestPermissions(arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), 1)
 
-        auth = Firebase.auth
+        auth = FirebaseAuth.getInstance()
         firestore = FirebaseFirestore.getInstance()
         firebaseStorage = FirebaseStorage.getInstance()
         val user = Firebase.auth.currentUser!!
@@ -212,22 +214,27 @@ class UserFragment: Fragment() {
                     .document(uid)
                     .delete()
                     .addOnSuccessListener {
-                        Toast.makeText(context, "계정을 성공적으로 삭제했습니다", Toast.LENGTH_SHORT).show()
-                        PrefApplication.prefs.setString("loggedInUser", "")
+                        // 사용자 정보 확인 후 계정 삭제
+                        val loggedInUser = PrefApplication.prefs.getString("loggedInUser", "")
+                        val userInfo = loggedInUser.split("★")
+                        val username = userInfo[0]
+                        val password = userInfo[1]
+                        val credential = EmailAuthProvider.getCredential("$username@fake.com", password)
+                        user.reauthenticate(credential)
+                            .addOnCompleteListener { user.delete() }
 
-                        FirebaseAuth.getInstance().signOut()
-                        user.delete()
+                        Toast.makeText(context, "계정을 성공적으로 삭제했습니다", Toast.LENGTH_SHORT).show()
+
+                        // 사용자의 내장 데이터베이스 삭제
+                        val dbHelper = utils.createDBHelper(requireContext())
+                        dbHelper.deleteUsersDrawing(username)
+
+                        PrefApplication.prefs.setString("loggedInUser", "")
                         requireContext().startActivity(intent)
                     }
                     .addOnFailureListener {
                         Toast.makeText(context, "계정을 삭제하는 중 문제가 생겼습니다", Toast.LENGTH_SHORT).show()
                     }
-
-//                withContext(Dispatchers.Main) {
-//                    Toast.makeText(context, "계정을 성공적으로 삭제했습니다", Toast.LENGTH_SHORT).show()
-//                }
-//                PrefApplication.prefs.setString("loggedInUser", "")
-//                requireContext().startActivity(intent)
             }
         }
 
@@ -264,6 +271,7 @@ class UserFragment: Fragment() {
         view.logout.setOnClickListener {
             FirebaseAuth.getInstance().signOut()
             PrefApplication.prefs.setString("loggedInUser", "")
+            Toast.makeText(context, "로그아웃을 성공적으로 했습니다", Toast.LENGTH_SHORT).show()
             val intent = Intent(context, LoginActivity::class.java)
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
             startActivity(intent)

@@ -105,6 +105,16 @@ class DBHelper(
         return db.update("drawing", cv, "drawId = ?", arrayOf(drawId)) > 0
     }
 
+    fun deleteUsersDrawing(username: String) {
+        val db = writableDatabase
+        val sqlDelObject = "DELETE FROM object WHERE fullDraw = " +
+                "(SELECT drawId FROM drawing WHERE user = '$username')"
+        val sqlDelDrawing = "DELETE FROM drawing where user = '$username'"
+
+        db.execSQL(sqlDelObject)
+        db.execSQL(sqlDelDrawing)
+    }
+
 
     // OBJECT 테이블 ================================================================================
     fun insertObject(fullDraw: String, objId: Int, drawObj: ByteArray, motion: String): Boolean {
@@ -135,24 +145,6 @@ class DBHelper(
         }
         cursor.close()
         return objectArrayList
-    }
-
-    @SuppressLint("Recycle")
-    fun readSingleObject(drawId: String, objId: String): ObjectDTO {
-        var objectDTO = ObjectDTO()
-        val sql = "SELECT * FROM object WHERE fullDraw = ? AND objId = ?"
-        val cursor = readableDatabase.rawQuery(sql, arrayOf(drawId, objId))
-
-        while (cursor.moveToNext()) {
-            val drawingId = cursor.getString(0)
-            val objectId = cursor.getInt(1)
-            val drawObj = cursor.getBlob(2)
-            val motion = cursor.getString(3)
-
-            objectDTO = ObjectDTO(drawingId, objectId, drawObj, motion)
-        }
-        cursor.close()
-        return objectDTO
     }
 
     fun readLastIndex(drawDate: String, username: String): Int {
