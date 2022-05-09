@@ -3,17 +3,18 @@ package com.example.picturediary
 import android.app.Dialog
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.os.Bundle
-
-import androidx.appcompat.app.AppCompatActivity
-import kotlinx.android.synthetic.main.activity_drawing.*
 import android.view.View
 import android.widget.*
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.get
 import com.example.picturediary.navigation.dao.DBHelper
+import kotlinx.android.synthetic.main.activity_crop.*
+import kotlinx.android.synthetic.main.activity_drawing.*
 import java.io.ByteArrayOutputStream
 
 
@@ -57,7 +58,7 @@ class DrawingActivity : AppCompatActivity() {
 
             val stream = ByteArrayOutputStream()
             val picture = getBitmapFromView(drawing_view)
-            picture.compress(Bitmap.CompressFormat.PNG, 50, stream)
+            picture.compress(Bitmap.CompressFormat.PNG, 0, stream)
             val byteArray = stream.toByteArray()
 
             val fullDrawing = dbHelper.readDrawing(pickedDate!!, username)
@@ -67,7 +68,9 @@ class DrawingActivity : AppCompatActivity() {
             // 그림 존재 --> 그림 수정 --> 그림 업데이트 & 객체 삭제
             else {
                 val drawing = fullDrawing.image
-                if (!drawing.contentEquals(byteArray)) {
+                val bitmap = BitmapFactory.decodeByteArray(drawing, 0, drawing!!.size)
+
+                if (!bitmap.sameAs(picture)) {
                     dbHelper.updateDrawing(pickedDate, username, fullDrawing.content!!, byteArray)
                     dbHelper.deleteAllObject(pickedDate, username)
                 }
