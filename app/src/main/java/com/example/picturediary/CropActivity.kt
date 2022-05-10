@@ -10,8 +10,8 @@ import com.example.picturediary.navigation.dao.DBHelper
 import kotlinx.android.synthetic.main.activity_crop.*
 import kotlinx.android.synthetic.main.activity_crop.view.*
 
-class CropActivity: AppCompatActivity() {
-    var picture : Bitmap? = null
+class CropActivity : AppCompatActivity() {
+    var picture: Bitmap? = null
     var pickedDate: String? = null
     private var cropView: CropView? = null
     private val loggedInUser = PrefApplication.prefs.getString("loggedInUser", "")
@@ -31,7 +31,8 @@ class CropActivity: AppCompatActivity() {
         val objectArrayList = dbHelper.readObjects(pickedDate!!, username)
         val objectListAdapter = ObjectListAdapter(objectArrayList)
         objectRecycler.apply {
-            objectRecycler.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+            objectRecycler.layoutManager =
+                LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
             objectRecycler.adapter = objectListAdapter
         }
 
@@ -48,8 +49,8 @@ class CropActivity: AppCompatActivity() {
             startActivity(intent)
         }
 
-        playAll.setOnClickListener {//모두재생 버튼val intent = Intent(this, CropActivity::class.java)
-
+        playAll.setOnClickListener { //모두재생 버튼
+            val intent = Intent(this, CropActivity::class.java)
         }
     }
 }

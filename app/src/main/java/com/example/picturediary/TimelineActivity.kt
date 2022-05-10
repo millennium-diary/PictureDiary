@@ -15,8 +15,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.picturediary.navigation.model.ContentDTO
 import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.android.synthetic.main.timeline_detail.view.*
-import kotlinx.android.synthetic.main.group_timeline.*
+import kotlinx.android.synthetic.main.item_timeline.view.*
+import kotlinx.android.synthetic.main.activity_timeline.*
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.example.picturediary.navigation.model.GroupDTO

@@ -3,7 +3,7 @@ package com.example.picturediary
 import android.graphics.BitmapFactory
 import android.view.*
 import androidx.recyclerview.widget.RecyclerView
-import com.example.picturediary.databinding.ChosenObjectItemBinding
+import com.example.picturediary.databinding.ItemChosenObjectBinding
 import com.example.picturediary.navigation.model.ObjectDTO
 import kotlin.collections.ArrayList
 
@@ -18,11 +18,11 @@ class ObjectListAdapter(var items: ArrayList<ObjectDTO>) : RecyclerView.Adapter<
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val binding = ChosenObjectItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        val binding = ItemChosenObjectBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return ViewHolder(binding)
     }
 
-    inner class ViewHolder(private val binding: ChosenObjectItemBinding) : RecyclerView.ViewHolder(binding.root) {
+    inner class ViewHolder(private val binding: ItemChosenObjectBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(item: ObjectDTO) {
             val bitmap = BitmapFactory.decodeByteArray(item.drawObj, 0, item.drawObj!!.size)
             binding.objectParentId.text = item.fullDraw

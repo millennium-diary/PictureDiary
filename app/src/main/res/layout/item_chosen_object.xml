@@ -30,34 +30,36 @@
 
     <ImageView
         android:id="@+id/objectView"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         android:background="@color/white"
+        app:layout_constraintDimensionRatio="1:1"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"/>
+        app:layout_constraintBottom_toTopOf="@id/playObject"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintHeight_percent="0.65"/>
 
     <ImageButton
         android:id="@+id/delete_object"
-        android:layout_width="20dp"
-        android:layout_height="20dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         android:layout_margin="5dp"
-        android:adjustViewBounds="true"
         android:scaleType="fitCenter"
         android:background="@android:color/transparent"
         android:src="@drawable/delete_object"
         app:layout_constraintDimensionRatio="1:1"
         app:layout_constraintTop_toTopOf="@id/objectView"
         app:layout_constraintRight_toRightOf="@id/objectView"
-        app:layout_constraintHeight_percent="0.03"/>
+        app:layout_constraintHeight_percent="0.15"/>
 
     <android.widget.Button
         android:id="@+id/playObject"
-        android:layout_width="100dp"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:text="재생"
         app:flow_verticalAlign="center"
         app:layout_constraintTop_toBottomOf="@id/objectView"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:text="재생"/>
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

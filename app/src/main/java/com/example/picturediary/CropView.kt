@@ -8,10 +8,10 @@ import android.view.*
 import android.view.View.OnTouchListener
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.*
-import com.example.picturediary.databinding.ChosenObjectItemBinding
+import com.example.picturediary.databinding.ItemChosenObjectBinding
 import com.example.picturediary.navigation.model.ObjectDTO
 import kotlinx.android.synthetic.main.activity_crop.view.*
-import kotlinx.android.synthetic.main.chosen_object_item.view.*
+import kotlinx.android.synthetic.main.item_chosen_object.view.*
 import java.io.ByteArrayOutputStream
 
 
@@ -53,8 +53,20 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
         bitmap = picture
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     fun setDrawId(drawId: String) {
         pickedDate = drawId
+
+        val view = this.parent.parent as ConstraintLayout
+        objectArrayList = dbHelper.readObjects(pickedDate!!, username)
+        objectListAdapter = ObjectListAdapter(objectArrayList)
+        objectListAdapter?.notifyDataSetChanged()
+
+        view.objectRecycler.apply {
+            view.objectRecycler.layoutManager =
+                LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+            view.objectRecycler.adapter = objectListAdapter
+        }
     }
 
     @SuppressLint("DrawAllocation")
@@ -162,20 +174,10 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
         croppedBitmap.compress(Bitmap.CompressFormat.PNG, 50, stream)
         val byteArray = stream.toByteArray()
 
-        val view = this.parent.parent as ConstraintLayout
         val emptyBitmap =
             Bitmap.createBitmap(croppedBitmap.width, croppedBitmap.height, croppedBitmap.config)
 
-        objectArrayList = dbHelper.readObjects(pickedDate!!, username)
-        objectListAdapter = ObjectListAdapter(objectArrayList)
         val objId = dbHelper.readLastIndex(pickedDate!!, username)
-        objectListAdapter?.notifyDataSetChanged()
-
-        view.objectRecycler.apply {
-            view.objectRecycler.layoutManager =
-                LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
-            view.objectRecycler.adapter = objectListAdapter
-        }
 
         if (!croppedBitmap.sameAs(emptyBitmap)) {
             val objectDTO = ObjectDTO()
@@ -213,11 +215,11 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
             val binding =
-                ChosenObjectItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+                ItemChosenObjectBinding.inflate(LayoutInflater.from(parent.context), parent, false)
             return ViewHolder(binding)
         }
 
-        inner class ViewHolder(private val binding: ChosenObjectItemBinding) :
+        inner class ViewHolder(private val binding: ItemChosenObjectBinding) :
             RecyclerView.ViewHolder(binding.root) {
             fun bind(item: ObjectDTO) {
                 val bitmap = BitmapFactory.decodeByteArray(item.drawObj, 0, item.drawObj!!.size)
