@@ -7,10 +7,8 @@ import android.util.AttributeSet
 import android.view.*
 import android.view.View.OnTouchListener
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.*
 import com.example.picturediary.databinding.ChosenObjectItemBinding
-import com.example.picturediary.navigation.dao.DBHelper
 import com.example.picturediary.navigation.model.ObjectDTO
 import kotlinx.android.synthetic.main.activity_crop.view.*
 import kotlinx.android.synthetic.main.chosen_object_item.view.*
@@ -51,8 +49,13 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
         paint!!.strokeWidth = 5f
     }
 
-    fun setDrawing(picture: Bitmap) { bitmap = picture }
-    fun setDrawId(drawId: String) { pickedDate = drawId }
+    fun setDrawing(picture: Bitmap) {
+        bitmap = picture
+    }
+
+    fun setDrawId(drawId: String) {
+        pickedDate = drawId
+    }
 
     @SuppressLint("DrawAllocation")
     public override fun onDraw(canvas: Canvas) {
@@ -103,10 +106,8 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
                     val croppedImage = getObject(bitmap!!, path)
                     setObject(croppedImage)     // 어댑터에 객체 추가
                     isNewObject = true
-                }
-                else points.add(point)
-            }
-            else {
+                } else points.add(point)
+            } else {
                 points.add(point)
                 mfirstpoint = point
                 firstPointExist = true
@@ -162,7 +163,8 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
         val byteArray = stream.toByteArray()
 
         val view = this.parent.parent as ConstraintLayout
-        val emptyBitmap = Bitmap.createBitmap(croppedBitmap.width, croppedBitmap.height, croppedBitmap.config)
+        val emptyBitmap =
+            Bitmap.createBitmap(croppedBitmap.width, croppedBitmap.height, croppedBitmap.config)
 
         objectArrayList = dbHelper.readObjects(pickedDate!!, username)
         objectListAdapter = ObjectListAdapter(objectArrayList)
@@ -170,7 +172,8 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
         objectListAdapter?.notifyDataSetChanged()
 
         view.objectRecycler.apply {
-            view.objectRecycler.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+            view.objectRecycler.layoutManager =
+                LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
             view.objectRecycler.adapter = objectListAdapter
         }
 
@@ -187,7 +190,8 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
     }
 
     // 어댑터 내부 클래스
-    inner class ObjectListAdapter(var items: ArrayList<ObjectDTO>) : RecyclerView.Adapter<ObjectListAdapter.ViewHolder>() {
+    inner class ObjectListAdapter(var items: ArrayList<ObjectDTO>) :
+        RecyclerView.Adapter<ObjectListAdapter.ViewHolder>() {
         override fun getItemCount(): Int {
             return items.size
         }
@@ -208,11 +212,13 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-            val binding = ChosenObjectItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+            val binding =
+                ChosenObjectItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
             return ViewHolder(binding)
         }
 
-        inner class ViewHolder(private val binding: ChosenObjectItemBinding) : RecyclerView.ViewHolder(binding.root) {
+        inner class ViewHolder(private val binding: ChosenObjectItemBinding) :
+            RecyclerView.ViewHolder(binding.root) {
             fun bind(item: ObjectDTO) {
                 val bitmap = BitmapFactory.decodeByteArray(item.drawObj, 0, item.drawObj!!.size)
                 binding.objectParentId.text = item.fullDraw

@@ -2,15 +2,10 @@ package com.example.picturediary
 
 import android.content.Context
 import android.graphics.BitmapFactory
-import android.graphics.Canvas
 import android.graphics.Color
-import android.graphics.Paint
-import android.media.Image
 import android.view.*
 import android.widget.*
-import com.example.picturediary.navigation.dao.DBHelper
 import com.example.picturediary.navigation.model.DrawingDTO
-import com.google.type.DateTime
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -40,7 +35,7 @@ class CalendarAdapter(context: Context): BaseAdapter() {
         var convertView = convertView
         val holder: ViewHolder
         if (convertView == null) {
-            convertView = mLayoutInflater!!.inflate(R.layout.calendar_cell, null)
+            convertView = mLayoutInflater!!.inflate(R.layout.item_calendar, null)
             holder = ViewHolder()
             holder.dateText = convertView.findViewById(R.id.dateText)
             holder.dateImg = convertView.findViewById(R.id.dateImg)

@@ -14,7 +14,7 @@ import java.util.*
 class CalendarActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.calendar)
+        setContentView(R.layout.activity_calendar)
 
         val mCalendarAdapter = CalendarAdapter(this)
 

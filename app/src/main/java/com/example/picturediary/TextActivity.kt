@@ -7,7 +7,6 @@ import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.*
-import com.example.picturediary.navigation.dao.DBHelper
 import com.example.picturediary.navigation.model.*
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
@@ -30,7 +29,7 @@ class TextActivity  : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.diary_text)
+        setContentView(R.layout.activity_text)
 
         // 인텐트 설정
         val arr = intent.getByteArrayExtra("picture")

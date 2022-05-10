@@ -36,7 +36,7 @@ class TimelineActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.group_timeline)
+        setContentView(R.layout.activity_timeline)
 
         // 파이어스토어 인스턴스 초기화
         firestore = FirebaseFirestore.getInstance()
@@ -148,7 +148,7 @@ class TimelineActivity : AppCompatActivity() {
         }
 
         override fun onCreateViewHolder(p0: ViewGroup, p1: Int): RecyclerView.ViewHolder {
-            val view = LayoutInflater.from(p0.context).inflate(R.layout.timeline_detail, p0, false)
+            val view = LayoutInflater.from(p0.context).inflate(R.layout.item_timeline, p0, false)
             return ViewHolder(view)
         }
 
