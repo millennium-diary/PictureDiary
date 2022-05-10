@@ -199,10 +199,11 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
             val drawId = items[position].fullDraw.toString()
             val objId = items[position].objId.toString()
             holder.itemView.delete_object.setOnClickListener {
+                if (!dbHelper.deleteObject(drawId, objId))
+                    dbHelper.deleteObject("$username@$drawId", objId)
                 items.removeAt(position)
                 objectListAdapter?.notifyDataSetChanged()
-
-                dbHelper.deleteObject(drawId, objId)
+                objectListAdapter?.notifyItemRemoved(position)
             }
         }
 
