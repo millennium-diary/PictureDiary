@@ -14,7 +14,7 @@ class DBHelper(
     name: String?,
     factory: SQLiteDatabase.CursorFactory?,
     version: Int
-): SQLiteOpenHelper(context, name, factory, version) {
+) : SQLiteOpenHelper(context, name, factory, version) {
 
     override fun onCreate(db: SQLiteDatabase) {
         val createDrawingTable = "CREATE TABLE IF NOT EXISTS drawing (" +
@@ -26,7 +26,8 @@ class DBHelper(
         val createObjectTable = "CREATE TABLE IF NOT EXISTS object (" +
                 "fullDraw TEXT," +
                 "objId INTEGER," +
-                "drawObj BLOB," +
+                "drawObjWhole BLOB," +
+                "drawObjOnly BLOB," +
                 "motion TEXT," +
                 "FOREIGN KEY (fullDraw) REFERENCES drawing(drawId)," +
                 "PRIMARY KEY (fullDraw, objId) );"
@@ -55,7 +56,12 @@ class DBHelper(
     }
 
     // DRAWING 테이블 ===============================================================================
-    fun insertDrawing(drawDate: String, username:String, content: String, image: ByteArray): Boolean {
+    fun insertDrawing(
+        drawDate: String,
+        username: String,
+        content: String,
+        image: ByteArray
+    ): Boolean {
         val db = writableDatabase
         val cv = ContentValues()
         val drawId = "$username@$drawDate"
@@ -92,7 +98,12 @@ class DBHelper(
         return fullDrawingDTO
     }
 
-    fun updateDrawing(drawDate: String, username: String, content: String, image: ByteArray): Boolean {
+    fun updateDrawing(
+        drawDate: String,
+        username: String,
+        content: String,
+        image: ByteArray
+    ): Boolean {
         val db = writableDatabase
         val cv = ContentValues()
         val drawId = "$username@$drawDate"
@@ -116,12 +127,19 @@ class DBHelper(
 
 
     // OBJECT 테이블 ================================================================================
-    fun insertObject(fullDraw: String, objId: Int, drawObj: ByteArray, motion: String): Boolean {
+    fun insertObject(
+        fullDraw: String,
+        objId: Int,
+        drawObjWhole: ByteArray,
+        drawObjOnly: ByteArray,
+        motion: String,
+    ): Boolean {
         val db = writableDatabase
         val cv = ContentValues()
         cv.put("fullDraw", fullDraw)
         cv.put("objId", objId)
-        cv.put("drawObj", drawObj)
+        cv.put("drawObjWhole", drawObjWhole)
+        cv.put("drawObjOnly", drawObjOnly)
         cv.put("motion", motion)
 
         return db.insert("object", null, cv) > 0
@@ -137,10 +155,11 @@ class DBHelper(
         while (cursor.moveToNext()) {
             val drawingId = cursor.getString(0)
             val objId = cursor.getInt(1)
-            val drawObj = cursor.getBlob(2)
-            val motion = cursor.getString(3)
+            val drawObjWhole = cursor.getBlob(2)
+            val drawObjOnly = cursor.getBlob(3)
+            val motion = cursor.getString(4)
 
-            objectArrayList.add(ObjectDTO(drawingId, objId, drawObj, motion))
+            objectArrayList.add(ObjectDTO(drawingId, objId, drawObjWhole, drawObjOnly, motion))
         }
         cursor.close()
         return objectArrayList
@@ -163,7 +182,7 @@ class DBHelper(
         return objectId
     }
 
-    fun deleteObject(drawId: String, objId: String):Boolean {
+    fun deleteObject(drawId: String, objId: String): Boolean {
         val db = writableDatabase
         return db.delete("object", "fullDraw = ? AND objId = ?", arrayOf(drawId, objId)) > 0
     }

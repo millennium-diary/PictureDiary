@@ -24,10 +24,14 @@ class ObjectListAdapter(var items: ArrayList<ObjectDTO>) : RecyclerView.Adapter<
 
     inner class ViewHolder(private val binding: ItemChosenObjectBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(item: ObjectDTO) {
-            val bitmap = BitmapFactory.decodeByteArray(item.drawObj, 0, item.drawObj!!.size)
+            val bitmapWhole =
+                BitmapFactory.decodeByteArray(item.drawObjWhole, 0, item.drawObjWhole!!.size)
+            val bitmapOnly =
+                BitmapFactory.decodeByteArray(item.drawObjOnly, 0, item.drawObjOnly!!.size)
             binding.objectParentId.text = item.fullDraw
             binding.objectId.text = item.objId.toString()
-            binding.objectView.setImageBitmap(bitmap)
+            binding.objectView.setImageBitmap(bitmapWhole)
+            binding.objectViewOnly.setImageBitmap(bitmapOnly)
             binding.objectMotion.text = item.motion
         }
     }
