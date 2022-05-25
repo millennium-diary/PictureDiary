@@ -8,6 +8,7 @@ import com.example.picturediary.navigation.model.ObjectDTO
 import kotlin.collections.ArrayList
 
 
+// CropActivity 파일에서 사용되는 어댑터
 class ObjectListAdapter(var items: ArrayList<ObjectDTO>) : RecyclerView.Adapter<ObjectListAdapter.ViewHolder>() {
     override fun getItemCount(): Int {
         return items.size

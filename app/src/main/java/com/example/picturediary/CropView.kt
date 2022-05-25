@@ -228,7 +228,7 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
         }
     }
 
-    // 어댑터 내부 클래스
+    // 어댑터 내부 클래스 (CropView 파일에서 사용되는 어댑터)
     inner class ObjectListAdapter(var items: ArrayList<ObjectDTO>) :
         RecyclerView.Adapter<ObjectListAdapter.ViewHolder>() {
         override fun getItemCount(): Int {
