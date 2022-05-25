@@ -1,6 +1,7 @@
 package com.example.picturediary
 
 import android.app.ProgressDialog
+import android.content.Context
 import android.content.Intent
 import android.net.wifi.WifiManager
 import android.os.Bundle
@@ -18,6 +19,7 @@ import kotlinx.android.synthetic.main.activity_login.*
 
 class LoginActivity : AppCompatActivity() {
     private var auth: FirebaseAuth? = null
+    private var utils = Utils()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,18 +47,18 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
-    // 와이파이 연결 확인
-    private fun checkWifi(): Boolean {
-        val wifi = getSystemService(WIFI_SERVICE) as WifiManager
-        return if (!wifi.isWifiEnabled) {
-            Toast.makeText(this, "와이파이 연결을 확인해 주세요", Toast.LENGTH_SHORT).show()
-            false
-        } else true
-    }
+//    // 와이파이 연결 확인
+//    private fun checkWifi(context: Context): Boolean {
+//        val wifi = context.getSystemService(WIFI_SERVICE) as WifiManager
+//        return if (!wifi.isWifiEnabled) {
+//            Toast.makeText(this, "와이파이 연결을 확인해 주세요", Toast.LENGTH_SHORT).show()
+//            false
+//        } else true
+//    }
 
     // 이메일로 회원가입
     private fun signUpButton() {
-        if (checkWifi()) {
+        if (utils.checkWifi(applicationContext)) {
             when {
                 username_edittext.text.isEmpty() -> Toast.makeText(this, "아이디를 입력해주세요", Toast.LENGTH_SHORT).show()
                 password_edittext.text.isEmpty() -> Toast.makeText(this, "비밀번호를 입력해주세요", Toast.LENGTH_SHORT).show()
@@ -67,7 +69,7 @@ class LoginActivity : AppCompatActivity() {
 
     // 이메일로 로그인
     private fun loginButton() {
-        if (checkWifi()) {
+        if (utils.checkWifi(applicationContext)) {
             when {
                 username_edittext.text.isEmpty() -> Toast.makeText(this, "아이디를 입력해주세요", Toast.LENGTH_SHORT).show()
                 password_edittext.text.isEmpty() -> Toast.makeText(this, "비밀번호를 입력해주세요", Toast.LENGTH_SHORT).show()

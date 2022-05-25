@@ -9,7 +9,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.picturediary.navigation.dao.DBHelper
 import kotlinx.android.synthetic.main.activity_crop.*
 import kotlinx.android.synthetic.main.activity_crop.view.*
+import kotlinx.coroutines.DelicateCoroutinesApi
 
+@DelicateCoroutinesApi
 class CropActivity : AppCompatActivity() {
     var picture: Bitmap? = null
     var pickedDate: String? = null

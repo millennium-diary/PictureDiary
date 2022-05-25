@@ -1,7 +1,9 @@
 package com.example.picturediary
 
 import android.content.Context
+import android.net.wifi.WifiManager
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import com.example.picturediary.navigation.dao.DBHelper
 import com.example.picturediary.navigation.model.GroupDTO
 import com.example.picturediary.navigation.model.UserDTO
@@ -43,7 +45,17 @@ class Utils {
 //            user.delete()
 //    }
 
+    // 와이파이 연결 확인
+    fun checkWifi(context: Context): Boolean {
+        val wifi = context.getSystemService(AppCompatActivity.WIFI_SERVICE) as WifiManager
+        return if (!wifi.isWifiEnabled) {
+            Toast.makeText(context, "와이파이 연결을 확인해 주세요", Toast.LENGTH_SHORT).show()
+            false
+        } else true
+    }
+
     fun createDBHelper(context: Context): DBHelper {
+//        context.deleteDatabase("pictureDiary.db")
         val dbName = "pictureDiary.db"
         return DBHelper(context, dbName, null, 2)
     }

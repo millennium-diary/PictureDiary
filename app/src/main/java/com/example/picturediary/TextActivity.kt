@@ -20,6 +20,7 @@ import java.io.ByteArrayOutputStream
 import kotlin.collections.ArrayList
 
 class TextActivity  : AppCompatActivity() {
+    val utils = Utils()
     var firestore: FirebaseFirestore? = null
     var auth: FirebaseAuth? = null
     var picture : Bitmap? = null
@@ -77,7 +78,7 @@ class TextActivity  : AppCompatActivity() {
                 val diaryStory = editTextTextMultiLine.text.toString()
 
                 // 와이파이 연결이 안 되어있을 경우
-                if (!checkWifi()) {
+                if (!utils.checkWifi(applicationContext)) {
                     dlg.setTitle("와이파이 연결이 되어 있지 않습니다")
                     dlg.setMessage("데이터는 저장되지만 공유되지 않습니다")
                     dlg.setNegativeButton("취소", null)
@@ -153,15 +154,6 @@ class TextActivity  : AppCompatActivity() {
                 dlg.show()
             }
         }
-    }
-
-    // 와이파이 연결 확인
-    private fun checkWifi(): Boolean {
-        val wifi = getSystemService(WIFI_SERVICE) as WifiManager
-        return if (!wifi.isWifiEnabled) {
-            Toast.makeText(this, "와이파이 연결이 되어있지 않아 공유는 불가능합니다", Toast.LENGTH_SHORT).show()
-            false
-        } else true
     }
 
     // 확인 눌렀을 당시 내장 DB에 저장

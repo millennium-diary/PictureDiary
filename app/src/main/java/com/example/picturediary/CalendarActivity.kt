@@ -18,7 +18,6 @@ class CalendarActivity : AppCompatActivity() {
         val mCalendarAdapter = CalendarAdapter(this)
 
         // 이전 달 이동 버튼
-        // 이전 달 이동 버튼
         prevButton.setOnClickListener {
             mCalendarAdapter.prevMonth()
             titleText.text = mCalendarAdapter.getTitle()
@@ -41,12 +40,9 @@ class CalendarActivity : AppCompatActivity() {
 
             val dateType = Date()
             val datetime = SimpleDateFormat("yyyy.MM.dd").format(dateType)
-            if(mCalendarAdapter.getDifferenceTwoDates(pickedDate, datetime) > 0){
+            if(mCalendarAdapter.getDifferenceTwoDates(pickedDate, datetime) > 0)
                 Toast.makeText(this,"미래의 일기는 작성하실 수 없습니다.", Toast.LENGTH_SHORT).show()
-            }
-            else {
-                startActivity(intent)
-            }
+            else startActivity(intent)
         }
     }
 }

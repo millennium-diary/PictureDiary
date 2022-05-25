@@ -20,7 +20,7 @@ import kotlinx.android.synthetic.main.activity_crop.view.*
 import kotlinx.android.synthetic.main.item_chosen_object.view.*
 import kotlinx.coroutines.*
 import java.io.ByteArrayOutputStream
-import kotlin.math.roundToInt
+import kotlin.math.*
 
 
 @DelicateCoroutinesApi
@@ -124,9 +124,9 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
                     flgPathDraw = false
 
                     path = getPath()
-                    val (croppedImage, croppedImageOnly) = getObject(bitmap!!, path)
-                    setObject(croppedImage, croppedImageOnly)     // 어댑터에 객체 추가
-//                    points.removeAll(points)
+                    val (startCoords, size, drawings) = getObject(bitmap!!, path)
+                    setObject(startCoords, size, drawings)     // 어댑터에 객체 추가
+                    points.removeAll(points)
                     isNewObject = true
                 } else points.add(point)
             } else {
@@ -144,9 +144,9 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
                     points.add(mfirstpoint)
 
                     path = getPath()
-                    val (croppedImage, croppedImageOnly) = getObject(bitmap!!, path)
-                    setObject(croppedImage, croppedImageOnly)     // 어댑터에 객체 추가
-//                    points.removeAll(points)
+                    val (startCoords, size, drawings) = getObject(bitmap!!, path)
+                    setObject(startCoords, size, drawings)     // 어댑터에 객체 추가
+                    points.removeAll(points)
                     isNewObject = true
                 }
             }
@@ -166,7 +166,10 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
     }
 
     // 선택한 객체만 추출
-    private fun getObject(bitmap: Bitmap, path: Path): Pair<Bitmap, Bitmap> {
+    private fun getObject(
+        bitmap: Bitmap,
+        path: Path
+    ): Triple<Pair<Float, Float>, Pair<Float, Float>, Pair<Bitmap, Bitmap>> {
         // 전체 그림판에 선택된 객체
         val drawingInFullCanvas =
             Bitmap.createBitmap(crop_view.width, crop_view.height, bitmap.config)
@@ -182,28 +185,48 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
         val leftMost = getLeftMost(points)
         val rightMost = getRightMost(points)
 
+        val startX = leftMost.x
+        val startY = topMost.y
+        val startCoords = Pair(startX, startY)
+
+        val width = rightMost.x - leftMost.x
+        val height = bottomMost.y - topMost.y
+        val size = Pair(width, height)
+
         // 선택된 객체 only
         val drawingOnly =
             Bitmap.createBitmap(
                 drawingInFullCanvas,
-                leftMost.x.roundToInt(),
-                topMost.y.roundToInt(),
-                (rightMost.x - leftMost.x).roundToInt(),
-                (bottomMost.y - topMost.y).roundToInt()
+                floor(startX).toInt(),
+                floor(startY).toInt(),
+                ceil(width).toInt(),
+                ceil(height).toInt()
             )
 
-        points.removeAll(points)
+        val drawings = Pair(drawingInFullCanvas, drawingOnly)
 
-        return Pair(drawingInFullCanvas, drawingOnly)
+//        points.removeAll(points)
+
+        return Triple(startCoords, size, drawings)
     }
 
     // 선택한 객체를 어댑터에 추가
     @SuppressLint("NotifyDataSetChanged")
-    fun setObject(croppedBitmap: Bitmap, croppedBitmapOnly: Bitmap) {
+    fun setObject(
+        startCoords: Pair<Float, Float>,
+        size: Pair<Float, Float>,
+        drawings: Pair<Bitmap, Bitmap>
+    ) {
+        val (startX, startY) = startCoords
+        val (width, height) = size
+        val (croppedBitmap, croppedBitmapOnly) = drawings
+
+        // 전체 그림판 기준에서의 객체
         val stream = ByteArrayOutputStream()
         croppedBitmap.compress(Bitmap.CompressFormat.PNG, 50, stream)
         val byteArray = stream.toByteArray()
 
+        // 크롭된 범위 기준에서의 객체
         val stream2 = ByteArrayOutputStream()
         croppedBitmapOnly.compress(Bitmap.CompressFormat.PNG, 50, stream2)
         val byteArray2 = stream2.toByteArray()
@@ -218,15 +241,30 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
             val objectDTO = ObjectDTO()
             objectDTO.fullDraw = pickedDate
             objectDTO.objId = objId
+            objectDTO.startX = startX
+            objectDTO.startY = startY
+            objectDTO.width = width
+            objectDTO.height = height
             objectDTO.drawObjWhole = byteArray
             objectDTO.drawObjOnly = byteArray2
 
             objectArrayList.add(objectDTO)
             objectListAdapter?.notifyDataSetChanged()
 
-            dbHelper.insertObject("$username@$pickedDate", objId, byteArray, byteArray2, "")
+            dbHelper.insertObject(
+                "$username@$pickedDate",
+                objId,
+                startX,
+                startY,
+                width,
+                height,
+                byteArray,
+                byteArray2,
+                ""
+            )
         }
     }
+
 
     // 어댑터 내부 클래스 (CropView 파일에서 사용되는 어댑터)
     inner class ObjectListAdapter(var items: ArrayList<ObjectDTO>) :
@@ -284,8 +322,15 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
                     BitmapFactory.decodeByteArray(item.drawObjWhole, 0, item.drawObjWhole!!.size)
                 val bitmapOnly =
                     BitmapFactory.decodeByteArray(item.drawObjOnly, 0, item.drawObjOnly!!.size)
+
                 binding.objectParentId.text = item.fullDraw
                 binding.objectId.text = item.objId.toString()
+
+                binding.startX.text = item.startX.toString()
+                binding.startY.text = item.startY.toString()
+                binding.width.text = item.width.toString()
+                binding.height.text = item.height.toString()
+
                 binding.objectView.setImageBitmap(bitmapWhole)
                 binding.objectViewOnly.setImageBitmap(bitmapOnly)
                 binding.objectMotion.text = item.motion

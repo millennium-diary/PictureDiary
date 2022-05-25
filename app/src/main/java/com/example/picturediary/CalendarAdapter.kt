@@ -110,10 +110,6 @@ class CalendarAdapter(context: Context): BaseAdapter() {
         return result
     }
 
-//    fun getDifferenceTwoDates(startDate: String, endDate: String) : Long {
-//
-//    }
-
     // 다음 달
     fun nextMonth() {
         mDateManager!!.nextMonth()

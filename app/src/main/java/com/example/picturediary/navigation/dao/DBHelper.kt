@@ -26,6 +26,10 @@ class DBHelper(
         val createObjectTable = "CREATE TABLE IF NOT EXISTS object (" +
                 "fullDraw TEXT," +
                 "objId INTEGER," +
+                "startX REAL," +
+                "startY REAL," +
+                "width REAL," +
+                "height REAL," +
                 "drawObjWhole BLOB," +
                 "drawObjOnly BLOB," +
                 "motion TEXT," +
@@ -130,6 +134,10 @@ class DBHelper(
     fun insertObject(
         fullDraw: String,
         objId: Int,
+        startX: Float,
+        startY: Float,
+        width: Float,
+        height: Float,
         drawObjWhole: ByteArray,
         drawObjOnly: ByteArray,
         motion: String,
@@ -138,6 +146,10 @@ class DBHelper(
         val cv = ContentValues()
         cv.put("fullDraw", fullDraw)
         cv.put("objId", objId)
+        cv.put("startX", startX)
+        cv.put("startY", startY)
+        cv.put("width", width)
+        cv.put("height", height)
         cv.put("drawObjWhole", drawObjWhole)
         cv.put("drawObjOnly", drawObjOnly)
         cv.put("motion", motion)
@@ -155,11 +167,27 @@ class DBHelper(
         while (cursor.moveToNext()) {
             val drawingId = cursor.getString(0)
             val objId = cursor.getInt(1)
-            val drawObjWhole = cursor.getBlob(2)
-            val drawObjOnly = cursor.getBlob(3)
-            val motion = cursor.getString(4)
+            val startX = cursor.getFloat(2)
+            val startY = cursor.getFloat(3)
+            val width = cursor.getFloat(4)
+            val height = cursor.getFloat(5)
+            val drawObjWhole = cursor.getBlob(6)
+            val drawObjOnly = cursor.getBlob(7)
+            val motion = cursor.getString(8)
 
-            objectArrayList.add(ObjectDTO(drawingId, objId, drawObjWhole, drawObjOnly, motion))
+            objectArrayList.add(
+                ObjectDTO(
+                    drawingId,
+                    objId,
+                    startX,
+                    startY,
+                    width,
+                    height,
+                    drawObjWhole,
+                    drawObjOnly,
+                    motion
+                )
+            )
         }
         cursor.close()
         return objectArrayList
