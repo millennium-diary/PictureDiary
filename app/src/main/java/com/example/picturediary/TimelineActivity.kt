@@ -60,14 +60,19 @@ class TimelineActivity : AppCompatActivity() {
                     // 사용자명이 비어있을 경우
                     if (memberName.isBlank()) {
                         withContext(Dispatchers.Main) {
-                            Toast.makeText(applicationContext, "사용자명을 다시 확인해 주세요", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                applicationContext,
+                                "사용자명을 다시 확인해 주세요",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                     }
 
                     // 사용자가 존재하지 않을 경우
                     else if (!utils.userExists(memberName)) {
                         withContext(Dispatchers.Main) {
-                            Toast.makeText(applicationContext, "존재하지 않는 사용자입니다", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(applicationContext, "존재하지 않는 사용자입니다", Toast.LENGTH_SHORT)
+                                .show()
                         }
                     }
 
@@ -78,7 +83,11 @@ class TimelineActivity : AppCompatActivity() {
                         // 사용자가 이미 그룹에 존재할 경우
                         if (utils.userExistsInGroup(groupId!!, memberName)) {
                             withContext(Dispatchers.Main) {
-                                Toast.makeText(applicationContext, "그룹에 이미 존재하는 사용자입니다", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(
+                                    applicationContext,
+                                    "그룹에 이미 존재하는 사용자입니다",
+                                    Toast.LENGTH_SHORT
+                                ).show()
                             }
                         }
                         // 사용자가 그룹에 없을 경우
@@ -87,7 +96,11 @@ class TimelineActivity : AppCompatActivity() {
                             utils.addToShareWith(groupId, memberName)
                             withContext(Dispatchers.Main) {
                                 val groupName = groupId.split("@")[0]
-                                Toast.makeText(applicationContext, "$memberName 님이 $groupName 그룹에 추가되었습니다", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(
+                                    applicationContext,
+                                    "$memberName 님이 $groupName 그룹에 추가되었습니다",
+                                    Toast.LENGTH_SHORT
+                                ).show()
                             }
                         }
                     }
@@ -98,7 +111,7 @@ class TimelineActivity : AppCompatActivity() {
     }
 
     inner class RecyclerViewAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
-        // Diary 클래스 ArrayList 생성성
+        // Diary 클래스 ArrayList 생성
         var contentDTOs: ArrayList<ContentDTO> = ArrayList()
         var contentUidList: ArrayList<String> = ArrayList()
         private val firestore = FirebaseFirestore.getInstance()
@@ -106,7 +119,6 @@ class TimelineActivity : AppCompatActivity() {
 
         init {
             if (groupId != null) {
-
                 firestore.collection("groups")
                     .document(groupId)
                     .get()
@@ -135,16 +147,14 @@ class TimelineActivity : AppCompatActivity() {
                         if (item != null) {
                             if (shareWith != null) {
                                 if (shareWith.contains(item.username))
-                                    if(groupId==item.groupId.toString())
+                                    if (groupId == item.groupId.toString())
                                         contentDTOs.add(item)
                             }
                             contentUidList.add(snapshot.id)
                         }
-
                     }
                     notifyDataSetChanged()
                 }
-
         }
 
         override fun onCreateViewHolder(p0: ViewGroup, p1: Int): RecyclerView.ViewHolder {
@@ -152,7 +162,7 @@ class TimelineActivity : AppCompatActivity() {
             return ViewHolder(view)
         }
 
-        inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) { }
+        inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {}
 
         // onCreateViewHolder에서 만든 view와 실제 데이터를 연결
         override fun onBindViewHolder(p0: RecyclerView.ViewHolder, p1: Int) {
@@ -166,8 +176,7 @@ class TimelineActivity : AppCompatActivity() {
                         val url = task.result.toObject(UserDTO::class.java)?.imageUrl
                         if (url == "") {
                             viewHolder.detailviewitem_profile_image.setImageResource(R.drawable.user)
-                        }
-                        else {
+                        } else {
                             Glide.with(p0.itemView.context)
                                 .load(url)
                                 .apply(RequestOptions().circleCrop())
@@ -176,7 +185,6 @@ class TimelineActivity : AppCompatActivity() {
                     }
                 }
             viewHolder.profile_textview.text = contentDTOs[p1].username
-
             viewHolder.explain_textview.text = contentDTOs[p1].explain
 
             Glide.with(p0.itemView.context)

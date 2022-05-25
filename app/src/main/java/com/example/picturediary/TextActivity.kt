@@ -40,8 +40,8 @@ class TextActivity  : AppCompatActivity() {
 
         // 파이어스토어, 파이어베이스 설정
         firestore = FirebaseFirestore.getInstance()
-        auth = Firebase.auth
         storage = FirebaseStorage.getInstance()
+        auth = Firebase.auth
         username = auth?.currentUser?.displayName.toString()
         val uid = auth?.currentUser?.uid.toString()
 

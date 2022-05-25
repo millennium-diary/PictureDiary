@@ -161,7 +161,6 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
         val path = Path()
         for (point in points)
             path.lineTo(point!!.x, point.y)
-//        points.removeAll(points)
         return path
     }
 
@@ -185,10 +184,12 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
         val leftMost = getLeftMost(points)
         val rightMost = getRightMost(points)
 
+        // 크롭한 이미지의 시작 좌표
         val startX = leftMost.x
         val startY = topMost.y
         val startCoords = Pair(startX, startY)
 
+        // 크롭한 이미지의 크기
         val width = rightMost.x - leftMost.x
         val height = bottomMost.y - topMost.y
         val size = Pair(width, height)
@@ -204,8 +205,6 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
             )
 
         val drawings = Pair(drawingInFullCanvas, drawingOnly)
-
-//        points.removeAll(points)
 
         return Triple(startCoords, size, drawings)
     }
