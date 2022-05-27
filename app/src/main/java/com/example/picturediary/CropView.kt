@@ -271,7 +271,7 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
     }
 
     @SuppressLint("NotifyDataSetChanged")
-    fun setRecommendAdapter(classifiedResult: String) {
+    fun setRecommendAdapter(classifiedResult: String, ) {
         val view = this.parent.parent as ConstraintLayout
 
         // 인식된 객체의 다른 이미지 띄우기
@@ -280,11 +280,15 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
 
         val dogArrayList = arrayListOf(R.drawable.dog1, R.drawable.dog2, R.drawable.dog3)
 
-        recommendListAdapter = if (classifiedResult == "dog") {
+        if (classifiedResult == "dog")
             recommendArrayList.addAll(dogArrayList)
-            RecommendListAdapter(recommendArrayList)
-        } else RecommendListAdapter(recommendArrayList)
 
+        recommendListAdapter = RecommendListAdapter(recommendArrayList)
+        recommendListAdapter.setRecommendClickListener(object: RecommendListAdapter.RecommendClickListener {
+            override fun onItemClick(position: Int) {
+                view.recommendRecycler.visibility = INVISIBLE
+            }
+        })
 
         view.recommendRecycler.apply {
             view.recommendRecycler.layoutManager =
@@ -292,6 +296,7 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
             view.recommendRecycler.adapter = recommendListAdapter
         }
         recommendListAdapter.notifyDataSetChanged()
+
     }
 
     // CropView 파일에서 사용되는 선택된 객체 리스트 어댑터
@@ -320,15 +325,15 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
             // 객체 인식
             holder.itemView.objectViewOnly.setOnClickListener {
                 if (utils.checkWifi(context)) {
+                    // 서버에 전송할 이미지 지정
+                    val image = holder.itemView.objectViewOnly.drawable.toBitmap()
+                    val resizedBitmap = Bitmap.createScaledBitmap(image, 224, 224, false)
+
                     CoroutineScope(Dispatchers.Default).launch {
                         // 서버가 정상 작동할 경우
                         try {
                             // ClassifyClient 객체
                             val socket = ClassifyClient()
-
-                            // 서버에 전송할 이미지 지정
-                            val image = holder.itemView.objectViewOnly.drawable.toBitmap()
-                            val resizedBitmap = Bitmap.createScaledBitmap(image, 224, 224, false)
                             socket.setClassifyImage(resizedBitmap)
 
                             // 인식 결과 보여주기
