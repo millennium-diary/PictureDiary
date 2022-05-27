@@ -20,6 +20,7 @@ import kotlinx.android.synthetic.main.activity_crop.view.*
 import kotlinx.android.synthetic.main.item_chosen_object.view.*
 import kotlinx.coroutines.*
 import java.io.ByteArrayOutputStream
+import java.net.ConnectException
 import kotlin.math.*
 
 
@@ -34,7 +35,9 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
     private var mlastpoint: Point? = null
     private var isNewObject = false
 
-    val dbHelper = Utils().createDBHelper(context)
+    val utils = Utils()
+    val dbHelper = utils.createDBHelper(context)
+    private var classifiedResult: String? = null
     private var pickedDate: String? = null
     private val loggedInUser = PrefApplication.prefs.getString("loggedInUser", "")
     private val username = loggedInUser.split("★")[0]
@@ -62,6 +65,7 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
         bitmap = picture
     }
 
+    // drawId 필드가 설정됨과 동시에 리사이클러뷰도 초기화
     @SuppressLint("NotifyDataSetChanged")
     fun setDrawId(drawId: String) {
         pickedDate = drawId
@@ -128,8 +132,10 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
                     setObject(startCoords, size, drawings)     // 어댑터에 객체 추가
                     points.removeAll(points)
                     isNewObject = true
-                } else points.add(point)
-            } else {
+                }
+                else points.add(point)
+            }
+            else {
                 points.add(point)
                 mfirstpoint = point
                 firstPointExist = true
@@ -264,8 +270,31 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
         }
     }
 
+    @SuppressLint("NotifyDataSetChanged")
+    fun setRecommendAdapter(classifiedResult: String) {
+        val view = this.parent.parent as ConstraintLayout
 
-    // 어댑터 내부 클래스 (CropView 파일에서 사용되는 어댑터)
+        // 인식된 객체의 다른 이미지 띄우기
+        val recommendListAdapter: RecommendListAdapter?
+        val recommendArrayList = arrayListOf(R.drawable.select_none)
+
+        val dogArrayList = arrayListOf(R.drawable.dog1, R.drawable.dog2, R.drawable.dog3)
+
+        recommendListAdapter = if (classifiedResult == "dog") {
+            recommendArrayList.addAll(dogArrayList)
+            RecommendListAdapter(recommendArrayList)
+        } else RecommendListAdapter(recommendArrayList)
+
+
+        view.recommendRecycler.apply {
+            view.recommendRecycler.layoutManager =
+                LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+            view.recommendRecycler.adapter = recommendListAdapter
+        }
+        recommendListAdapter.notifyDataSetChanged()
+    }
+
+    // CropView 파일에서 사용되는 선택된 객체 리스트 어댑터
     inner class ObjectListAdapter(var items: ArrayList<ObjectDTO>) :
         RecyclerView.Adapter<ObjectListAdapter.ViewHolder>() {
         override fun getItemCount(): Int {
@@ -290,19 +319,33 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
 
             // 객체 인식
             holder.itemView.objectViewOnly.setOnClickListener {
-                // ClassifyClient 객체
-                val socket = ClassifyClient()
+                if (utils.checkWifi(context)) {
+                    CoroutineScope(Dispatchers.Default).launch {
+                        // 서버가 정상 작동할 경우
+                        try {
+                            // ClassifyClient 객체
+                            val socket = ClassifyClient()
 
-                // 서버에 전송할 이미지 설정
-                val image = holder.itemView.objectViewOnly.drawable.toBitmap()
-                val resizedBitmap = Bitmap.createScaledBitmap(image, 224, 224, false)
-                socket.setClassifyImage(resizedBitmap)
+                            // 서버에 전송할 이미지 지정
+                            val image = holder.itemView.objectViewOnly.drawable.toBitmap()
+                            val resizedBitmap = Bitmap.createScaledBitmap(image, 224, 224, false)
+                            socket.setClassifyImage(resizedBitmap)
 
-                // 인식 결과 보여주기
-                CoroutineScope(Dispatchers.Default).launch {
-                    val result = socket.client()
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(context, result, Toast.LENGTH_SHORT).show()
+                            // 인식 결과 보여주기
+                            classifiedResult = socket.client()
+                            withContext(Dispatchers.Main) {
+                                Toast.makeText(context, classifiedResult, Toast.LENGTH_SHORT).show()
+                                setRecommendAdapter(classifiedResult!!)
+                            }
+                        }
+
+                        // 서버가 꺼져 있을 경우
+                        catch (e: ConnectException) {
+                            withContext(Dispatchers.Main) {
+                                Toast.makeText(context, "현재 그림 인식은 할 수 없습니다", Toast.LENGTH_SHORT).show()
+                                setRecommendAdapter(classifiedResult!!)
+                            }
+                        }
                     }
                 }
             }
@@ -324,19 +367,16 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
 
                 binding.objectParentId.text = item.fullDraw
                 binding.objectId.text = item.objId.toString()
-
                 binding.startX.text = item.startX.toString()
                 binding.startY.text = item.startY.toString()
                 binding.width.text = item.width.toString()
                 binding.height.text = item.height.toString()
-
                 binding.objectView.setImageBitmap(bitmapWhole)
                 binding.objectViewOnly.setImageBitmap(bitmapOnly)
                 binding.objectMotion.text = item.motion
             }
         }
     }
-
 
     //    * ───────→ +x축
     //    │

@@ -41,7 +41,9 @@ class ClassifyClient {
             input.readAvailable(recvData)
 
             if (recvData.isNotEmpty()) {
-                result = String(recvData)
+                val re = Regex("[^A-Za-z0-9 ]")
+                result = recvData.decodeToString()
+                result = re.replace(result, "")
                 break
             }
             else if (i == 5 && recvData.isEmpty()) {
