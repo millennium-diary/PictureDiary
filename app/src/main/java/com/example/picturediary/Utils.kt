@@ -1,7 +1,13 @@
 package com.example.picturediary
 
+import android.R
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.Color
 import android.net.wifi.WifiManager
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.picturediary.navigation.dao.DBHelper
@@ -15,6 +21,7 @@ import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
+
 
 class Utils {
     private var auth: FirebaseAuth? = null
@@ -52,6 +59,29 @@ class Utils {
             Toast.makeText(context, "와이파이 연결을 확인해 주세요", Toast.LENGTH_SHORT).show()
             false
         } else true
+    }
+
+    // ImageView --> Bitmap 변환
+    fun getBitmapFromView(view : View): Bitmap {
+        val returnedBitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(returnedBitmap)
+        val bgDrawable = view.background
+
+        if (bgDrawable != null) bgDrawable.draw(canvas)
+        else canvas.drawColor(Color.TRANSPARENT)
+        view.draw(canvas)
+
+        return returnedBitmap
+    }
+
+    // R.drawable --> Bitmap 변환
+    fun getBitmapFromDrawable(context: Context, drawableArrayList: ArrayList<Int>): ArrayList<Bitmap> {
+        val bitmapArrayList = arrayListOf<Bitmap>()
+        for (draw in drawableArrayList) {
+            val bitmap = BitmapFactory.decodeResource(context.resources, draw)
+            bitmapArrayList.add(bitmap)
+        }
+        return bitmapArrayList
     }
 
     fun createDBHelper(context: Context): DBHelper {

@@ -1,12 +1,15 @@
 package com.example.picturediary
 
+import android.graphics.Bitmap
 import android.view.*
 import androidx.recyclerview.widget.RecyclerView
 import com.example.picturediary.databinding.ItemRecommendedObjectBinding
 import kotlin.collections.ArrayList
 
 
-class RecommendListAdapter(var items: ArrayList<Int>) : RecyclerView.Adapter<RecommendListAdapter.ViewHolder>() {
+class RecommendListAdapter(var items: ArrayList<Bitmap>) : RecyclerView.Adapter<RecommendListAdapter.ViewHolder>() {
+    // 어댑터 아이템 선택했을 때 클릭 리스너 설정을 위한 인터페이스
+    private lateinit var mItemClickListener: RecommendClickListener
     interface RecommendClickListener {
         fun onItemClick(position: Int)
     }
@@ -24,21 +27,21 @@ class RecommendListAdapter(var items: ArrayList<Int>) : RecyclerView.Adapter<Rec
         return ViewHolder(binding)
     }
 
-    private lateinit var mItemClickListener: RecommendClickListener
-
+    // 어댑터 아이템 선택했을 때 클릭 리스너 설정을 위한 함수
     fun setRecommendClickListener(itemClickListener: RecommendClickListener) {
         mItemClickListener = itemClickListener
     }
 
     inner class ViewHolder(private val binding: ItemRecommendedObjectBinding) : RecyclerView.ViewHolder(binding.root) {
+        // 어댑터 아이템 선택했을 때 클릭 리스너 설정
         init {
             itemView.setOnClickListener {
                 mItemClickListener.onItemClick(absoluteAdapterPosition)
             }
         }
 
-        fun bind(item: Int) {
-            binding.recommendView.setImageResource(item)
+        fun bind(item: Bitmap) {
+            binding.recommendView.setImageBitmap(item)
         }
     }
 }

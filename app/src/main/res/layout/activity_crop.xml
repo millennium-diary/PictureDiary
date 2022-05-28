@@ -117,8 +117,4 @@
         app:layout_constraintHeight_percent="0.15"
         app:layout_constraintWidth_percent="1.0"
         tools:listitem="@layout/item_recommended_object"/>
-
-
-
-
 </androidx.constraintlayout.widget.ConstraintLayout>

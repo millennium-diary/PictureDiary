@@ -265,31 +265,26 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
                 height,
                 byteArray,
                 byteArray2,
-                ""
             )
         }
     }
 
+    // 인식된 객체의 다른 이미지 보기 어댑터
     @SuppressLint("NotifyDataSetChanged")
-    fun setRecommendAdapter(classifiedResult: String, ) {
+    fun setRecommendAdapter(classifiedResult: String, original: Bitmap, drawId: String, objId: String) {
         val view = this.parent.parent as ConstraintLayout
 
-        // 인식된 객체의 다른 이미지 띄우기
+        // 어댑터 리스트 설정
         val recommendListAdapter: RecommendListAdapter?
-        val recommendArrayList = arrayListOf(R.drawable.select_none)
+        val recommendArrayList = arrayListOf(original)
 
-        val dogArrayList = arrayListOf(R.drawable.dog1, R.drawable.dog2, R.drawable.dog3)
+        val dogArrayList = utils.getBitmapFromDrawable(context, arrayListOf(R.drawable.dog1, R.drawable.dog2, R.drawable.dog3))
 
         if (classifiedResult == "dog")
             recommendArrayList.addAll(dogArrayList)
 
+        // 어댑터 설정
         recommendListAdapter = RecommendListAdapter(recommendArrayList)
-        recommendListAdapter.setRecommendClickListener(object: RecommendListAdapter.RecommendClickListener {
-            override fun onItemClick(position: Int) {
-                view.recommendRecycler.visibility = INVISIBLE
-            }
-        })
-
         view.recommendRecycler.apply {
             view.recommendRecycler.layoutManager =
                 LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
@@ -297,6 +292,20 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
         }
         recommendListAdapter.notifyDataSetChanged()
 
+        // 아이템 선택 시 모션 선택지 보이도록 함
+        recommendListAdapter.setRecommendClickListener(object: RecommendListAdapter.RecommendClickListener {
+            override fun onItemClick(position: Int) {
+                view.recommendRecycler.visibility = INVISIBLE
+                if (position != 0) {
+                    val replaceDraw = recommendArrayList[position]
+                    val stream = ByteArrayOutputStream()
+                    replaceDraw.compress(Bitmap.CompressFormat.PNG, 100, stream)
+                    val data = stream.toByteArray()
+
+                    dbHelper.updateObjectReplaceDraw(drawId, objId, data)
+                }
+            }
+        })
     }
 
     // CropView 파일에서 사용되는 선택된 객체 리스트 어댑터
@@ -340,7 +349,7 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
                             classifiedResult = socket.client()
                             withContext(Dispatchers.Main) {
                                 Toast.makeText(context, classifiedResult, Toast.LENGTH_SHORT).show()
-                                setRecommendAdapter(classifiedResult!!)
+                                setRecommendAdapter(classifiedResult!!, image, drawId, objId)
                             }
                         }
 
@@ -348,7 +357,7 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
                         catch (e: ConnectException) {
                             withContext(Dispatchers.Main) {
                                 Toast.makeText(context, "현재 그림 인식은 할 수 없습니다", Toast.LENGTH_SHORT).show()
-                                setRecommendAdapter(classifiedResult!!)
+                                setRecommendAdapter(classifiedResult!!, image, drawId, objId)
                             }
                         }
                     }

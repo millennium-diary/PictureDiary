@@ -32,6 +32,7 @@ class DBHelper(
                 "height REAL," +
                 "drawObjWhole BLOB," +
                 "drawObjOnly BLOB," +
+                "replaceDraw BLOB," +
                 "motion TEXT," +
                 "FOREIGN KEY (fullDraw) REFERENCES drawing(drawId)," +
                 "PRIMARY KEY (fullDraw, objId) );"
@@ -63,7 +64,6 @@ class DBHelper(
     fun insertDrawing(
         drawDate: String,
         username: String,
-        content: String,
         image: ByteArray
     ): Boolean {
         val db = writableDatabase
@@ -71,7 +71,6 @@ class DBHelper(
         val drawId = "$username@$drawDate"
         cv.put("drawId", drawId)
         cv.put("user", username)
-        cv.put("content", "")
         cv.put("image", image)
 
         val result: Boolean = try {
@@ -140,7 +139,6 @@ class DBHelper(
         height: Float,
         drawObjWhole: ByteArray,
         drawObjOnly: ByteArray,
-        motion: String,
     ): Boolean {
         val db = writableDatabase
         val cv = ContentValues()
@@ -152,7 +150,6 @@ class DBHelper(
         cv.put("height", height)
         cv.put("drawObjWhole", drawObjWhole)
         cv.put("drawObjOnly", drawObjOnly)
-        cv.put("motion", motion)
 
         return db.insert("object", null, cv) > 0
     }
@@ -173,19 +170,13 @@ class DBHelper(
             val height = cursor.getFloat(5)
             val drawObjWhole = cursor.getBlob(6)
             val drawObjOnly = cursor.getBlob(7)
-            val motion = cursor.getString(8)
+            val replaceDraw = cursor.getBlob(8)
+            val motion = cursor.getString(9)
 
             objectArrayList.add(
                 ObjectDTO(
-                    drawingId,
-                    objId,
-                    startX,
-                    startY,
-                    width,
-                    height,
-                    drawObjWhole,
-                    drawObjOnly,
-                    motion
+                    drawingId, objId, startX, startY, width, height,
+                    drawObjWhole, drawObjOnly, replaceDraw, motion
                 )
             )
         }
@@ -208,6 +199,27 @@ class DBHelper(
         else objectId += 1
 
         return objectId
+    }
+
+    fun updateObjectReplaceDraw(drawId: String, objId: String, replaceDraw: ByteArray): Boolean {
+        println("라라 $drawId, $objId, $replaceDraw")
+        val db = writableDatabase
+        val cv = ContentValues()
+        cv.put("fullDraw", drawId)
+        cv.put("objId", objId)
+        cv.put("replaceDraw", replaceDraw)
+
+        return db.update("object", cv, "fullDraw = ? AND objId = ?", arrayOf(drawId, objId)) > 0
+    }
+
+    fun updateObjectMotion(drawId: String, objId: String, motion: String): Boolean {
+        val db = writableDatabase
+        val cv = ContentValues()
+        cv.put("fullDraw", drawId)
+        cv.put("objId", objId)
+        cv.put("motion", motion)
+
+        return db.update("object", cv, "fullDraw = ? AND objId = ?", arrayOf(drawId)) > 0
     }
 
     fun deleteObject(drawId: String, objId: String): Boolean {

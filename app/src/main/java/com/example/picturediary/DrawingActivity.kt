@@ -13,7 +13,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.get
 import com.example.picturediary.navigation.dao.DBHelper
-import kotlinx.android.synthetic.main.activity_crop.*
 import kotlinx.android.synthetic.main.activity_drawing.*
 import java.io.ByteArrayOutputStream
 
@@ -57,14 +56,14 @@ class DrawingActivity : AppCompatActivity() {
             val intent = Intent(this, CropActivity::class.java)
 
             val stream = ByteArrayOutputStream()
-            val picture = getBitmapFromView(drawing_view)
+            val picture = Utils().getBitmapFromView(drawing_view)
             picture.compress(Bitmap.CompressFormat.PNG, 0, stream)
             val byteArray = stream.toByteArray()
 
             val fullDrawing = dbHelper.readDrawing(pickedDate!!, username)
             // 그림 존재하지 않음 --> DB에 추가
             if (fullDrawing == null)
-                dbHelper.insertDrawing(pickedDate, username, "", byteArray)
+                dbHelper.insertDrawing(pickedDate, username, byteArray)
             // 그림 존재 --> 그림 수정 --> 그림 업데이트 & 객체 삭제
             else {
                 val drawing = fullDrawing.image
@@ -167,20 +166,6 @@ class DrawingActivity : AppCompatActivity() {
             //Current view is updated with selected view in the form of ImageButton.
             mImageButtonCurrentPaint = view
         }
-    }
-
-    private fun getBitmapFromView(view : View): Bitmap {
-        val returnedBitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(returnedBitmap)
-
-        val bgDrawable = view.background
-        if(bgDrawable != null) {
-            bgDrawable.draw(canvas)
-        } else {
-            canvas.drawColor(Color.TRANSPARENT)
-        }
-        view.draw(canvas)
-        return returnedBitmap
     }
 }
 
