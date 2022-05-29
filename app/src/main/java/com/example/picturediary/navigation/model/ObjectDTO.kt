@@ -11,5 +11,5 @@ data class ObjectDTO(
     var drawObjWhole: ByteArray? = null,
     var drawObjOnly: ByteArray? = null,
     var replaceDraw: ByteArray? = null,
-    var motion: String? = null
+    var motion: String? = null,
 )

@@ -14,6 +14,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.get
 import com.example.picturediary.navigation.dao.DBHelper
 import kotlinx.android.synthetic.main.activity_drawing.*
+import kotlinx.coroutines.DelicateCoroutinesApi
 import java.io.ByteArrayOutputStream
 
 
@@ -26,6 +27,7 @@ class DrawingActivity : AppCompatActivity() {
     private var mImageButtonCurrentPaint: ImageButton? = null
 
 
+    @OptIn(DelicateCoroutinesApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_drawing)

@@ -6,8 +6,12 @@ import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteException
 import android.database.sqlite.SQLiteOpenHelper
+import com.example.picturediary.Point
 import com.example.picturediary.navigation.model.DrawingDTO
 import com.example.picturediary.navigation.model.ObjectDTO
+import org.json.JSONArray
+import org.json.JSONObject
+
 
 class DBHelper(
     context: Context?,
@@ -37,6 +41,15 @@ class DBHelper(
                 "FOREIGN KEY (fullDraw) REFERENCES drawing(drawId)," +
                 "PRIMARY KEY (fullDraw, objId) );"
 
+        val createObjectPath = "CREATE TABLE IF NOT EXISTS path (" +
+                "fullDraw TEXT," +
+                "objId INTEGER," +
+                "pointX REAL," +
+                "pointY REAL," +
+                "FOREIGN KEY (fullDraw) REFERENCES drawing(drawId)," +
+                "FOREIGN KEY (objId) REFERENCES object(objId)," +
+                "PRIMARY KEY (fullDraw, objId, pointX, pointY) );"
+
         val createShareTable = "CREATE TABLE IF NOT EXISTS share (" +
                 "fullDraw TEXT," +
                 "groupId TEXT," +
@@ -45,6 +58,7 @@ class DBHelper(
 
         db.execSQL(createDrawingTable)
         db.execSQL(createObjectTable)
+        db.execSQL(createObjectPath)
         db.execSQL(createShareTable)
     }
 
@@ -71,6 +85,7 @@ class DBHelper(
         val drawId = "$username@$drawDate"
         cv.put("drawId", drawId)
         cv.put("user", username)
+        cv.put("content", "")
         cv.put("image", image)
 
         val result: Boolean = try {
@@ -101,12 +116,7 @@ class DBHelper(
         return fullDrawingDTO
     }
 
-    fun updateDrawing(
-        drawDate: String,
-        username: String,
-        content: String,
-        image: ByteArray
-    ): Boolean {
+    fun updateDrawing(drawDate: String, username: String, content: String, image: ByteArray): Boolean {
         val db = writableDatabase
         val cv = ContentValues()
         val drawId = "$username@$drawDate"
@@ -201,8 +211,33 @@ class DBHelper(
         return objectId
     }
 
+    fun readSingleObject(drawId: String, objId: String): ObjectDTO {
+        var objectDTO = ObjectDTO()
+        val sql = "SELECT * FROM object WHERE fullDraw = ? AND objId = ?"
+        val cursor = readableDatabase.rawQuery(sql, arrayOf(drawId, objId))
+
+        while (cursor.moveToNext()) {
+            val drawingId = cursor.getString(0)
+            val objectId = cursor.getInt(1)
+            val startX = cursor.getFloat(2)
+            val startY = cursor.getFloat(3)
+            val width = cursor.getFloat(4)
+            val height = cursor.getFloat(5)
+            val drawObjWhole = cursor.getBlob(6)
+            val drawObjOnly = cursor.getBlob(7)
+            val replaceDraw = cursor.getBlob(8)
+            val motion = cursor.getString(9)
+
+            objectDTO = ObjectDTO(
+                drawingId, objectId, startX, startY, width, height,
+                drawObjWhole, drawObjOnly, replaceDraw, motion
+            )
+        }
+        cursor.close()
+        return objectDTO
+    }
+
     fun updateObjectReplaceDraw(drawId: String, objId: String, replaceDraw: ByteArray): Boolean {
-        println("라라 $drawId, $objId, $replaceDraw")
         val db = writableDatabase
         val cv = ContentValues()
         cv.put("fullDraw", drawId)
@@ -231,5 +266,33 @@ class DBHelper(
         val db = writableDatabase
         val drawId = "$username@$drawDate"
         return db.delete("object", "fullDraw = ?", arrayOf(drawId)) > 0
+    }
+
+    // OBJECT PATH 테이블 ===========================================================================
+    fun insertObjectPath(fullDraw: String, objId: Int, pointX: Float, pointY: Float): Boolean {
+        val db = writableDatabase
+        val cv = ContentValues()
+        cv.put("fullDraw", fullDraw)
+        cv.put("objId", objId)
+        cv.put("pointX", pointX)
+        cv.put("pointY", pointY)
+
+        return db.insert("path", null, cv) > 0
+    }
+
+    fun readObjectPath(drawId: String, objId: String): ArrayList<Point> {
+        val pointArrayList = arrayListOf<Point>()
+        val sql = "SELECT pointX, pointY FROM path WHERE fullDraw = ? AND objId = ?"
+        val cursor = readableDatabase.rawQuery(sql, arrayOf(drawId, objId))
+
+        while (cursor.moveToNext()) {
+            val point = Point()
+            point.x = cursor.getFloat(0)
+            point.y = cursor.getFloat(1)
+
+            pointArrayList.add(point)
+        }
+        cursor.close()
+        return pointArrayList
     }
 }

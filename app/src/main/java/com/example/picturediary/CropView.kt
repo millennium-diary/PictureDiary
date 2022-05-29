@@ -26,8 +26,9 @@ import kotlin.math.*
 
 @DelicateCoroutinesApi
 class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), OnTouchListener {
+    private var canvasView: Canvas? = null
     private var flgPathDraw = true
-    private var points = arrayListOf<Point?>()
+    private var points = arrayListOf<Point>()
     private var bitmap: Bitmap? = null
     private var paint: Paint? = null
     private var firstPointExist = false     // 첫 좌표 존재 여부
@@ -84,30 +85,31 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
 
     @SuppressLint("DrawAllocation")
     public override fun onDraw(canvas: Canvas) {
-        canvas.drawBitmap(bitmap!!, 0f, 0f, null)
+        canvasView = canvas
+        canvasView!!.drawBitmap(bitmap!!, 0f, 0f, null)
         val path = Path()
         var first = true
         var i = 0
 
         while (i < points.size) {
-            val point: Point? = points[i]
+            val point: Point = points[i]
             when {
                 first -> {
                     first = false
-                    path.moveTo(point!!.x, point.y)     // 기준점 이동
+                    path.moveTo(point.x, point.y)     // 기준점 이동
                 }
                 i < points.size - 1 -> {
-                    val next: Point? = points[i + 1]
-                    path.quadTo(point!!.x, point.y, next!!.x, next.y)   // 곡선
+                    val next: Point = points[i + 1]
+                    path.quadTo(point.x, point.y, next.x, next.y)   // 곡선
                 }
                 else -> {
                     mlastpoint = points[i]
-                    path.lineTo(point!!.x, point.y)     // 경로 추가
+                    path.lineTo(point.x, point.y)     // 경로 추가
                 }
             }
             i += 2
         }
-        canvas.drawPath(path, paint!!)
+        canvasView!!.drawPath(path, paint!!)
     }
 
     override fun onTouch(view: View, event: MotionEvent): Boolean {
@@ -124,10 +126,10 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
         if (flgPathDraw) {
             if (firstPointExist) {
                 if (mfirstpoint == point) {
-                    points.add(mfirstpoint)
+                    points.add(mfirstpoint!!)
                     flgPathDraw = false
 
-                    path = getPath()
+                    path = getPath(points)
                     val (startCoords, size, drawings) = getObject(bitmap!!, path)
                     setObject(startCoords, size, drawings)     // 어댑터에 객체 추가
                     points.removeAll(points)
@@ -147,9 +149,9 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
             if (flgPathDraw && points.size > 12) {
                 if (mfirstpoint != point) {
                     flgPathDraw = false
-                    points.add(mfirstpoint)
+                    points.add(mfirstpoint!!)
 
-                    path = getPath()
+                    path = getPath(points)
                     val (startCoords, size, drawings) = getObject(bitmap!!, path)
                     setObject(startCoords, size, drawings)     // 어댑터에 객체 추가
                     points.removeAll(points)
@@ -163,10 +165,10 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
         return true
     }
 
-    private fun getPath(): Path {
+    private fun getPath(points: ArrayList<Point>): Path {
         val path = Path()
         for (point in points)
-            path.lineTo(point!!.x, point.y)
+            path.lineTo(point.x, point.y)
         return path
     }
 
@@ -257,16 +259,25 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
             objectListAdapter?.notifyDataSetChanged()
 
             dbHelper.insertObject(
-                "$username@$pickedDate",
-                objId,
-                startX,
-                startY,
-                width,
-                height,
-                byteArray,
-                byteArray2,
+                "$username@$pickedDate", objId, startX, startY,
+                width, height, byteArray, byteArray2
             )
+
+            for (point in points)
+                dbHelper.insertObjectPath("$username@$pickedDate", objId, point.x, point.y)
         }
+    }
+
+    fun hideRecommendRecycler() {
+        val view = this.parent.parent as ConstraintLayout
+        view.recommendRecycler.visibility = INVISIBLE
+        view.motionLinearLayout.visibility = VISIBLE
+    }
+
+    fun showRecommendRecycler() {
+        val view = this.parent.parent as ConstraintLayout
+        view.recommendRecycler.visibility = VISIBLE
+        view.motionLinearLayout.visibility = INVISIBLE
     }
 
     // 인식된 객체의 다른 이미지 보기 어댑터
@@ -295,7 +306,7 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
         // 아이템 선택 시 모션 선택지 보이도록 함
         recommendListAdapter.setRecommendClickListener(object: RecommendListAdapter.RecommendClickListener {
             override fun onItemClick(position: Int) {
-                view.recommendRecycler.visibility = INVISIBLE
+                hideRecommendRecycler()
                 if (position != 0) {
                     val replaceDraw = recommendArrayList[position]
                     val stream = ByteArrayOutputStream()
@@ -303,14 +314,23 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
                     val data = stream.toByteArray()
 
                     dbHelper.updateObjectReplaceDraw(drawId, objId, data)
+                    val savedPoints = dbHelper.readObjectPath(drawId, objId)
+                    val path = getPath(savedPoints)
+
+//                    val bitmapSetting = Bitmap.createBitmap(bitmap!!.width, bitmap!!.height, bitmap!!.config)
+                    val paint = Paint()
+//                    val canvas = Canvas(bitmapSetting)
+
+                    canvasView!!.drawPath(path, paint)
+                    paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_IN)
+                    canvasView!!.drawBitmap(bitmap!!, 0f, 0f, paint)
                 }
             }
         })
     }
 
     // CropView 파일에서 사용되는 선택된 객체 리스트 어댑터
-    inner class ObjectListAdapter(var items: ArrayList<ObjectDTO>) :
-        RecyclerView.Adapter<ObjectListAdapter.ViewHolder>() {
+    inner class ObjectListAdapter(var items: ArrayList<ObjectDTO>) : RecyclerView.Adapter<ObjectListAdapter.ViewHolder>() {
         override fun getItemCount(): Int {
             return items.size
         }
@@ -350,6 +370,7 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
                             withContext(Dispatchers.Main) {
                                 Toast.makeText(context, classifiedResult, Toast.LENGTH_SHORT).show()
                                 setRecommendAdapter(classifiedResult!!, image, drawId, objId)
+                                showRecommendRecycler()
                             }
                         }
 
@@ -358,6 +379,7 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
                             withContext(Dispatchers.Main) {
                                 Toast.makeText(context, "현재 그림 인식은 할 수 없습니다", Toast.LENGTH_SHORT).show()
                                 setRecommendAdapter(classifiedResult!!, image, drawId, objId)
+                                showRecommendRecycler()
                             }
                         }
                     }
@@ -371,8 +393,7 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
             return ViewHolder(binding)
         }
 
-        inner class ViewHolder(private val binding: ItemChosenObjectBinding) :
-            RecyclerView.ViewHolder(binding.root) {
+        inner class ViewHolder(private val binding: ItemChosenObjectBinding): RecyclerView.ViewHolder(binding.root) {
             fun bind(item: ObjectDTO) {
                 val bitmapWhole =
                     BitmapFactory.decodeByteArray(item.drawObjWhole, 0, item.drawObjWhole!!.size)
@@ -392,18 +413,18 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
         }
     }
 
-    //    * ───────→ +x축
+    //    * ──────→ +x축
     //    │
     //    │
     //    ↓ + y축
 
     // 가장 위에 있는 좌표 (y 값이 가장 작은 좌표)
-    private fun getTopMost(pointArray: ArrayList<Point?>): Point {
+    private fun getTopMost(pointArray: ArrayList<Point>): Point {
         var targetY = crop_view.height.toFloat()
         var topMost = Point()
 
         for (point in pointArray) {
-            val pointY = point!!.y
+            val pointY = point.y
             if (pointY < targetY) {
                 targetY = pointY
                 topMost = point
@@ -413,12 +434,12 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
     }
 
     // 가장 밑에 있는 좌표 (y 값이 가장 큰 좌표)
-    private fun getBottomMost(pointArray: ArrayList<Point?>): Point {
+    private fun getBottomMost(pointArray: ArrayList<Point>): Point {
         var targetY = 0f
         var bottomMost = Point()
 
         for (point in pointArray) {
-            val pointY = point!!.y
+            val pointY = point.y
             if (pointY > targetY) {
                 targetY = pointY
                 bottomMost = point
@@ -428,12 +449,12 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
     }
 
     // 가장 왼쪽에 있는 좌표 (x 값이 가장 작은 좌표)
-    private fun getLeftMost(pointArray: ArrayList<Point?>): Point {
+    private fun getLeftMost(pointArray: ArrayList<Point>): Point {
         var targetX = crop_view.width.toFloat()
         var leftMost = Point()
 
         for (point in pointArray) {
-            val pointX = point!!.x
+            val pointX = point.x
             if (pointX < targetX) {
                 targetX = pointX
                 leftMost = point
@@ -443,12 +464,12 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
     }
 
     // 가장 오른쪽에 있는 좌표 (x 값이 가장 큰 좌표)
-    private fun getRightMost(pointArray: ArrayList<Point?>): Point {
+    private fun getRightMost(pointArray: ArrayList<Point>): Point {
         var targetX = 0f
         var rightMost = Point()
 
         for (point in pointArray) {
-            val pointX = point!!.x
+            val pointX = point.x
             if (pointX > targetX) {
                 targetX = pointX
                 rightMost = point
