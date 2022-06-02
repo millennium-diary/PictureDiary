@@ -398,7 +398,7 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
                         catch (e: ConnectException) {
                             withContext(Dispatchers.Main) {
                                 Toast.makeText(context, "현재 그림 인식은 할 수 없습니다", Toast.LENGTH_SHORT).show()
-                                setRecommendAdapter(classifiedResult!!, image, drawId, objId)
+                                setRecommendAdapter("", image, drawId, objId)
                                 showRecommendRecycler()
                             }
                         }
