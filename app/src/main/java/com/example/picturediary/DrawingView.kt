@@ -10,11 +10,10 @@ import android.view.View
 import com.example.picturediary.navigation.dao.DBHelper
 import com.example.picturediary.navigation.model.DrawingDTO
 
-class DrawingView(context: Context, attrs: AttributeSet) : View(context,attrs) {
-    private val dbName = "pictureDiary.db"
-    private var dbHelper: DBHelper = DBHelper(context, dbName, null, 1)
+class DrawingView(context: Context, attrs: AttributeSet) : View(context, attrs) {
     private var fullDrawing: DrawingDTO? = null
     private var pickedDate: String? = null
+    private val dbHelper = Utils().createDBHelper(context)
     private val loggedInUser = PrefApplication.prefs.getString("loggedInUser", "")
     private val username = loggedInUser.split("★")[0]
 
@@ -28,13 +27,17 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context,attrs) {
     private var mPaths = ArrayList<CustomPath>()
     private val mUndoPaths = ArrayList<CustomPath>()
 
-    init { setUpDrawing() }
+    init {
+        setUpDrawing()
+    }
 
-    fun setDrawId(drawId: String) { pickedDate = drawId }
+    fun setDrawId(drawId: String) {
+        pickedDate = drawId
+    }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
-        mCanvasBitmap = Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888)
+        mCanvasBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
         canvas = Canvas(mCanvasBitmap!!)
     }
 
@@ -45,21 +48,22 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context,attrs) {
         fullDrawing = dbHelper.readDrawing(pickedDate!!, username)
         // 해당 날짜에 저장된 그림이 있으면 그림판에 해당 그림 띄우기
         if (fullDrawing != null) {
-            val bitmap = BitmapFactory.decodeByteArray(fullDrawing!!.image, 0, fullDrawing!!.image!!.size)
-            canvas?.drawBitmap(bitmap!!,0f,0f, mCanvasPaint)
+            val bitmap =
+                BitmapFactory.decodeByteArray(fullDrawing!!.image, 0, fullDrawing!!.image!!.size)
+            canvas?.drawBitmap(bitmap!!, 0f, 0f, mCanvasPaint)
         }
         // 저장된 그림이 없으면 빈 캔버스 띄우기
-        else canvas?.drawBitmap(mCanvasBitmap!!,0f,0f, mCanvasPaint)
+        else canvas?.drawBitmap(mCanvasBitmap!!, 0f, 0f, mCanvasPaint)
 
         for (path in mPaths) {
             mDrawPaint!!.strokeWidth = path.brushThickness
             mDrawPaint!!.color = path.color
-            canvas?.drawPath(path,mDrawPaint!!)
+            canvas?.drawPath(path, mDrawPaint!!)
         }
         if (!mDrawPath!!.isEmpty) {
             mDrawPaint!!.strokeWidth = mDrawPath!!.brushThickness
             mDrawPaint!!.color = mDrawPath!!.color
-            canvas?.drawPath(mDrawPath!!,mDrawPaint!!)
+            canvas?.drawPath(mDrawPath!!, mDrawPaint!!)
         }
     }
 
@@ -67,24 +71,24 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context,attrs) {
         val touchX = event?.x
         val touchY = event?.y
         when (event?.action) {
-            MotionEvent.ACTION_DOWN ->{
+            MotionEvent.ACTION_DOWN -> {
                 mDrawPath!!.color = color
                 mDrawPath!!.brushThickness = mBrushSize
                 mDrawPath!!.reset()
                 if (touchX != null) {
                     if (touchY != null) {
-                        mDrawPath!!.moveTo(touchX,touchY)
+                        mDrawPath!!.moveTo(touchX, touchY)
                     }
                 }
             }
-            MotionEvent.ACTION_MOVE ->{
+            MotionEvent.ACTION_MOVE -> {
                 if (touchX != null) {
                     if (touchY != null) {
-                        mDrawPath!!.lineTo(touchX,touchY)
+                        mDrawPath!!.lineTo(touchX, touchY)
                     }
                 }
             }
-            MotionEvent.ACTION_UP ->{
+            MotionEvent.ACTION_UP -> {
                 mPaths.add(mDrawPath!!)
                 mDrawPath = CustomPath(color, mBrushSize)
             }
@@ -96,7 +100,7 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context,attrs) {
 
     private fun setUpDrawing() {
         mDrawPaint = Paint()
-        mDrawPath = CustomPath(color,mBrushSize)
+        mDrawPath = CustomPath(color, mBrushSize)
         mDrawPaint!!.color = color
         mDrawPaint!!.style = Paint.Style.STROKE
         mDrawPaint!!.strokeJoin = Paint.Join.ROUND
@@ -105,7 +109,11 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context,attrs) {
     }
 
     fun setBrushSize(newSize: Float) {
-        mBrushSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,newSize,resources.displayMetrics)
+        mBrushSize = TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP,
+            newSize,
+            resources.displayMetrics
+        )
         mDrawPaint!!.strokeWidth = mBrushSize
     }
 
@@ -114,8 +122,8 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context,attrs) {
 //            mDrawPaint?.xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR)
 //        }
 //        else {
-            color = Color.parseColor(newColor)
-            mDrawPaint?.color = color
+        color = Color.parseColor(newColor)
+        mDrawPaint?.color = color
 //        }
     }
 
@@ -138,5 +146,5 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context,attrs) {
         invalidate()
     }
 
-    internal inner class CustomPath(var color: Int, var brushThickness: Float) : Path() { }
+    internal inner class CustomPath(var color: Int, var brushThickness: Float) : Path() {}
 }

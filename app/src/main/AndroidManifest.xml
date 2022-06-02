@@ -27,14 +27,10 @@
         <activity android:name=".CalendarActivity" />
         <activity android:name=".FragmentActivity" />
         <activity android:name=".DrawingActivity" />
-        <activity android:name=".DiarytimelineActivity" />
         <activity android:name=".CropActivity" />
         <activity android:name=".TextActivity" />
-<<<<<<< Updated upstream
-        <activity android:name=".DiarytimelineActivity"/>
-=======
-        <activity android:name=".AnimExamActivity" />
->>>>>>> Stashed changes
+        <activity android:name=".TimelineActivity"/>
+        <activity android:name=".AnimExamActivity"/>
         <provider
             android:authorities="com.example.paint.fileprovider"
             android:name="androidx.core.content.FileProvider"
