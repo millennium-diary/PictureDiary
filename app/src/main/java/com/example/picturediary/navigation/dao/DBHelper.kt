@@ -9,8 +9,6 @@ import android.database.sqlite.SQLiteOpenHelper
 import com.example.picturediary.Point
 import com.example.picturediary.navigation.model.DrawingDTO
 import com.example.picturediary.navigation.model.ObjectDTO
-import org.json.JSONArray
-import org.json.JSONObject
 
 
 class DBHelper(
@@ -30,10 +28,10 @@ class DBHelper(
         val createObjectTable = "CREATE TABLE IF NOT EXISTS object (" +
                 "fullDraw TEXT," +
                 "objId INTEGER," +
-                "startX REAL," +
-                "startY REAL," +
-                "width REAL," +
-                "height REAL," +
+                "leftX REAL," +
+                "rightX REAL," +
+                "topY REAL," +
+                "bottomY REAL," +
                 "drawObjWhole BLOB," +
                 "drawObjOnly BLOB," +
                 "replaceDraw BLOB," +
@@ -42,13 +40,13 @@ class DBHelper(
                 "PRIMARY KEY (fullDraw, objId) );"
 
         val createObjectPath = "CREATE TABLE IF NOT EXISTS path (" +
+                "pathId INTEGER PRIMARY KEY AUTOINCREMENT," +
                 "fullDraw TEXT," +
                 "objId INTEGER," +
                 "pointX REAL," +
                 "pointY REAL," +
                 "FOREIGN KEY (fullDraw) REFERENCES drawing(drawId)," +
-                "FOREIGN KEY (objId) REFERENCES object(objId)," +
-                "PRIMARY KEY (fullDraw, objId, pointX, pointY) );"
+                "FOREIGN KEY (objId) REFERENCES object(objId) );"
 
         val createShareTable = "CREATE TABLE IF NOT EXISTS share (" +
                 "fullDraw TEXT," +
@@ -143,10 +141,10 @@ class DBHelper(
     fun insertObject(
         fullDraw: String,
         objId: Int,
-        startX: Float,
-        startY: Float,
-        width: Float,
-        height: Float,
+        leftX: Float,
+        rightX: Float,
+        topY: Float,
+        bottomY: Float,
         drawObjWhole: ByteArray,
         drawObjOnly: ByteArray,
     ): Boolean {
@@ -154,10 +152,10 @@ class DBHelper(
         val cv = ContentValues()
         cv.put("fullDraw", fullDraw)
         cv.put("objId", objId)
-        cv.put("startX", startX)
-        cv.put("startY", startY)
-        cv.put("width", width)
-        cv.put("height", height)
+        cv.put("leftX", leftX)
+        cv.put("rightX", rightX)
+        cv.put("topY", topY)
+        cv.put("bottomY", bottomY)
         cv.put("drawObjWhole", drawObjWhole)
         cv.put("drawObjOnly", drawObjOnly)
 
@@ -174,10 +172,10 @@ class DBHelper(
         while (cursor.moveToNext()) {
             val drawingId = cursor.getString(0)
             val objId = cursor.getInt(1)
-            val startX = cursor.getFloat(2)
-            val startY = cursor.getFloat(3)
-            val width = cursor.getFloat(4)
-            val height = cursor.getFloat(5)
+            val leftX = cursor.getFloat(2)
+            val rightX = cursor.getFloat(3)
+            val topY = cursor.getFloat(4)
+            val bottomY = cursor.getFloat(5)
             val drawObjWhole = cursor.getBlob(6)
             val drawObjOnly = cursor.getBlob(7)
             val replaceDraw = cursor.getBlob(8)
@@ -185,7 +183,7 @@ class DBHelper(
 
             objectArrayList.add(
                 ObjectDTO(
-                    drawingId, objId, startX, startY, width, height,
+                    drawingId, objId, leftX, rightX, topY, bottomY,
                     drawObjWhole, drawObjOnly, replaceDraw, motion
                 )
             )
@@ -194,7 +192,7 @@ class DBHelper(
         return objectArrayList
     }
 
-    fun readLastIndex(drawDate: String, username: String): Int {
+    fun readLastObjectIndex(drawDate: String, username: String): Int {
         var objectId: Int? = null
         val drawId = "$username@$drawDate"
         val sql = "SELECT * FROM object WHERE fullDraw = ? ORDER BY objId DESC LIMIT 1"
@@ -219,17 +217,17 @@ class DBHelper(
         while (cursor.moveToNext()) {
             val drawingId = cursor.getString(0)
             val objectId = cursor.getInt(1)
-            val startX = cursor.getFloat(2)
-            val startY = cursor.getFloat(3)
-            val width = cursor.getFloat(4)
-            val height = cursor.getFloat(5)
+            val leftX = cursor.getFloat(2)
+            val rightX = cursor.getFloat(3)
+            val topY = cursor.getFloat(4)
+            val bottomY = cursor.getFloat(5)
             val drawObjWhole = cursor.getBlob(6)
             val drawObjOnly = cursor.getBlob(7)
             val replaceDraw = cursor.getBlob(8)
             val motion = cursor.getString(9)
 
             objectDTO = ObjectDTO(
-                drawingId, objectId, startX, startY, width, height,
+                drawingId, objectId, leftX, rightX, topY, bottomY,
                 drawObjWhole, drawObjOnly, replaceDraw, motion
             )
         }
@@ -272,6 +270,7 @@ class DBHelper(
     fun insertObjectPath(fullDraw: String, objId: Int, pointX: Float, pointY: Float): Boolean {
         val db = writableDatabase
         val cv = ContentValues()
+//        cv.put("pathId", null)
         cv.put("fullDraw", fullDraw)
         cv.put("objId", objId)
         cv.put("pointX", pointX)
@@ -294,5 +293,10 @@ class DBHelper(
         }
         cursor.close()
         return pointArrayList
+    }
+
+    fun deleteObjectPath(drawId: String, objId: String): Boolean {
+        val db = writableDatabase
+        return db.delete("path", "fullDraw = ? AND objId = ?", arrayOf(drawId, objId)) > 0
     }
 }

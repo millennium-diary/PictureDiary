@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.picturediary.databinding.ItemChosenObjectBinding
 import com.example.picturediary.navigation.model.ObjectDTO
+import com.example.picturediary.navigation.model.ObjectFeatures
 import kotlinx.android.synthetic.main.activity_crop.view.*
 import kotlinx.android.synthetic.main.item_chosen_object.view.*
 import kotlinx.coroutines.*
@@ -26,7 +27,14 @@ import kotlin.math.*
 
 @DelicateCoroutinesApi
 class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), OnTouchListener {
-    private var canvasView: Canvas? = null
+    private var objBitmap: Bitmap? = null
+    private var objPath: Path? = null
+    private var objLeft: Float? = null
+    private var objRight: Float? = null
+    private var objTop: Float? = null
+    private var objBottom: Float? = null
+    private var erasePortion = false
+
     private var flgPathDraw = true
     private var points = arrayListOf<Point>()
     private var bitmap: Bitmap? = null
@@ -85,36 +93,49 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
 
     @SuppressLint("DrawAllocation")
     public override fun onDraw(canvas: Canvas) {
-        canvasView = canvas
-        canvasView!!.drawBitmap(bitmap!!, 0f, 0f, null)
-        val path = Path()
-        var first = true
-        var i = 0
+        if (!erasePortion) {
+            canvas.drawBitmap(bitmap!!, 0f, 0f, null)
+            val path = Path()
+            var first = true
+            var i = 0
 
-        while (i < points.size) {
-            val point: Point = points[i]
-            when {
-                first -> {
-                    first = false
-                    path.moveTo(point.x, point.y)     // 기준점 이동
+            while (i < points.size) {
+                val point: Point = points[i]
+                when {
+                    first -> {
+                        first = false
+                        path.moveTo(point.x, point.y)     // 기준점 이동
+                    }
+                    i < points.size - 1 -> {
+                        val next: Point = points[i + 1]
+                        path.quadTo(point.x, point.y, next.x, next.y)   // 곡선
+                    }
+                    else -> {
+                        mlastpoint = points[i]
+                        path.lineTo(point.x, point.y)     // 경로 추가
+                    }
                 }
-                i < points.size - 1 -> {
-                    val next: Point = points[i + 1]
-                    path.quadTo(point.x, point.y, next.x, next.y)   // 곡선
-                }
-                else -> {
-                    mlastpoint = points[i]
-                    path.lineTo(point.x, point.y)     // 경로 추가
-                }
+                i += 2
             }
-            i += 2
+            canvas.drawPath(path, paint!!)
         }
-        canvasView!!.drawPath(path, paint!!)
+        else {
+            erasePortion = false
+            val erase = Paint()
+            canvas.drawBitmap(bitmap!!, 0f, 0f, null)
+            erase.isAntiAlias = true
+            erase.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_OUT)
+            canvas.drawPath(objPath!!, erase)
+
+            canvas.drawBitmap(objBitmap!!, objLeft!!, objTop!!, null)
+            super.onDraw(canvas)
+        }
     }
 
     override fun onTouch(view: View, event: MotionEvent): Boolean {
         var path: Path
         val point = Point()
+        val constraintLayout = this.parent.parent as ConstraintLayout
         point.x = event.x
         point.y = event.y
 
@@ -130,8 +151,10 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
                     flgPathDraw = false
 
                     path = getPath(points)
-                    val (startCoords, size, drawings) = getObject(bitmap!!, path)
-                    setObject(startCoords, size, drawings)     // 어댑터에 객체 추가
+                    val objectFeatures = getObject(bitmap!!, path)
+                    setObject(objectFeatures)     // 어댑터에 객체 추가
+                    constraintLayout.recommendRecycler.visibility = INVISIBLE
+                    constraintLayout.motionLinearLayout.visibility = INVISIBLE
                     points.removeAll(points)
                     isNewObject = true
                 }
@@ -152,8 +175,10 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
                     points.add(mfirstpoint!!)
 
                     path = getPath(points)
-                    val (startCoords, size, drawings) = getObject(bitmap!!, path)
-                    setObject(startCoords, size, drawings)     // 어댑터에 객체 추가
+                    val objectFeatures = getObject(bitmap!!, path)
+                    setObject(objectFeatures)     // 어댑터에 객체 추가
+                    constraintLayout.recommendRecycler.visibility = INVISIBLE
+                    constraintLayout.motionLinearLayout.visibility = INVISIBLE
                     points.removeAll(points)
                     isNewObject = true
                 }
@@ -173,34 +198,29 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
     }
 
     // 선택한 객체만 추출
-    private fun getObject(
-        bitmap: Bitmap,
-        path: Path
-    ): Triple<Pair<Float, Float>, Pair<Float, Float>, Pair<Bitmap, Bitmap>> {
+    private fun getObject(bitmap: Bitmap, path: Path): ObjectFeatures {
         // 전체 그림판에 선택된 객체
-        val drawingInFullCanvas =
-            Bitmap.createBitmap(crop_view.width, crop_view.height, bitmap.config)
+        val drawingInFullCanvas = Bitmap.createBitmap(crop_view.width, crop_view.height, bitmap.config)
         val paint = Paint()
+        paint.isAntiAlias = true
         val canvas = Canvas(drawingInFullCanvas)     // 어댑터 캔버스
 
         canvas.drawPath(path, paint)
         paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_IN)
         canvas.drawBitmap(bitmap, 0f, 0f, paint)
 
-        val topMost = getTopMost(points)
-        val bottomMost = getBottomMost(points)
         val leftMost = getLeftMost(points)
         val rightMost = getRightMost(points)
+        val topMost = getTopMost(points)
+        val bottomMost = getBottomMost(points)
 
         // 크롭한 이미지의 시작 좌표
         val startX = leftMost.x
         val startY = topMost.y
-        val startCoords = Pair(startX, startY)
 
         // 크롭한 이미지의 크기
         val width = rightMost.x - leftMost.x
         val height = bottomMost.y - topMost.y
-        val size = Pair(width, height)
 
         // 선택된 객체 only
         val drawingOnly =
@@ -212,46 +232,43 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
                 ceil(height).toInt()
             )
 
-        val drawings = Pair(drawingInFullCanvas, drawingOnly)
-
-        return Triple(startCoords, size, drawings)
+        return ObjectFeatures(leftMost.x, rightMost.x, topMost.y, bottomMost.y, drawingInFullCanvas, drawingOnly)
     }
 
     // 선택한 객체를 어댑터에 추가
     @SuppressLint("NotifyDataSetChanged")
-    fun setObject(
-        startCoords: Pair<Float, Float>,
-        size: Pair<Float, Float>,
-        drawings: Pair<Bitmap, Bitmap>
-    ) {
-        val (startX, startY) = startCoords
-        val (width, height) = size
-        val (croppedBitmap, croppedBitmapOnly) = drawings
+    fun setObject(objectFeatures: ObjectFeatures) {
+        val left = objectFeatures.left
+        val right = objectFeatures.right
+        val top = objectFeatures.top
+        val bottom = objectFeatures.bottom
+        val croppedBitmap = objectFeatures.drawObjWhole
+        val croppedBitmapOnly = objectFeatures.drawObjOnly
 
         // 전체 그림판 기준에서의 객체
         val stream = ByteArrayOutputStream()
-        croppedBitmap.compress(Bitmap.CompressFormat.PNG, 50, stream)
+        croppedBitmap!!.compress(Bitmap.CompressFormat.PNG, 100, stream)
         val byteArray = stream.toByteArray()
 
         // 크롭된 범위 기준에서의 객체
         val stream2 = ByteArrayOutputStream()
-        croppedBitmapOnly.compress(Bitmap.CompressFormat.PNG, 50, stream2)
+        croppedBitmapOnly!!.compress(Bitmap.CompressFormat.PNG, 100, stream2)
         val byteArray2 = stream2.toByteArray()
 
         val emptyBitmap =
             Bitmap.createBitmap(croppedBitmap.width, croppedBitmap.height, croppedBitmap.config)
 
-        val objId = dbHelper.readLastIndex(pickedDate!!, username)
+        val objId = dbHelper.readLastObjectIndex(pickedDate!!, username)
 
         // 선택된 객체가 비어있지 않으면 내장 DB에 정보 저장
         if (!croppedBitmap.sameAs(emptyBitmap)) {
             val objectDTO = ObjectDTO()
             objectDTO.fullDraw = pickedDate
             objectDTO.objId = objId
-            objectDTO.startX = startX
-            objectDTO.startY = startY
-            objectDTO.width = width
-            objectDTO.height = height
+            objectDTO.left = objLeft
+            objectDTO.right = objRight
+            objectDTO.top = objTop
+            objectDTO.bottom = objBottom
             objectDTO.drawObjWhole = byteArray
             objectDTO.drawObjOnly = byteArray2
 
@@ -259,8 +276,8 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
             objectListAdapter?.notifyDataSetChanged()
 
             dbHelper.insertObject(
-                "$username@$pickedDate", objId, startX, startY,
-                width, height, byteArray, byteArray2
+                "$username@$pickedDate", objId, left!!, right!!,
+                top!!, bottom!!, byteArray, byteArray2
             )
 
             for (point in points)
@@ -314,16 +331,17 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
                     val data = stream.toByteArray()
 
                     dbHelper.updateObjectReplaceDraw(drawId, objId, data)
-                    val savedPoints = dbHelper.readObjectPath(drawId, objId)
-                    val path = getPath(savedPoints)
+                    val objectDTO = dbHelper.readSingleObject(drawId, objId)
+                    objLeft = objectDTO.left
+                    objRight = objectDTO.right
+                    objTop = objectDTO.top
+                    objBottom = objectDTO.bottom
+                    val objByteArray = objectDTO.replaceDraw
+                    objBitmap = BitmapFactory.decodeByteArray(objByteArray, 0, objByteArray!!.size)
+                    objPath = getPath(dbHelper.readObjectPath(drawId, objId))
 
-//                    val bitmapSetting = Bitmap.createBitmap(bitmap!!.width, bitmap!!.height, bitmap!!.config)
-                    val paint = Paint()
-//                    val canvas = Canvas(bitmapSetting)
-
-                    canvasView!!.drawPath(path, paint)
-                    paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_IN)
-                    canvasView!!.drawBitmap(bitmap!!, 0f, 0f, paint)
+                    erasePortion = true
+                    invalidate()
                 }
             }
         })
@@ -346,6 +364,8 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
             holder.itemView.delete_object.setOnClickListener {
                 if (!dbHelper.deleteObject(drawId, objId))
                     dbHelper.deleteObject("$username@$drawId", objId)
+                if (!dbHelper.deleteObjectPath(drawId, objId))
+                    dbHelper.deleteObjectPath("$username@$drawId", objId)
                 items.removeAt(position)
                 objectListAdapter?.notifyDataSetChanged()
                 objectListAdapter?.notifyItemRemoved(position)
@@ -402,10 +422,10 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
 
                 binding.objectParentId.text = item.fullDraw
                 binding.objectId.text = item.objId.toString()
-                binding.startX.text = item.startX.toString()
-                binding.startY.text = item.startY.toString()
-                binding.width.text = item.width.toString()
-                binding.height.text = item.height.toString()
+                binding.left.text = item.left.toString()
+                binding.right.text = item.right.toString()
+                binding.top.text = item.top.toString()
+                binding.bottom.text = item.bottom.toString()
                 binding.objectView.setImageBitmap(bitmapWhole)
                 binding.objectViewOnly.setImageBitmap(bitmapOnly)
                 binding.objectMotion.text = item.motion

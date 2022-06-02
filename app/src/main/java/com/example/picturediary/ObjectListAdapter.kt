@@ -31,10 +31,10 @@ class ObjectListAdapter(var items: ArrayList<ObjectDTO>) : RecyclerView.Adapter<
                 BitmapFactory.decodeByteArray(item.drawObjOnly, 0, item.drawObjOnly!!.size)
             binding.objectParentId.text = item.fullDraw
             binding.objectId.text = item.objId.toString()
-            binding.startX.text = item.startX.toString()
-            binding.startY.text = item.startY.toString()
-            binding.width.text = item.width.toString()
-            binding.height.text = item.height.toString()
+            binding.left.text = item.left.toString()
+            binding.right.text = item.right.toString()
+            binding.top.text = item.top.toString()
+            binding.bottom.text = item.bottom.toString()
             binding.objectView.setImageBitmap(bitmapWhole)
             binding.objectViewOnly.setImageBitmap(bitmapOnly)
             binding.objectMotion.text = item.motion

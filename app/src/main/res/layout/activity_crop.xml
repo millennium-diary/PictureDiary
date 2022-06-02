@@ -118,4 +118,11 @@
         app:layout_constraintHeight_percent="0.15"
         app:layout_constraintWidth_percent="1.0"
         tools:listitem="@layout/item_recommended_object"/>
+
+    <ImageView
+        android:id="@+id/temp"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintRight_toRightOf="parent"/>
 </androidx.constraintlayout.widget.ConstraintLayout>
