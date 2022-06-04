@@ -27,6 +27,8 @@ import kotlin.math.*
 
 @DelicateCoroutinesApi
 class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), OnTouchListener {
+    private var canvasWidth: Int? = null
+    private var canvasHeight: Int? = null
     private var objBitmap: Bitmap? = null
     private var objPath: Path? = null
     private var objLeft: Float? = null
@@ -93,8 +95,13 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
 
     @SuppressLint("DrawAllocation")
     public override fun onDraw(canvas: Canvas) {
-        if (!erasePortion) {
+        canvasWidth = this.width
+        canvasHeight = this.height
+
+        // 일반 그리기 (추천 그림을 누르지 않았을 경우)
+//        if (!erasePortion) {
             canvas.drawBitmap(bitmap!!, 0f, 0f, null)
+
             val path = Path()
             var first = true
             var i = 0
@@ -118,18 +125,21 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
                 i += 2
             }
             canvas.drawPath(path, paint!!)
-        }
-        else {
-            erasePortion = false
-            val erase = Paint()
-            canvas.drawBitmap(bitmap!!, 0f, 0f, null)
-            erase.isAntiAlias = true
-            erase.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_OUT)
-            canvas.drawPath(objPath!!, erase)
-
-            canvas.drawBitmap(objBitmap!!, objLeft!!, objTop!!, null)
-            super.onDraw(canvas)
-        }
+//        }
+//        // 추천 그림 눌렀을 경우 --> 원래 이미지를 추천 이미지로 대체
+//        else {
+//            val erase = Paint()
+//
+//            erasePortion = false
+//            canvas.drawBitmap(bitmap!!, 0f, 0f, null)
+//
+//            erase.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_OUT)
+//            erase.isAntiAlias = true
+////            erase.color = Color.WHITE
+//            canvas.drawPath(objPath!!, erase)
+//
+////            canvas.drawBitmap(resizedBitmap, objLeft!!, objTop!!, null)
+//        }
     }
 
     override fun onTouch(view: View, event: MotionEvent): Boolean {
@@ -155,7 +165,6 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
                     setObject(objectFeatures)     // 어댑터에 객체 추가
                     constraintLayout.recommendRecycler.visibility = INVISIBLE
                     constraintLayout.motionLinearLayout.visibility = INVISIBLE
-                    points.removeAll(points)
                     isNewObject = true
                 }
                 else points.add(point)
@@ -179,7 +188,6 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
                     setObject(objectFeatures)     // 어댑터에 객체 추가
                     constraintLayout.recommendRecycler.visibility = INVISIBLE
                     constraintLayout.motionLinearLayout.visibility = INVISIBLE
-                    points.removeAll(points)
                     isNewObject = true
                 }
             }
@@ -283,6 +291,7 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
             for (point in points)
                 dbHelper.insertObjectPath("$username@$pickedDate", objId, point.x, point.y)
         }
+        points.removeAll(points)
     }
 
     fun hideRecommendRecycler() {
@@ -299,17 +308,21 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
 
     // 인식된 객체의 다른 이미지 보기 어댑터
     @SuppressLint("NotifyDataSetChanged")
-    fun setRecommendAdapter(classifiedResult: String, original: Bitmap, drawId: String, objId: String) {
+    fun setRecommendAdapter(classifiedResult: String, original: Bitmap, drawingId: String, objId: String) {
         val view = this.parent.parent as ConstraintLayout
+        var drawId = drawingId
 
         // 어댑터 리스트 설정
         val recommendListAdapter: RecommendListAdapter?
         val recommendArrayList = arrayListOf(original)
 
         val dogArrayList = utils.getBitmapFromDrawable(context, arrayListOf(R.drawable.dog1, R.drawable.dog2, R.drawable.dog3))
+        val catArrayList = utils.getBitmapFromDrawable(context, arrayListOf(R.drawable.cat1, R.drawable.cat2, R.drawable.cat3))
 
         if (classifiedResult == "dog")
             recommendArrayList.addAll(dogArrayList)
+        else if (classifiedResult == "cat")
+            recommendArrayList.addAll(catArrayList)
 
         // 어댑터 설정
         recommendListAdapter = RecommendListAdapter(recommendArrayList)
@@ -323,26 +336,58 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
         // 아이템 선택 시 모션 선택지 보이도록 함
         recommendListAdapter.setRecommendClickListener(object: RecommendListAdapter.RecommendClickListener {
             override fun onItemClick(position: Int) {
+                if (!drawId.contains("@")) drawId = "$username@$drawId"
+                val content = dbHelper.readDrawing(pickedDate!!, username)!!.content
                 hideRecommendRecycler()
-                if (position != 0) {
-                    val replaceDraw = recommendArrayList[position]
-                    val stream = ByteArrayOutputStream()
-                    replaceDraw.compress(Bitmap.CompressFormat.PNG, 100, stream)
-                    val data = stream.toByteArray()
 
-                    dbHelper.updateObjectReplaceDraw(drawId, objId, data)
-                    val objectDTO = dbHelper.readSingleObject(drawId, objId)
-                    objLeft = objectDTO.left
-                    objRight = objectDTO.right
-                    objTop = objectDTO.top
-                    objBottom = objectDTO.bottom
-                    val objByteArray = objectDTO.replaceDraw
-                    objBitmap = BitmapFactory.decodeByteArray(objByteArray, 0, objByteArray!!.size)
-                    objPath = getPath(dbHelper.readObjectPath(drawId, objId))
+                // 선택된 객체 (원래 그림)
+                val objectDTO = dbHelper.readSingleObject(drawId, objId)
+                objLeft = objectDTO.left
+                objRight = objectDTO.right
+                objTop = objectDTO.top
+                objBottom = objectDTO.bottom
+                objPath = getPath(dbHelper.readObjectPath(drawId, objId))
 
-                    erasePortion = true
-                    invalidate()
-                }
+                // 대체할 이미지 --> 원래 그림 크기에 맞춤
+                val selectedBitmap = recommendArrayList[position]
+                val objWidth = (objRight!! - objLeft!!).toInt()
+                val objHeight = (objBottom!! - objTop!!).toInt()
+                val resizedBitmap = Bitmap.createScaledBitmap(selectedBitmap, objWidth, objHeight, false)
+                val wholeBitmap = utils.placeObject(
+                    resizedBitmap, canvasWidth!!, canvasHeight!!, objLeft!!, objTop!!
+                )
+
+                // 대체할 이미지 only --> byte array
+                val replaceStream = ByteArrayOutputStream()
+                resizedBitmap.compress(Bitmap.CompressFormat.PNG, 100, replaceStream)
+                val replaceData = replaceStream.toByteArray()
+
+                // 대체할 이미지 위치 --> byte array
+                val wholeStream = ByteArrayOutputStream()
+                wholeBitmap!!.compress(Bitmap.CompressFormat.PNG, 100, wholeStream)
+                val wholeData = wholeStream.toByteArray()
+
+                // 객체의 replaceDraw, drawObjWhole 속성 변경
+                dbHelper.updateObjectReplaceDraw(drawId, objId, replaceData, wholeData)
+
+                // 전체 이미지 그리기 & 해당 날짜의 그림 업데이트
+                val userDrawing = Bitmap.createBitmap(canvasWidth!!, canvasHeight!!, Bitmap.Config.ARGB_8888)
+                val canvas = Canvas(userDrawing)
+                canvas.drawBitmap(bitmap!!, 0f, 0f, null)
+
+                val erase = Paint()
+                erase.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_OUT)
+                erase.isAntiAlias = true
+                canvas.drawPath(objPath!!, erase)
+
+                bitmap = utils.overlay(userDrawing, wholeBitmap)
+                val drawingStream = ByteArrayOutputStream()
+                bitmap!!.compress(Bitmap.CompressFormat.PNG, 100, drawingStream)
+                val drawingData = wholeStream.toByteArray()
+                dbHelper.updateDrawing(pickedDate!!, username, content!!, drawingData)
+
+                erasePortion = true
+                invalidate()
             }
         })
     }

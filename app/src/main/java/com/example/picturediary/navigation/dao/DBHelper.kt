@@ -18,6 +18,7 @@ class DBHelper(
     version: Int
 ) : SQLiteOpenHelper(context, name, factory, version) {
 
+    // 내장 데이터베이스 생성
     override fun onCreate(db: SQLiteDatabase) {
         val createDrawingTable = "CREATE TABLE IF NOT EXISTS drawing (" +
                 "drawId TEXT PRIMARY KEY," +
@@ -73,6 +74,7 @@ class DBHelper(
     }
 
     // DRAWING 테이블 ===============================================================================
+    // 사용자의 전체 그림 추가
     fun insertDrawing(
         drawDate: String,
         username: String,
@@ -95,6 +97,7 @@ class DBHelper(
         return result
     }
 
+    // 사용자의 전체 그림 읽기
     @SuppressLint("Recycle")
     fun readDrawing(drawDate: String, username: String): DrawingDTO? {
         var fullDrawingDTO: DrawingDTO? = null
@@ -114,6 +117,7 @@ class DBHelper(
         return fullDrawingDTO
     }
 
+    // 사용자의 전체 그림 업데이트
     fun updateDrawing(drawDate: String, username: String, content: String, image: ByteArray): Boolean {
         val db = writableDatabase
         val cv = ContentValues()
@@ -126,6 +130,7 @@ class DBHelper(
         return db.update("drawing", cv, "drawId = ?", arrayOf(drawId)) > 0
     }
 
+    // 사용자의 그림 삭제
     fun deleteUsersDrawing(username: String) {
         val db = writableDatabase
         val sqlDelObject = "DELETE FROM object WHERE fullDraw = " +
@@ -138,6 +143,7 @@ class DBHelper(
 
 
     // OBJECT 테이블 ================================================================================
+    // 사용자가 선택한 객체 추가
     fun insertObject(
         fullDraw: String,
         objId: Int,
@@ -162,6 +168,7 @@ class DBHelper(
         return db.insert("object", null, cv) > 0
     }
 
+    // 특정 그림의 모든 객체 읽기
     @SuppressLint("Recycle")
     fun readObjects(drawDate: String, username: String): ArrayList<ObjectDTO> {
         val drawId = "$username@$drawDate"
@@ -192,6 +199,7 @@ class DBHelper(
         return objectArrayList
     }
 
+    // 그림의 마지막 객체 아이디 읽기
     fun readLastObjectIndex(drawDate: String, username: String): Int {
         var objectId: Int? = null
         val drawId = "$username@$drawDate"
@@ -209,6 +217,7 @@ class DBHelper(
         return objectId
     }
 
+    // 특정 객체 하나 읽기
     fun readSingleObject(drawId: String, objId: String): ObjectDTO {
         var objectDTO = ObjectDTO()
         val sql = "SELECT * FROM object WHERE fullDraw = ? AND objId = ?"
@@ -235,16 +244,19 @@ class DBHelper(
         return objectDTO
     }
 
-    fun updateObjectReplaceDraw(drawId: String, objId: String, replaceDraw: ByteArray): Boolean {
+    // 객체의 대체 이미지 업데이트하기
+    fun updateObjectReplaceDraw(drawId: String, objId: String, replaceDraw: ByteArray, wholeDraw: ByteArray): Boolean {
         val db = writableDatabase
         val cv = ContentValues()
         cv.put("fullDraw", drawId)
         cv.put("objId", objId)
+        cv.put("drawObjWhole", wholeDraw)
         cv.put("replaceDraw", replaceDraw)
 
         return db.update("object", cv, "fullDraw = ? AND objId = ?", arrayOf(drawId, objId)) > 0
     }
 
+    // 객체의 모션 업데이트하기
     fun updateObjectMotion(drawId: String, objId: String, motion: String): Boolean {
         val db = writableDatabase
         val cv = ContentValues()
@@ -255,11 +267,13 @@ class DBHelper(
         return db.update("object", cv, "fullDraw = ? AND objId = ?", arrayOf(drawId)) > 0
     }
 
+    // 특정 객체 삭제
     fun deleteObject(drawId: String, objId: String): Boolean {
         val db = writableDatabase
         return db.delete("object", "fullDraw = ? AND objId = ?", arrayOf(drawId, objId)) > 0
     }
 
+    // 모든 객체 삭제
     fun deleteAllObject(drawDate: String, username: String): Boolean {
         val db = writableDatabase
         val drawId = "$username@$drawDate"
@@ -267,6 +281,7 @@ class DBHelper(
     }
 
     // OBJECT PATH 테이블 ===========================================================================
+    // 객체의 경로 추가
     fun insertObjectPath(fullDraw: String, objId: Int, pointX: Float, pointY: Float): Boolean {
         val db = writableDatabase
         val cv = ContentValues()
@@ -279,6 +294,7 @@ class DBHelper(
         return db.insert("path", null, cv) > 0
     }
 
+    // 경로 읽기
     fun readObjectPath(drawId: String, objId: String): ArrayList<Point> {
         val pointArrayList = arrayListOf<Point>()
         val sql = "SELECT pointX, pointY FROM path WHERE fullDraw = ? AND objId = ?"
@@ -295,6 +311,7 @@ class DBHelper(
         return pointArrayList
     }
 
+    // 경로 삭제
     fun deleteObjectPath(drawId: String, objId: String): Boolean {
         val db = writableDatabase
         return db.delete("path", "fullDraw = ? AND objId = ?", arrayOf(drawId, objId)) > 0
