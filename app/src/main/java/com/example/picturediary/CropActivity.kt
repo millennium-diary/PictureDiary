@@ -30,13 +30,13 @@ class CropActivity : AppCompatActivity() {
 
         // 어댑터 띄우기
         val dbHelper = Utils().createDBHelper(applicationContext)
-        val objectArrayList = dbHelper.readObjects(pickedDate!!, username)
-        val objectListAdapter = ObjectListAdapter(objectArrayList)
-        objectRecycler.apply {
-            objectRecycler.layoutManager =
-                LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
-            objectRecycler.adapter = objectListAdapter
-        }
+//        val objectArrayList = dbHelper.readObjects(pickedDate!!, username)
+//        val objectListAdapter = ObjectListAdapter(objectArrayList)
+//        objectRecycler.apply {
+//            objectRecycler.layoutManager =
+//                LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+//            objectRecycler.adapter = objectListAdapter
+//        }
 
         // CropView.kt에 작업 넘김
         cropView = findViewById(R.id.crop_view)

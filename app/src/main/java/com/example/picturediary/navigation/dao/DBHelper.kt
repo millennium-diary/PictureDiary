@@ -34,7 +34,7 @@ class DBHelper(
                 "topY REAL," +
                 "bottomY REAL," +
                 "drawObjWhole BLOB," +
-                "drawObjOnly BLOB," +
+                "originalDraw BLOB," +
                 "replaceDraw BLOB," +
                 "motion TEXT," +
                 "FOREIGN KEY (fullDraw) REFERENCES drawing(drawId)," +
@@ -152,7 +152,7 @@ class DBHelper(
         topY: Float,
         bottomY: Float,
         drawObjWhole: ByteArray,
-        drawObjOnly: ByteArray,
+        originalDraw: ByteArray,
     ): Boolean {
         val db = writableDatabase
         val cv = ContentValues()
@@ -163,7 +163,7 @@ class DBHelper(
         cv.put("topY", topY)
         cv.put("bottomY", bottomY)
         cv.put("drawObjWhole", drawObjWhole)
-        cv.put("drawObjOnly", drawObjOnly)
+        cv.put("originalDraw", originalDraw)
 
         return db.insert("object", null, cv) > 0
     }
@@ -184,14 +184,14 @@ class DBHelper(
             val topY = cursor.getFloat(4)
             val bottomY = cursor.getFloat(5)
             val drawObjWhole = cursor.getBlob(6)
-            val drawObjOnly = cursor.getBlob(7)
+            val originalDraw = cursor.getBlob(7)
             val replaceDraw = cursor.getBlob(8)
             val motion = cursor.getString(9)
 
             objectArrayList.add(
                 ObjectDTO(
                     drawingId, objId, leftX, rightX, topY, bottomY,
-                    drawObjWhole, drawObjOnly, replaceDraw, motion
+                    drawObjWhole, originalDraw, replaceDraw, motion
                 )
             )
         }
@@ -231,13 +231,13 @@ class DBHelper(
             val topY = cursor.getFloat(4)
             val bottomY = cursor.getFloat(5)
             val drawObjWhole = cursor.getBlob(6)
-            val drawObjOnly = cursor.getBlob(7)
+            val originalDraw = cursor.getBlob(7)
             val replaceDraw = cursor.getBlob(8)
             val motion = cursor.getString(9)
 
             objectDTO = ObjectDTO(
                 drawingId, objectId, leftX, rightX, topY, bottomY,
-                drawObjWhole, drawObjOnly, replaceDraw, motion
+                drawObjWhole, originalDraw, replaceDraw, motion
             )
         }
         cursor.close()

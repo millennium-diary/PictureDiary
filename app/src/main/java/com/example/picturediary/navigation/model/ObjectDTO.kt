@@ -9,7 +9,7 @@ data class ObjectDTO(
     var top: Float? = null,
     var bottom: Float? = null,
     var drawObjWhole: ByteArray? = null,
-    var drawObjOnly: ByteArray? = null,
+    var originalDraw: ByteArray? = null,
     var replaceDraw: ByteArray? = null,
     var motion: String? = null,
 )

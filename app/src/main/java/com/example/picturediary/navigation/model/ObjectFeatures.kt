@@ -8,5 +8,5 @@ data class ObjectFeatures (
     var top: Float? = null,
     var bottom: Float? = null,
     var drawObjWhole: Bitmap? = null,
-    var drawObjOnly: Bitmap? = null,
+    var originalDraw: Bitmap? = null,
 )
