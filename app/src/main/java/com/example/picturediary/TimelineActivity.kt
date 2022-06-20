@@ -11,6 +11,7 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.picturediary.navigation.model.ContentDTO
@@ -24,9 +25,11 @@ import com.example.picturediary.navigation.model.UserDTO
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.Query
+import kotlinx.android.synthetic.main.item_timeline.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 
 class TimelineActivity : AppCompatActivity() {
@@ -44,6 +47,8 @@ class TimelineActivity : AppCompatActivity() {
 
         recyclerViewtimeline.adapter = RecyclerViewAdapter()
         recyclerViewtimeline.layoutManager = LinearLayoutManager(this)
+
+
 
         add_memeber.setOnClickListener {
             var memberName: String
@@ -157,6 +162,8 @@ class TimelineActivity : AppCompatActivity() {
                 }
         }
 
+
+
         override fun onCreateViewHolder(p0: ViewGroup, p1: Int): RecyclerView.ViewHolder {
             val view = LayoutInflater.from(p0.context).inflate(R.layout.item_timeline, p0, false)
             return ViewHolder(view)
@@ -187,6 +194,23 @@ class TimelineActivity : AppCompatActivity() {
             viewHolder.profile_textview.text = contentDTOs[p1].username
             viewHolder.explain_textview.text = contentDTOs[p1].explain
 
+            //현재 사용자가 해당 일기 작성자라면, 삭제 버튼 표시
+            firestore.collection("users")
+                .document(user?.uid!!)
+                .get()
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        val userDTO = task.result.toObject(UserDTO::class.java)
+                        if(userDTO?.username ==contentDTOs[p1].username)
+                        {
+                            viewHolder.delete_picture.visibility=View.VISIBLE
+                        }
+                        else{
+                            viewHolder.delete_picture.visibility=View.INVISIBLE
+                        }
+                    }
+                }
+
             Glide.with(p0.itemView.context)
                 .load(contentDTOs[p1].imageUrl)
                 .into(viewHolder.Diary_image)
@@ -205,12 +229,24 @@ class TimelineActivity : AppCompatActivity() {
             }
             viewHolder.like_number.text = "좋아요 " + contentDTOs[p1].favoriteCount + "개"
 
+            viewHolder.delete_picture.setOnClickListener {
+                deleteDiary(contentDTOs[p1].contentId)
+            }
+
+        }
+
+        private fun deleteDiary(ContentID: String?){
+            if (ContentID != null) {
+                firestore.collection("contents")
+                    .document(ContentID)
+                    .delete()
+            }
         }
 
         override fun getItemCount(): Int {
             return contentDTOs.size
         }
-
+        //좋아요 이벤트
         private fun favoriteEvent(position: Int) {
             val tsDoc = firestore.collection("contents")
                 .document(contentUidList[position])
