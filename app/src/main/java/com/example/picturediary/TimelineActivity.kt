@@ -135,7 +135,8 @@ class TimelineActivity : AppCompatActivity() {
 
         private fun getContents(shareWith: ArrayList<String>?) {
             firestore.collection("contents")
-                .orderBy("timestamp", Query.Direction.DESCENDING)
+                .whereEqualTo("explain", "확인")
+//                .orderBy("timestamp", Query.Direction.DESCENDING)
                 .addSnapshotListener { querySnapshot, _ ->
                     // ArrayList 비워줌
                     contentDTOs.clear()
@@ -187,9 +188,11 @@ class TimelineActivity : AppCompatActivity() {
             viewHolder.profile_textview.text = contentDTOs[p1].username
             viewHolder.explain_textview.text = contentDTOs[p1].explain
 
-            Glide.with(p0.itemView.context)
-                .load(contentDTOs[p1].imageUrl)
-                .into(viewHolder.Diary_image)
+//            Glide.with(p0.itemView.context)
+//                .load(contentDTOs[p1].imageUrl)
+//                .into(viewHolder.Diary_image)
+            viewHolder.Diary_image.setVideoPath(contentDTOs[p1].imageUrl)
+            viewHolder.Diary_image.start()
 
             viewHolder.favorite_imageview.setOnClickListener { favoriteEvent(p1) }
 

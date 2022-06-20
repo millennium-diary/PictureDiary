@@ -2,6 +2,7 @@ package com.example.picturediary
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.graphics.*
 import android.util.AttributeSet
 import android.view.LayoutInflater
@@ -449,6 +450,12 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
                         }
                     }
                 }
+            }
+
+            holder.itemView.playObject.setOnClickListener {
+                setCurrentObject(position)
+                val intent = Intent(context, MotionActivity::class.java)
+                intent.putExtra("pickedDate", pickedDate)
             }
         }
 
