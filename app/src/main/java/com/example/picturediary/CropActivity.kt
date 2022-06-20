@@ -1,31 +1,58 @@
 package com.example.picturediary
 
-import android.content.Context
-import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.*
 import android.os.Bundle
-import android.util.AttributeSet
-import android.view.MotionEvent
-import android.view.View
-import android.widget.ImageView
-import androidx.appcompat.app.AlertDialog
+import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.picturediary.navigation.dao.DBHelper
 import kotlinx.android.synthetic.main.activity_crop.*
+import kotlinx.android.synthetic.main.activity_crop.view.*
+import kotlinx.coroutines.DelicateCoroutinesApi
 
-
-class CropActivity: AppCompatActivity() {
-    var picture : Bitmap? = null
+@DelicateCoroutinesApi
+class CropActivity : AppCompatActivity() {
+    var picture: Bitmap? = null
+    var pickedDate: String? = null
     private var cropView: CropView? = null
+    private val loggedInUser = PrefApplication.prefs.getString("loggedInUser", "")
+    private val username = loggedInUser.split("★")[0]
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_crop)
 
+        // intent 가져오기 (그림 & 날짜)
         val arr = intent.getByteArrayExtra("picture")
+        pickedDate = intent.getStringExtra("pickedDate")
         picture = BitmapFactory.decodeByteArray(arr, 0, arr!!.size)
 
+        // 어댑터 띄우기
+        val dbHelper = Utils().createDBHelper(applicationContext)
+//        val objectArrayList = dbHelper.readObjects(pickedDate!!, username)
+//        val objectListAdapter = ObjectListAdapter(objectArrayList)
+//        objectRecycler.apply {
+//            objectRecycler.layoutManager =
+//                LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+//            objectRecycler.adapter = objectListAdapter
+//        }
+
+        // CropView.kt에 작업 넘김
         cropView = findViewById(R.id.crop_view)
+        cropView?.setDrawId(pickedDate!!)
         cropView?.setDrawing(picture!!)
+
+        // 완료 버튼
+        completeBtn.setOnClickListener {
+            val intent = Intent(this, TextActivity::class.java)
+            intent.putExtra("picture", arr)
+            intent.putExtra("pickedDate", pickedDate)
+            startActivity(intent)
+        }
+
+        playAll.setOnClickListener { //모두재생 버튼
+            val intent = Intent(this, CropActivity::class.java)
+        }
     }
 }

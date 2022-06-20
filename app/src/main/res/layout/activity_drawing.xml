@@ -73,7 +73,6 @@
             android:layout_height="25dp"
             android:layout_margin="2dp"
             android:background="@color/skin"
-            android:contentDescription="image"
             android:src="@drawable/pallet_normal"
             android:tag="@color/skin" />
 
@@ -82,7 +81,6 @@
             android:layout_height="25dp"
             android:layout_margin="2dp"
             android:background="@color/black"
-            android:contentDescription="image"
             android:onClick="paintClicked"
             android:src="@drawable/pallet_normal"
             android:tag="@color/black" />
@@ -92,7 +90,6 @@
             android:layout_height="25dp"
             android:layout_margin="2dp"
             android:background="@color/red"
-            android:contentDescription="image"
             android:src="@drawable/pallet_normal"
             android:onClick="paintClicked"
             android:tag="@color/red" />
@@ -102,7 +99,6 @@
             android:layout_height="25dp"
             android:layout_margin="2dp"
             android:background="@color/green"
-            android:contentDescription="image"
             android:onClick="paintClicked"
             android:src="@drawable/pallet_normal"
             android:tag="@color/green" />
@@ -112,7 +108,6 @@
             android:layout_height="25dp"
             android:layout_margin="2dp"
             android:background="@color/blue"
-            android:contentDescription="image"
             android:src="@drawable/pallet_normal"
             android:onClick="paintClicked"
             android:tag="@color/blue" />
@@ -122,7 +117,6 @@
             android:layout_height="25dp"
             android:layout_margin="2dp"
             android:background="@color/yellow"
-            android:contentDescription="image"
             android:onClick="paintClicked"
             android:src="@drawable/pallet_normal"
             android:tag="@color/yellow" />
@@ -132,7 +126,6 @@
             android:layout_height="25dp"
             android:layout_margin="2dp"
             android:background="@color/lollipop"
-            android:contentDescription="image"
             android:onClick="paintClicked"
             android:src="@drawable/pallet_normal"
             android:tag="@color/lollipop" />
@@ -142,7 +135,6 @@
             android:layout_height="25dp"
             android:layout_margin="2dp"
             android:background="@color/random"
-            android:contentDescription="image"
             android:onClick="paintClicked"
             android:src="@drawable/pallet_normal"
             android:tag="@color/random" />
@@ -161,19 +153,19 @@
 
         <TableRow>
             <android.widget.Button
-                android:id="@+id/ib_size"
+                android:id="@+id/ib_brush"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:tooltipText="크기"
+                android:tooltipText="브러쉬"
                 android:textSize="12sp"
-                android:text="크기"/>
+                android:text="펜 크기"/>
             <android.widget.Button
                 android:id="@+id/ib_eraser"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:tag="@color/transparent"
+                android:tag="eraser"
                 android:textSize="11dp"
                 android:text="지우개"/>
             <ImageButton
@@ -203,6 +195,13 @@
                 android:layout_weight="1"
                 android:src="@drawable/ic_redo"
                 android:visibility="visible" />
+<!--            <android.widget.Button-->
+<!--                android:id="@+id/ib_save"-->
+<!--                android:layout_width="0dp"-->
+<!--                android:layout_height="match_parent"-->
+<!--                android:layout_weight="1"-->
+<!--                android:textSize="12sp"-->
+<!--                android:text="저장"/>-->
             <android.widget.Button
                 android:id="@+id/ib_motion"
                 android:layout_width="0dp"

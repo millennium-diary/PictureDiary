@@ -1,6 +1,7 @@
 package com.example.picturediary
 
 import android.app.ProgressDialog
+import android.content.Context
 import android.content.Intent
 import android.net.wifi.WifiManager
 import android.os.Bundle
@@ -18,6 +19,7 @@ import kotlinx.android.synthetic.main.activity_login.*
 
 class LoginActivity : AppCompatActivity() {
     private var auth: FirebaseAuth? = null
+    private var utils = Utils()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,6 +28,7 @@ class LoginActivity : AppCompatActivity() {
         auth = FirebaseAuth.getInstance()
 //        PrefApplication.prefs.setString("loggedInUser", "")
         val loggedInUser = PrefApplication.prefs.getString("loggedInUser", "")
+        println("사용자 $loggedInUser")
 
         if (loggedInUser.isBlank()) {
             setContentView(R.layout.activity_login)
@@ -44,13 +47,18 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
+//    // 와이파이 연결 확인
+//    private fun checkWifi(context: Context): Boolean {
+//        val wifi = context.getSystemService(WIFI_SERVICE) as WifiManager
+//        return if (!wifi.isWifiEnabled) {
+//            Toast.makeText(this, "와이파이 연결을 확인해 주세요", Toast.LENGTH_SHORT).show()
+//            false
+//        } else true
+//    }
+
     // 이메일로 회원가입
     private fun signUpButton() {
-        val wifi = getSystemService(WIFI_SERVICE) as WifiManager
-        if (!wifi.isWifiEnabled) {
-            Toast.makeText(this, "와이파이 연결을 확인해 주세요", Toast.LENGTH_SHORT).show()
-        }
-        else {
+        if (utils.checkWifi(applicationContext)) {
             when {
                 username_edittext.text.isEmpty() -> Toast.makeText(this, "아이디를 입력해주세요", Toast.LENGTH_SHORT).show()
                 password_edittext.text.isEmpty() -> Toast.makeText(this, "비밀번호를 입력해주세요", Toast.LENGTH_SHORT).show()
@@ -61,15 +69,11 @@ class LoginActivity : AppCompatActivity() {
 
     // 이메일로 로그인
     private fun loginButton() {
-        val wifi = getSystemService(WIFI_SERVICE) as WifiManager
-        if (!wifi.isWifiEnabled) {
-            Toast.makeText(this, "와이파이 연결을 확인해 주세요", Toast.LENGTH_SHORT).show()
-        }
-        else {
+        if (utils.checkWifi(applicationContext)) {
             when {
                 username_edittext.text.isEmpty() -> Toast.makeText(this, "아이디를 입력해주세요", Toast.LENGTH_SHORT).show()
                 password_edittext.text.isEmpty() -> Toast.makeText(this, "비밀번호를 입력해주세요", Toast.LENGTH_SHORT).show()
-                else -> signinUserID(username_edittext.text.toString(), password_edittext.text.toString())
+                else -> signInUserID(username_edittext.text.toString(), password_edittext.text.toString())
             }
         }
     }
@@ -119,7 +123,7 @@ class LoginActivity : AppCompatActivity() {
     }
 
     // 로그인 함수
-    private fun signinUserID(username : String, password: String) {
+    private fun signInUserID(username : String, password: String) {
         val progressDialog = ProgressDialog(this)
         progressDialog.setMessage("처리 중...")
         progressDialog.setCancelable(false)
@@ -159,12 +163,12 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
+    // 사용자 추가 시 파이어스토어의 displayName 설정
     private fun setNewUsername(username: String) {
         val user = Firebase.auth.currentUser
         val profileUpdates = userProfileChangeRequest {
             displayName = username
         }
-
         user!!.updateProfile(profileUpdates)
     }
 

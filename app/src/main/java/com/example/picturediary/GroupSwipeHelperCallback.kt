@@ -1,6 +1,5 @@
 package com.example.picturediary
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.content.DialogInterface
 import android.graphics.Canvas
@@ -9,18 +8,13 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.*
 import androidx.recyclerview.widget.ItemTouchHelper.*
-import com.example.picturediary.navigation.DetailViewFragment
-import com.example.picturediary.navigation.model.GroupDTO
-import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.*
 import com.google.firebase.ktx.Firebase
-import kotlinx.android.synthetic.main.user_group_item.view.*
+import kotlinx.android.synthetic.main.item_user_group.view.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.tasks.await
 import java.lang.Float.*
-import java.util.*
 import kotlin.collections.ArrayList
 
 // 참고자료 : https://velog.io/@trycatch98/Android-RecyclerView-Swipe-Menu
