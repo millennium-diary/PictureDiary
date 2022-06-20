@@ -32,12 +32,6 @@ class TextActivity  : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_text)
 
-        // 인텐트 설정
-        val arr = intent.getByteArrayExtra("picture")
-        pickedDate = intent.getStringExtra("pickedDate")
-        picture = BitmapFactory.decodeByteArray(arr, 0, arr!!.size)
-        val intent = Intent(this, MainActivity::class.java)
-
         // 파이어스토어, 파이어베이스 설정
         firestore = FirebaseFirestore.getInstance()
         storage = FirebaseStorage.getInstance()
@@ -45,7 +39,14 @@ class TextActivity  : AppCompatActivity() {
         username = auth?.currentUser?.displayName.toString()
         val uid = auth?.currentUser?.uid.toString()
 
-        val dbHelper = Utils().createDBHelper(applicationContext)
+        // 인텐트 설정
+        val dbHelper = utils.createDBHelper(applicationContext)
+        pickedDate = intent.getStringExtra("pickedDate")
+//        val arr = intent.getByteArrayExtra("picture")
+        val arr = dbHelper.readDrawing(pickedDate!!, username!!)!!.image
+        picture = BitmapFactory.decodeByteArray(arr, 0, arr!!.size)
+        val intent = Intent(this, MainActivity::class.java)
+
         val drawingDTO = dbHelper.readDrawing(pickedDate!!, username!!)
         if  (drawingDTO != null)
             editTextTextMultiLine.setText(drawingDTO.content)

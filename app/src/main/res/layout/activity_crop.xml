@@ -85,13 +85,14 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:background="@color/blue"
-        android:visibility="visible"
+        android:visibility="invisible"
         app:layout_constraintTop_toBottomOf="@id/constraintLayout"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintHeight_percent="0.15">
 
         <android.widget.Button
+            android:id="@+id/check"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="안녕"/>
@@ -110,6 +111,7 @@
         android:background="#BDBDBD"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:visibility="invisible"
         android:orientation="horizontal"
         app:layout_constraintTop_toBottomOf="@id/constraintLayout"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -118,7 +120,10 @@
         app:layout_constraintWidth_percent="1.0"
         tools:listitem="@layout/item_recommended_object"/>
 
-
-
-
+    <ImageView
+        android:id="@+id/temp"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintRight_toRightOf="parent"/>
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -11,18 +11,42 @@ import java.net.InetSocketAddress
 
 
 class ClassifyClient {
-    private val hostname = "192.168.0.2"
+//    private val hostname = "192.168.0.2"
+    private val hostname = "192.168.0.44"     // TUK 와이파이
+
+    private var last = false
     private var recvData: ByteArray = ByteArray(20)
-    private lateinit var sendData: ByteArray
+    private var sendData = arrayListOf<ByteArray>()
+    private lateinit var dataSlice: ByteArray
     private lateinit var result: String
 
     // 비트맵 --> 바이트 --> 문자열
     fun setClassifyImage(bitmap: Bitmap) {
+        var i = 0
+        var start = 2 * i
+        var end = start + 1023
+
         val stream = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.PNG, 50, stream)
-        val data = stream.toByteArray()
-        val end = "END"
-        sendData = data + end.toByteArray()
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
+        var data = stream.toByteArray()
+        data += "END".toByteArray()
+        val dataSize = data.size - 1
+
+        while (true) {
+            dataSlice = data.slice(start..end).toByteArray()
+            sendData.add(dataSlice)
+
+            if (last) break
+
+            i += 1
+            start = end + 1
+            end = start + 1023
+
+            if (end > dataSize) {
+                end = dataSize
+                last = true
+            }
+        }
     }
 
     @DelicateCoroutinesApi
@@ -31,7 +55,9 @@ class ClassifyClient {
             .connect(InetSocketAddress(hostname, 9000))
 
         val output = socket.openWriteChannel(autoFlush = true)
-        output.writeAvailable(sendData)
+        for (i in sendData) {
+            output.writeAvailable(i)
+        }
 
         val input = socket.openReadChannel()
         while (true) {
@@ -47,6 +73,7 @@ class ClassifyClient {
         }
 
         socket.close()
+        println("결과 $result")
         return result
     }
 }
