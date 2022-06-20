@@ -11,6 +11,7 @@ import com.example.picturediary.navigation.dao.DBHelper
 import com.example.picturediary.navigation.model.DrawingDTO
 
 class DrawingView(context: Context, attrs: AttributeSet) : View(context, attrs) {
+    private var eraserMode = false
     private var fullDrawing: DrawingDTO? = null
     private var pickedDate: String? = null
     private val dbHelper = Utils().createDBHelper(context)
@@ -118,13 +119,16 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context, attrs) 
     }
 
     fun setColor(newColor: String) {
-//        if (newColor == "eraser") {
-//            mDrawPaint?.xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR)
-//        }
-//        else {
-        color = Color.parseColor(newColor)
-        mDrawPaint?.color = color
-//        }
+        if (newColor == "eraser") {
+            eraserMode = true
+            color = Color.WHITE
+            mDrawPaint?.color = color
+        }
+        else {
+            eraserMode = false
+            color = Color.parseColor(newColor)
+            mDrawPaint?.color = color
+        }
     }
 
     fun onClickUndo() {

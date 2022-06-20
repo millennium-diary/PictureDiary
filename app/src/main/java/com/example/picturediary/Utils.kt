@@ -1,11 +1,7 @@
 package com.example.picturediary
 
-import android.R
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.graphics.Canvas
-import android.graphics.Color
+import android.graphics.*
 import android.net.wifi.WifiManager
 import android.view.View
 import android.widget.Toast
@@ -59,6 +55,21 @@ class Utils {
             Toast.makeText(context, "와이파이 연결을 확인해 주세요", Toast.LENGTH_SHORT).show()
             false
         } else true
+    }
+
+    fun overlay(bmp1: Bitmap, bmp2: Bitmap): Bitmap? {
+        val bmOverlay = Bitmap.createBitmap(bmp1.width, bmp1.height, bmp1.config)
+        val canvas = Canvas(bmOverlay)
+        canvas.drawBitmap(bmp1, Matrix(), null)
+        canvas.drawBitmap(bmp2, Matrix(), null)
+        return bmOverlay
+    }
+
+    fun placeObject(bitmap: Bitmap, width: Int, height: Int, startX: Float, startY: Float): Bitmap? {
+        val result = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(result)
+        canvas.drawBitmap(bitmap, startX, startY, null)
+        return result
     }
 
     // ImageView --> Bitmap 변환
