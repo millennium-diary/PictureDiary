@@ -112,8 +112,6 @@ class TextActivity  : AppCompatActivity() {
                         DialogInterface.OnClickListener { dialog, id ->
                             for (i in checkArray.indices) {
                                 val checked = checkArray[i]
-//                                val baos = ByteArrayOutputStream()
-//                                val diaryStory = editTextTextMultiLine.text.toString()
 
                                 if (checked) {
                                     val groupID = finalGroupsID[i]
@@ -143,7 +141,9 @@ class TextActivity  : AppCompatActivity() {
                                                     .set(contentDTO)
                                             }
                                                 .addOnFailureListener {
-                                                    Toast.makeText(this@TextActivity, "처리하는 중 오류가 발생했습니다", Toast.LENGTH_SHORT).show()
+                                                    Toast.makeText(this@TextActivity,
+                                                        "처리하는 중 오류가 발생했습니다",
+                                                        Toast.LENGTH_SHORT).show()
                                                 }
                                         }
                                     startActivity(intent)

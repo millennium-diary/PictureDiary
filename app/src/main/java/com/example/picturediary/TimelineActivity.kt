@@ -45,9 +45,9 @@ class TimelineActivity : AppCompatActivity() {
         recyclerViewtimeline.adapter = RecyclerViewAdapter()
         recyclerViewtimeline.layoutManager = LinearLayoutManager(this)
 
-        add_memeber.setOnClickListener {
+        // 멤버 추가 버튼 클릭 시
+        add_member.setOnClickListener {
             var memberName: String
-
             // 팝업 설정
             val dlg = AlertDialog.Builder(this)
             val input = EditText(this)
@@ -133,7 +133,9 @@ class TimelineActivity : AppCompatActivity() {
             }
         }
 
+        // 파이어베이스에서 그룹에 맞는 contentDTO를 불러옴
         private fun getContents(shareWith: ArrayList<String>?) {
+            // 파이어베이스에서 가져온 컨텐츠들을 시간 내림차순으로 정렬함
             firestore.collection("contents")
                 .orderBy("timestamp", Query.Direction.DESCENDING)
                 .addSnapshotListener { querySnapshot, _ ->
@@ -211,6 +213,7 @@ class TimelineActivity : AppCompatActivity() {
             return contentDTOs.size
         }
 
+        // 좋아요 이벤트
         private fun favoriteEvent(position: Int) {
             val tsDoc = firestore.collection("contents")
                 .document(contentUidList[position])
@@ -219,13 +222,13 @@ class TimelineActivity : AppCompatActivity() {
                 val uid = FirebaseAuth.getInstance().currentUser!!.uid
                 val contentDTO = transaction.get(tsDoc).toObject(ContentDTO::class.java)
 
+                // 좋아요를 취소할 경우 좋아요 수를 줄이고 유저 목록에서 삭제함
                 if (contentDTO!!.favorites.containsKey(uid)) {
-                    // Unstar the post and remove self from stars
                     contentDTO.favoriteCount = contentDTO.favoriteCount - 1
                     contentDTO.favorites.remove(uid)
-
+                    
+                // 좋아요를 누를 경우, 좋아요 수를 늘리고 유저 목록에 추가함
                 } else {
-                    // Star the post and add self to stars
                     contentDTO.favoriteCount = contentDTO.favoriteCount + 1
                     contentDTO.favorites[uid] = true
                 }
