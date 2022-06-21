@@ -190,6 +190,20 @@ class TimelineActivity : AppCompatActivity() {
             viewHolder.profile_textview.text = contentDTOs[p1].username
             viewHolder.explain_textview.text = contentDTOs[p1].explain
 
+            //현재 사용자가 해당 일기 작성자라면, 삭제 버튼 표시
+            firestore.collection("users")
+                .document(user?.uid!!)
+                .get()
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        val userDTO = task.result.toObject(UserDTO::class.java)
+                        if (userDTO?.username ==contentDTOs[p1].username)
+                            viewHolder.delete_picture.visibility=View.VISIBLE
+                        else
+                            viewHolder.delete_picture.visibility=View.INVISIBLE
+                    }
+                }
+
 //            Glide.with(p0.itemView.context)
 //                .load(contentDTOs[p1].imageUrl)
 //                .into(viewHolder.Diary_image)
@@ -215,21 +229,33 @@ class TimelineActivity : AppCompatActivity() {
             viewHolder.diary_date.text = contentDTOs[p1].diaryDate
 
             if (contentDTOs[p1].favorites.containsKey(FirebaseAuth.getInstance().currentUser!!.uid)) {
-                //클릭 되었을 경우
+                // 클릭 되었을 경우
                 viewHolder.favorite_imageview.setImageResource(R.drawable.ic_favorite)
 
             } else {
-                //클릭이 되지 않았을 경우
+                // 클릭이 되지 않았을 경우
                 viewHolder.favorite_imageview.setImageResource(R.drawable.ic_favorite_border)
             }
-            viewHolder.like_number.text = "좋아요 " + contentDTOs[p1].favoriteCount + "개"
 
+            viewHolder.like_number.text = "좋아요 " + contentDTOs[p1].favoriteCount + "개"
+            viewHolder.delete_picture.setOnClickListener {
+                deleteDiary(contentDTOs[p1].contentId)
+            }
+        }
+
+        private fun deleteDiary(ContentID: String?) {
+            if (ContentID != null) {
+                firestore.collection("contents")
+                    .document(ContentID)
+                    .delete()
+            }
         }
 
         override fun getItemCount(): Int {
             return contentDTOs.size
         }
 
+        // 좋아요 이벤트
         private fun favoriteEvent(position: Int) {
             val tsDoc = firestore.collection("contents")
                 .document(contentUidList[position])
