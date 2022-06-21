@@ -3,18 +3,16 @@ package com.example.picturediary
 import android.content.res.Resources
 import android.graphics.*
 import android.os.Bundle
-import android.view.View
 import android.view.ViewGroup
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
-import android.view.ViewTreeObserver.OnGlobalLayoutListener
-import android.widget.FrameLayout
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.ktx.Firebase
+import dev.bmcreations.scrcast.ScrCast
 import kotlinx.android.synthetic.main.activity_motion.*
 
 
@@ -22,36 +20,55 @@ class MotionActivity : AppCompatActivity() {
     val utils = Utils()
     var firestore: FirebaseFirestore? = null
     var auth: FirebaseAuth? = null
-    var picture : Bitmap? = null
     var username: String? = null
-    var height = 0
+
+    lateinit var pickedDate: String
+    lateinit var arr: ByteArray
+    lateinit var picture: Bitmap
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_motion)
 
-        val aniRotate: Animation = AnimationUtils.loadAnimation(this, R.anim.rotate)
-        val aniBounce: Animation = AnimationUtils.loadAnimation(this, R.anim.bounce)
-        val aniShake : Animation = AnimationUtils.loadAnimation(this, R.anim.shake)
-
-//        val layout = findViewById<View>(R.id.M_layout) as FrameLayout
-//        val vto = layout.viewTreeObserver
-//        vto.addOnGlobalLayoutListener(object : OnGlobalLayoutListener {
-//            override fun onGlobalLayout() {
-//                layout.viewTreeObserver.removeOnGlobalLayoutListener(this)
-//                val width = layout.measuredWidth
-//                height = layout.measuredHeight
-//            }
-//        })
-
-        val dbHelper = Utils().createDBHelper(applicationContext)
         firestore = FirebaseFirestore.getInstance()
         auth = Firebase.auth
         username = auth?.currentUser?.displayName.toString()
 
-        val pickedDate = intent.getStringExtra("pickedDate")
-        val arr = intent.getByteArrayExtra("picture")
-        val picture = BitmapFactory.decodeByteArray(arr, 0, arr!!.size)
+        val record = intent.getBooleanExtra("record", false)
+        pickedDate = intent.getStringExtra("pickedDate")!!
+        arr = intent.getByteArrayExtra("picture")!!
+        picture = BitmapFactory.decodeByteArray(arr, 0, arr.size)
+
+        if (record) {
+            waitText.text = "  결과물을 저장하고 있습니다  \n잠시 기다려 주세요"
+//            val textBlink = AnimationUtils.loadAnimation(this, R.anim.text_blink)
+
+            val recorder = ScrCast.use(this)
+            recorder.apply {
+                // configure options via DSL
+                options {
+                    video { maxLengthSecs = 5 }
+                    storage { directoryName = "scrcast-sample" }
+                    moveTaskToBack = false
+                    startDelayMs = 5_000
+                }
+            }
+            recorder.record()
+            showAnimations()
+            recorder.stopRecording()
+        }
+
+        else {
+            showAnimations()
+        }
+    }
+
+    private fun showAnimations() {
+        val aniRotate: Animation = AnimationUtils.loadAnimation(this, R.anim.rotate)
+        val aniBounce: Animation = AnimationUtils.loadAnimation(this, R.anim.bounce)
+        val aniShake : Animation = AnimationUtils.loadAnimation(this, R.anim.shake)
+        val dbHelper = utils.createDBHelper(applicationContext)
 
         // 사용자 그림에 대한 캔버스 초기화
         val size = Resources.getSystem().displayMetrics.widthPixels
@@ -60,7 +77,7 @@ class MotionActivity : AppCompatActivity() {
         canvas.drawBitmap(picture, 0f, 0f, null)
 
         // 해당 그림에 대한 선택된 객체 모두 불러오기
-        val objects = dbHelper.readObjects(pickedDate!!, username!!)
+        val objects = dbHelper.readObjects(pickedDate, username!!)
         for (object_ in objects) {
             val drawId = object_.fullDraw.toString()
             val objId = object_.objId.toString()
@@ -80,6 +97,7 @@ class MotionActivity : AppCompatActivity() {
             erase.isAntiAlias = true
             canvas.drawRect(leftX, topY, rightX, bottomY, erase)
 
+            // 선택된 객체는 해당 위치에 배치
             val iv = ImageView(this)
             iv.layoutParams = ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT,
@@ -90,6 +108,7 @@ class MotionActivity : AppCompatActivity() {
             iv.top = topY.toInt()
             M_layout.addView(iv)
 
+            // 모션 적용
             when (motion) {
                 "bingle" -> iv.startAnimation(aniRotate)
                 "jump" -> iv.startAnimation(aniBounce)
@@ -97,7 +116,5 @@ class MotionActivity : AppCompatActivity() {
             }
         }
         whole.setImageBitmap(userDrawing)
-
-
     }
 }

@@ -46,11 +46,10 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
-        <VideoView
-            android:id="@+id/Diary_image"
+        <com.example.picturediary.TextureVideoView
+            android:id="@+id/videoView"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:scaleType="fitXY"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintDimensionRatio="1:1"

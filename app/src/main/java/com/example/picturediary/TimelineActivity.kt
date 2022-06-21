@@ -2,7 +2,6 @@ package com.example.picturediary
 
 
 import android.content.DialogInterface
-import android.media.MediaPlayer.OnPreparedListener
 import android.os.Bundle
 import android.text.InputType
 import android.view.LayoutInflater
@@ -23,6 +22,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.android.synthetic.main.activity_timeline.*
+import kotlinx.android.synthetic.main.item_timeline.*
 import kotlinx.android.synthetic.main.item_timeline.view.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -136,7 +136,7 @@ class TimelineActivity : AppCompatActivity() {
 
         private fun getContents(shareWith: ArrayList<String>?) {
             firestore.collection("contents")
-                .whereEqualTo("explain", "확인")
+                .whereEqualTo("contentId", "ulala-고등학교 친구들@ulala-2022.06.22")
 //                .orderBy("timestamp", Query.Direction.DESCENDING)
                 .addSnapshotListener { querySnapshot, _ ->
                     // ArrayList 비워줌
@@ -190,7 +190,7 @@ class TimelineActivity : AppCompatActivity() {
             viewHolder.profile_textview.text = contentDTOs[p1].username
             viewHolder.explain_textview.text = contentDTOs[p1].explain
 
-            //현재 사용자가 해당 일기 작성자라면, 삭제 버튼 표시
+            // 현재 사용자가 해당 일기 작성자라면, 삭제 버튼 표시
             firestore.collection("users")
                 .document(user?.uid!!)
                 .get()
@@ -206,19 +206,21 @@ class TimelineActivity : AppCompatActivity() {
 
 //            Glide.with(p0.itemView.context)
 //                .load(contentDTOs[p1].imageUrl)
-//                .into(viewHolder.Diary_image)
+//                .into(viewHolder.videoView)
 
-            viewHolder.Diary_image.setOnClickListener {
-                viewHolder.Diary_image.setVideoPath(contentDTOs[p1].imageUrl)
+            viewHolder.videoView.setOnClickListener {
+                videoView.setScaleType(TextureVideoView.ScaleType.CENTER_CROP)
+                videoView.setDataSource(contentDTOs[p1].imageUrl)
+//                viewHolder.videoView.setVideoPath(contentDTOs[p1].imageUrl)
                 if (!videoPlaying) {
                     videoPlaying = true
-                    viewHolder.Diary_image.setOnPreparedListener{ it.isLooping = true }
-                    viewHolder.Diary_image.start()
+                    viewHolder.videoView.setLooping(true)
+                    viewHolder.videoView.play()
                 }
                 else {
                     videoPlaying = false
-                    viewHolder.Diary_image.pause()
-                    viewHolder.Diary_image.stopPlayback()
+                    viewHolder.videoView.stop()
+//                    viewHolder.videoView.stop()
                 }
             }
 
