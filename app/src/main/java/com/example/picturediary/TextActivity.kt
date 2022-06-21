@@ -2,6 +2,7 @@ package com.example.picturediary
 
 import android.content.*
 import android.graphics.*
+import android.net.Uri
 import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.Bundle
@@ -41,14 +42,14 @@ class TextActivity  : AppCompatActivity() {
 
         // 인텐트 설정
         val dbHelper = utils.createDBHelper(applicationContext)
+        val videoUri = intent.getStringExtra("videoUri")
         pickedDate = intent.getStringExtra("pickedDate")
-//        val arr = intent.getByteArrayExtra("picture")
         val arr = dbHelper.readDrawing(pickedDate!!, username!!)!!.image
         picture = BitmapFactory.decodeByteArray(arr, 0, arr!!.size)
         val intent = Intent(this, MainActivity::class.java)
 
         val drawingDTO = dbHelper.readDrawing(pickedDate!!, username!!)
-        if  (drawingDTO != null)
+        if (drawingDTO != null)
             editTextTextMultiLine.setText(drawingDTO.content)
         diaryImg.setImageBitmap(picture)
 
@@ -113,8 +114,6 @@ class TextActivity  : AppCompatActivity() {
                         DialogInterface.OnClickListener { dialog, id ->
                             for (i in checkArray.indices) {
                                 val checked = checkArray[i]
-//                                val baos = ByteArrayOutputStream()
-//                                val diaryStory = editTextTextMultiLine.text.toString()
 
                                 if (checked) {
                                     val groupID = finalGroupsID[i]
@@ -122,12 +121,13 @@ class TextActivity  : AppCompatActivity() {
                                     val data = saveInDb(diaryStory)
 
                                     // 파이어스토어에 일기 업데이트
-                                    storageRef.child("images/$username-$groupID-$pickedDate")
-                                        .putBytes(data)
+                                    storageRef.child("videos/$username-$groupID-$pickedDate")
+//                                        .putBytes(data)
+                                        .putFile(Uri.parse(videoUri))
                                         .addOnSuccessListener {
                                             val result = it.metadata!!.reference!!.downloadUrl
                                             result.addOnSuccessListener { uri ->
-                                                val imageLink = uri.toString()
+                                                val videoLink = uri.toString()
                                                 val contentId = "$username-$groupID-$pickedDate"
 
                                                 val contentDTO = ContentDTO()
@@ -137,7 +137,7 @@ class TextActivity  : AppCompatActivity() {
                                                 contentDTO.username = username
                                                 contentDTO.groupId = finalGroupsID[i]
                                                 contentDTO.timestamp = System.currentTimeMillis()
-                                                contentDTO.imageUrl = imageLink
+                                                contentDTO.imageUrl = videoLink
                                                 contentDTO.diaryDate = pickedDate
 
                                                 firestore!!.collection("contents")
@@ -146,7 +146,7 @@ class TextActivity  : AppCompatActivity() {
                                             }
                                                 .addOnFailureListener {
                                                     Toast.makeText(this@TextActivity, "처리하는 중 오류가 발생했습니다", Toast.LENGTH_SHORT).show()
-                                                }
+                                            }
                                         }
                                     startActivity(intent)
                                 }

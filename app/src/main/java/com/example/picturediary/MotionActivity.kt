@@ -1,20 +1,30 @@
 package com.example.picturediary
 
+import android.app.ProgressDialog
+import android.content.Intent
 import android.content.res.Resources
 import android.graphics.*
+import android.graphics.drawable.BitmapDrawable
+import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.widget.ImageView
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageReference
 import dev.bmcreations.scrcast.ScrCast
 import kotlinx.android.synthetic.main.activity_motion.*
+import kotlinx.android.synthetic.main.fragment_user.*
+import java.io.File
 
 
 class MotionActivity : AppCompatActivity() {
@@ -23,10 +33,9 @@ class MotionActivity : AppCompatActivity() {
     var auth: FirebaseAuth? = null
     var username: String? = null
 
-    lateinit var pickedDate: String
+    private lateinit var pickedDate: String
     lateinit var arr: ByteArray
     lateinit var picture: Bitmap
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,6 +47,7 @@ class MotionActivity : AppCompatActivity() {
         firestore = FirebaseFirestore.getInstance()
         auth = Firebase.auth
         username = auth?.currentUser?.displayName.toString()
+//        ref = FirebaseStorage.getInstance().getReference("/images/$filename")
 
         val record = intent.getBooleanExtra("record", false)
         pickedDate = intent.getStringExtra("pickedDate")!!
@@ -61,6 +71,11 @@ class MotionActivity : AppCompatActivity() {
             recorder.record()
             showAnimations()
             recorder.stopRecording()
+
+            val intent = Intent(this, TextActivity::class.java)
+            intent.putExtra("pickedDate", pickedDate)
+            intent.putExtra("videoUri", getVideoUri())
+            startActivity(intent)
         }
 
         else {
@@ -120,5 +135,13 @@ class MotionActivity : AppCompatActivity() {
             }
         }
         whole.setImageBitmap(userDrawing)
+    }
+
+    // 비디오 URI 가져오기 (어떻게 하는지 모르겠다)
+    // 파일명만으로 uri 가져오는 방법 한 번 써봐봐
+    private fun getVideoUri(): Uri? {
+        val video: File = "?"
+        val uri = Uri.parse()
+        return uri
     }
 }

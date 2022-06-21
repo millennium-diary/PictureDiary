@@ -21,6 +21,7 @@ import com.example.picturediary.navigation.model.UserDTO
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import kotlinx.android.synthetic.main.activity_timeline.*
 import kotlinx.android.synthetic.main.item_timeline.*
 import kotlinx.android.synthetic.main.item_timeline.view.*
@@ -136,8 +137,8 @@ class TimelineActivity : AppCompatActivity() {
 
         private fun getContents(shareWith: ArrayList<String>?) {
             firestore.collection("contents")
-                .whereEqualTo("contentId", "ulala-고등학교 친구들@ulala-2022.06.22")
-//                .orderBy("timestamp", Query.Direction.DESCENDING)
+//                .whereEqualTo("contentId", "ulala-고등학교 친구들@ulala-2022.06.22")
+                .orderBy("timestamp", Query.Direction.DESCENDING)
                 .addSnapshotListener { querySnapshot, _ ->
                     // ArrayList 비워줌
                     contentDTOs.clear()
