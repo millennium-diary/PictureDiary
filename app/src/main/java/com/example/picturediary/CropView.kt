@@ -3,6 +3,9 @@ package com.example.picturediary
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
+import android.app.AlertDialog
+import android.content.Context
+import android.content.DialogInterface
 import android.graphics.*
 import android.util.AttributeSet
 import android.view.LayoutInflater
@@ -10,6 +13,8 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.View.OnTouchListener
 import android.view.ViewGroup
+import android.view.animation.AnimationUtils
+import android.widget.ImageView
 import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.graphics.drawable.toBitmap
@@ -56,6 +61,11 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
 
     private var objectArrayList = arrayListOf<ObjectDTO>()
     private var objectListAdapter: ObjectListAdapter? = null
+
+    private val ani_rotate = AnimationUtils.loadAnimation(context, R.anim.rotate)
+    private val ani_bounce = AnimationUtils.loadAnimation(context, R.anim.bounce)
+    private val ani_shake = AnimationUtils.loadAnimation(context, R.anim.shake)
+
 
     init {
         initDrawing()
@@ -387,10 +397,57 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
                 val drawingData = drawingStream.toByteArray()
                 dbHelper.updateDrawing(pickedDate!!, username, content!!, drawingData)
 
+                addMotion(resizedBitmap)
+
                 invalidate()
             }
         })
     }
+
+    fun makeDig(objBitmap: Bitmap):ImageView {
+        val view = this.parent.parent as  ConstraintLayout
+        var customDialog = inflate(context, R.layout.custom_dialog, null)
+        // 이미지 넣기
+        val digImage = customDialog.findViewById<ImageView>(R.id.pre_image)
+        digImage.setImageBitmap(objBitmap)
+        val dig = AlertDialog.Builder(context)
+        dig.setTitle("미리보기")
+        dig.setView(customDialog)
+
+        dig.setPositiveButton("적용",
+            DialogInterface.OnClickListener { dialogInterface, i ->
+                Toast.makeText(
+                    context, "적용완료",
+                    Toast.LENGTH_SHORT
+                ).show()
+            })
+        dig.setNegativeButton("취소",
+            DialogInterface.OnClickListener { dialogInterface, i ->
+                Toast.makeText(
+                    context, "취소되었습니다",
+                    Toast.LENGTH_SHORT
+                ).show()
+            })
+
+        dig.show()
+        return digImage
+    }
+
+    fun addMotion(objBitmap: Bitmap){
+        val view = this.parent.parent as  ConstraintLayout
+        view.Abtn_bingle.setOnClickListener {
+            makeDig(objBitmap).startAnimation(ani_rotate)
+        }
+
+        view.Abtn_jump.setOnClickListener {
+            makeDig(objBitmap).startAnimation(ani_bounce)
+        }
+
+        view.Abtn_shake.setOnClickListener {
+            makeDig(objBitmap).startAnimation(ani_shake)
+        }
+    }
+
 
     // CropView 파일에서 사용되는 선택된 객체 리스트 어댑터
     inner class ObjectListAdapter(var items: ArrayList<ObjectDTO>) : RecyclerView.Adapter<ObjectListAdapter.ViewHolder>() {

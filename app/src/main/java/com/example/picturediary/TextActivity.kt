@@ -128,11 +128,10 @@ class TextActivity  : AppCompatActivity() {
                                             val result = it.metadata!!.reference!!.downloadUrl
                                             result.addOnSuccessListener { uri ->
                                                 val imageLink = uri.toString()
-                                                val contentId = "$username-$groupID-$pickedDate"
 
                                                 val contentDTO = ContentDTO()
                                                 contentDTO.uid = uid
-                                                contentDTO.contentId = contentId
+                                                contentDTO.contentId = "$username-$groupID-$pickedDate"
                                                 contentDTO.explain = diaryStory
                                                 contentDTO.username = username
                                                 contentDTO.groupId = finalGroupsID[i]
@@ -141,7 +140,7 @@ class TextActivity  : AppCompatActivity() {
                                                 contentDTO.diaryDate = pickedDate
 
                                                 firestore!!.collection("contents")
-                                                    .document(contentId)
+                                                    .document()
                                                     .set(contentDTO)
                                             }
                                                 .addOnFailureListener {
