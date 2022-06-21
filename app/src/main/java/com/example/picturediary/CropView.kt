@@ -385,7 +385,7 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
 
                 val erase = Paint()
                 erase.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_OUT)
-                erase.color = Color.TRANSPARENT
+                erase.color = Color.WHITE
                 erase.isAntiAlias = true
                 canvas.drawPath(objPath!!, erase)
 
