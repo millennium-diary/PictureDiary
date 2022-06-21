@@ -42,18 +42,18 @@ class AnimExamActivity : AppCompatActivity() {
                 storage {
                     directoryName = "scrcast-sample"
                 }
-                notification {
-                    title = "Super cool library"
-                    description = "shh session in progress"
-                    icon = resources.getDrawable(R.drawable.ic_camcorder, null).toBitmap()
-                    channel {
-                        id = "1337"
-                        name = "Recording Service"
-                    }
-                    showStop = true
-                    showPause = true
-                    showTimer = true
-                }
+//                notification {
+//                    title = "Super cool library"
+//                    description = "shh session in progress"
+//                    icon = resources.getDrawable(R.drawable.ic_camcorder, null).toBitmap()
+//                    channel {
+//                        id = "1337"
+//                        name = "Recording Service"
+//                    }
+//                    showStop = true
+//                    showPause = true
+//                    showTimer = true
+//                }
                 moveTaskToBack = false
                 startDelayMs = 5_000
             }
