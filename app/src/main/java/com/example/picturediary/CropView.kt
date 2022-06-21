@@ -2,6 +2,8 @@ package com.example.picturediary
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.app.AlertDialog
+import android.content.DialogInterface
 import android.graphics.*
 import android.util.AttributeSet
 import android.view.LayoutInflater
@@ -9,6 +11,8 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.View.OnTouchListener
 import android.view.ViewGroup
+import android.view.animation.AnimationUtils
+import android.widget.ImageView
 import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.graphics.drawable.toBitmap
@@ -56,6 +60,10 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
     private var objectArrayList = arrayListOf<ObjectDTO>()
     private var objectListAdapter: ObjectListAdapter? = null
 
+    private val ani_rotate = AnimationUtils.loadAnimation(context, R.anim.rotate)
+    private val ani_bounce = AnimationUtils.loadAnimation(context, R.anim.bounce)
+    private val ani_shake = AnimationUtils.loadAnimation(context, R.anim.shake)
+
     init {
         initDrawing()
     }
@@ -78,8 +86,8 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
 
     // drawId 필드가 설정됨과 동시에 리사이클러뷰도 초기화
     @SuppressLint("NotifyDataSetChanged")
-    fun setDrawId(drawId: String) {
-        pickedDate = drawId
+    fun setDrawId(drawDate: String) {
+        pickedDate = drawDate
 
         val view = this.parent.parent as ConstraintLayout
         objectArrayList = dbHelper.readObjects(pickedDate!!, username)
@@ -147,7 +155,7 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
                     points.add(mfirstpoint!!)
                     flgPathDraw = false
 
-                    path = getPath(points)
+                    path = utils.getPath(points)
                     val objectFeatures = getObject(bitmap!!, path)
                     setObject(objectFeatures)     // 어댑터에 객체 추가
                     constraintLayout.recommendRecycler.visibility = INVISIBLE
@@ -170,7 +178,7 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
                     flgPathDraw = false
                     points.add(mfirstpoint!!)
 
-                    path = getPath(points)
+                    path = utils.getPath(points)
                     val objectFeatures = getObject(bitmap!!, path)
                     setObject(objectFeatures)     // 어댑터에 객체 추가
                     constraintLayout.recommendRecycler.visibility = INVISIBLE
@@ -183,13 +191,6 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
         invalidate()    // onDraw() 실행
 
         return true
-    }
-
-    private fun getPath(points: ArrayList<Point>): Path {
-        val path = Path()
-        for (point in points)
-            path.lineTo(point.x, point.y)
-        return path
     }
 
     // 선택한 객체만 추출
@@ -295,7 +296,7 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
 
     // 인식된 객체의 다른 이미지 보기 어댑터
     @SuppressLint("NotifyDataSetChanged")
-    private fun setRecommendAdapter(classifiedResult: String, original: Bitmap, drawingId: String, objId: String) {
+    private fun setRecommendAdapter(classifiedResult: String, drawingId: String, objId: String) {
         var drawId = drawingId
         if (!drawId.contains("@")) drawId = "$username@$drawId"
 
@@ -309,13 +310,29 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
         val recommendListAdapter: RecommendListAdapter?
         val recommendArrayList = arrayListOf(originalDraw)
 
-        val dogArrayList = utils.getBitmapFromDrawable(context, arrayListOf(R.drawable.dog1, R.drawable.dog2, R.drawable.dog3))
+        val planeArrayList = utils.getBitmapFromDrawable(context, arrayListOf(R.drawable.airplane1, R.drawable.airplane2, R.drawable.airplane3))
+        val busArrayList = utils.getBitmapFromDrawable(context, arrayListOf(R.drawable.bus1, R.drawable.bus2, R.drawable.bus3))
+        val cakeArrayList = utils.getBitmapFromDrawable(context, arrayListOf(R.drawable.cake1, R.drawable.cake2, R.drawable.cake3))
+        val carArrayList = utils.getBitmapFromDrawable(context, arrayListOf(R.drawable.car1, R.drawable.car2, R.drawable.car3))
         val catArrayList = utils.getBitmapFromDrawable(context, arrayListOf(R.drawable.cat1, R.drawable.cat2, R.drawable.cat3))
+        val dogArrayList = utils.getBitmapFromDrawable(context, arrayListOf(R.drawable.dog1, R.drawable.dog2, R.drawable.dog3))
+        val grassArrayList = utils.getBitmapFromDrawable(context, arrayListOf(R.drawable.grass1, R.drawable.grass2, R.drawable.grass3))
+        val houseArrayList = utils.getBitmapFromDrawable(context, arrayListOf(R.drawable.house1, R.drawable.house2, R.drawable.house3))
+        val rainbowArrayList = utils.getBitmapFromDrawable(context, arrayListOf(R.drawable.rainbow1, R.drawable.rainbow2, R.drawable.rainbow3))
+        val snowmanArrayList = utils.getBitmapFromDrawable(context, arrayListOf(R.drawable.snowman1, R.drawable.snowman2, R.drawable.snowman3))
 
-        if (classifiedResult == "dog")
-            recommendArrayList.addAll(dogArrayList)
-        else if (classifiedResult == "cat")
-            recommendArrayList.addAll(catArrayList)
+        when (classifiedResult) {
+            "airplane" -> recommendArrayList.addAll(planeArrayList)
+            "bus" -> recommendArrayList.addAll(busArrayList)
+            "cake" -> recommendArrayList.addAll(cakeArrayList)
+            "car" -> recommendArrayList.addAll(carArrayList)
+            "cat" -> recommendArrayList.addAll(catArrayList)
+            "dog" -> recommendArrayList.addAll(dogArrayList)
+            "grass" -> recommendArrayList.addAll(grassArrayList)
+            "house" -> recommendArrayList.addAll(houseArrayList)
+            "rainbow" -> recommendArrayList.addAll(rainbowArrayList)
+            "snowman" -> recommendArrayList.addAll(snowmanArrayList)
+        }
 
         // 어댑터 설정
         recommendListAdapter = RecommendListAdapter(recommendArrayList)
@@ -337,7 +354,7 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
                 objRight = objectDTO.right
                 objTop = objectDTO.top
                 objBottom = objectDTO.bottom
-                objPath = getPath(dbHelper.readObjectPath(drawId, objId))
+                objPath = utils.getPath(dbHelper.readObjectPath(drawId, objId))
 
                 // 대체할 이미지 --> 원래 그림 크기에 맞춤
                 val selectedBitmap = recommendArrayList[position]
@@ -376,9 +393,10 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
 
                 val erase = Paint()
                 erase.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_OUT)
-                erase.color = Color.TRANSPARENT
+                erase.color = Color.WHITE
                 erase.isAntiAlias = true
-                canvas.drawPath(objPath!!, erase)
+//                canvas.drawPath(objPath!!, erase)
+                canvas.drawRect(objLeft!!, objTop!!, objRight!!, objBottom!!, erase)
 
                 bitmap = utils.overlay(userDrawing, wholeBitmap)
                 val drawingStream = ByteArrayOutputStream()
@@ -386,10 +404,60 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
                 val drawingData = drawingStream.toByteArray()
                 dbHelper.updateDrawing(pickedDate!!, username, content!!, drawingData)
 
+                addMotion(resizedBitmap, drawId, objId)
+
                 invalidate()
             }
         })
     }
+
+    // 적용된 모션 미리보기
+    private fun makeDialog(objBitmap: Bitmap, drawId: String, objId: String, motion: String): ImageView {
+        val customDialog = inflate(context, R.layout.custom_dialog, null)
+        // 이미지 넣기
+        val digImage = customDialog.findViewById<ImageView>(R.id.pre_image)
+        digImage.setImageBitmap(objBitmap)
+        val dig = AlertDialog.Builder(context)
+        dig.setTitle("미리보기")
+        dig.setView(customDialog)
+
+        dig.setPositiveButton("적용",
+            DialogInterface.OnClickListener { dialogInterface, i ->
+                dbHelper.updateObjectMotion(drawId, objId, motion)
+                Toast.makeText(
+                    context, "적용 완료",
+                    Toast.LENGTH_SHORT
+                ).show()
+            })
+        dig.setNegativeButton("취소",
+            DialogInterface.OnClickListener { dialogInterface, i ->
+                Toast.makeText(
+                    context, "취소되었습니다",
+                    Toast.LENGTH_SHORT
+                ).show()
+            })
+
+        dig.show()
+        return digImage
+    }
+
+    fun addMotion(objBitmap: Bitmap, drawId: String, objId: String) {
+        val view = this.parent.parent as ConstraintLayout
+        view.Abtn_bingle.setOnClickListener {
+            makeDialog(objBitmap, drawId, objId, "bingle").startAnimation(ani_rotate)
+        }
+
+        view.Abtn_jump.setOnClickListener {
+            dbHelper.updateObjectMotion(drawId, objId, "jump")
+            makeDialog(objBitmap, drawId, objId, "jump").startAnimation(ani_bounce)
+        }
+
+        view.Abtn_shake.setOnClickListener {
+            dbHelper.updateObjectMotion(drawId, objId, "shake")
+            makeDialog(objBitmap, drawId, objId, "shake").startAnimation(ani_shake)
+        }
+    }
+
 
     // CropView 파일에서 사용되는 선택된 객체 리스트 어댑터
     inner class ObjectListAdapter(var items: ArrayList<ObjectDTO>) : RecyclerView.Adapter<ObjectListAdapter.ViewHolder>() {
@@ -434,7 +502,7 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
                             classifiedResult = socket.client()
                             withContext(Dispatchers.Main) {
                                 Toast.makeText(context, classifiedResult, Toast.LENGTH_SHORT).show()
-                                setRecommendAdapter(classifiedResult!!, image, drawId, objId)
+                                setRecommendAdapter(classifiedResult!!, drawId, objId)
                                 showRecommendRecycler()
                             }
                         }
@@ -443,7 +511,7 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
                         catch (e: ConnectException) {
                             withContext(Dispatchers.Main) {
                                 Toast.makeText(context, "현재 그림 인식은 할 수 없습니다", Toast.LENGTH_SHORT).show()
-                                setRecommendAdapter("", image, drawId, objId)
+                                setRecommendAdapter("", drawId, objId)
                                 showRecommendRecycler()
                             }
                         }

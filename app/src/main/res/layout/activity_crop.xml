@@ -92,18 +92,20 @@
         app:layout_constraintHeight_percent="0.15">
 
         <android.widget.Button
-            android:id="@+id/check"
+            android:id="@+id/Abtn_bingle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="안녕"/>
+            android:text="빙글"/>
         <android.widget.Button
+            android:id="@+id/Abtn_jump"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="잘가"/>
+            android:text="점프"/>
         <android.widget.Button
+            android:id="@+id/Abtn_shake"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="후후"/>
+            android:text="흔들"/>
     </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView

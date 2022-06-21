@@ -2,6 +2,7 @@ package com.example.picturediary
 
 
 import android.content.DialogInterface
+import android.media.MediaPlayer.OnPreparedListener
 import android.os.Bundle
 import android.text.InputType
 import android.view.LayoutInflater
@@ -13,21 +14,21 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.picturediary.navigation.model.ContentDTO
-import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.android.synthetic.main.item_timeline.view.*
-import kotlinx.android.synthetic.main.activity_timeline.*
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
+import com.example.picturediary.navigation.model.ContentDTO
 import com.example.picturediary.navigation.model.GroupDTO
 import com.example.picturediary.navigation.model.UserDTO
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.android.synthetic.main.activity_timeline.*
+import kotlinx.android.synthetic.main.item_timeline.view.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+
 
 class TimelineActivity : AppCompatActivity() {
     private val utils = Utils()
@@ -137,7 +138,8 @@ class TimelineActivity : AppCompatActivity() {
         private fun getContents(shareWith: ArrayList<String>?) {
             // 파이어베이스에서 가져온 컨텐츠들을 시간 내림차순으로 정렬함
             firestore.collection("contents")
-                .orderBy("timestamp", Query.Direction.DESCENDING)
+                .whereEqualTo("explain", "확인")
+//                .orderBy("timestamp", Query.Direction.DESCENDING)
                 .addSnapshotListener { querySnapshot, _ ->
                     // ArrayList 비워줌
                     contentDTOs.clear()
@@ -168,6 +170,7 @@ class TimelineActivity : AppCompatActivity() {
 
         // onCreateViewHolder에서 만든 view와 실제 데이터를 연결
         override fun onBindViewHolder(p0: RecyclerView.ViewHolder, p1: Int) {
+            var videoPlaying = false
             val viewHolder = (p0 as ViewHolder).itemView
 
             firestore.collection("users")
@@ -189,24 +192,65 @@ class TimelineActivity : AppCompatActivity() {
             viewHolder.profile_textview.text = contentDTOs[p1].username
             viewHolder.explain_textview.text = contentDTOs[p1].explain
 
-            Glide.with(p0.itemView.context)
-                .load(contentDTOs[p1].imageUrl)
-                .into(viewHolder.Diary_image)
+            //현재 사용자가 해당 일기 작성자라면, 삭제 버튼 표시
+            firestore.collection("users")
+                .document(user?.uid!!)
+                .get()
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        val userDTO = task.result.toObject(UserDTO::class.java)
+                        if (userDTO?.username ==contentDTOs[p1].username)
+                            viewHolder.delete_picture.visibility=View.VISIBLE
+                        else
+                            viewHolder.delete_picture.visibility=View.INVISIBLE
+                    }
+                }
 
+//            Glide.with(p0.itemView.context)
+//                .load(contentDTOs[p1].imageUrl)
+//                .into(viewHolder.Diary_image)
+
+            viewHolder.Diary_image.setOnClickListener {
+                viewHolder.Diary_image.setVideoPath(contentDTOs[p1].imageUrl)
+                if (!videoPlaying) {
+                    videoPlaying = true
+                    viewHolder.Diary_image.setOnPreparedListener{ it.isLooping = true }
+                    viewHolder.Diary_image.start()
+                }
+                else {
+                    videoPlaying = false
+                    viewHolder.Diary_image.pause()
+                    viewHolder.Diary_image.stopPlayback()
+                }
+            }
+
+            // 좋아요 누르기
             viewHolder.favorite_imageview.setOnClickListener { favoriteEvent(p1) }
 
+            // 날짜 적기
             viewHolder.diary_date.text = contentDTOs[p1].diaryDate
 
             if (contentDTOs[p1].favorites.containsKey(FirebaseAuth.getInstance().currentUser!!.uid)) {
-                //클릭 되었을 경우
+                // 클릭 되었을 경우
                 viewHolder.favorite_imageview.setImageResource(R.drawable.ic_favorite)
 
             } else {
-                //클릭이 되지 않았을 경우
+                // 클릭이 되지 않았을 경우
                 viewHolder.favorite_imageview.setImageResource(R.drawable.ic_favorite_border)
             }
-            viewHolder.like_number.text = "좋아요 " + contentDTOs[p1].favoriteCount + "개"
 
+            viewHolder.like_number.text = "좋아요 " + contentDTOs[p1].favoriteCount + "개"
+            viewHolder.delete_picture.setOnClickListener {
+                deleteDiary(contentDTOs[p1].contentId)
+            }
+        }
+
+        private fun deleteDiary(ContentID: String?) {
+            if (ContentID != null) {
+                firestore.collection("contents")
+                    .document(ContentID)
+                    .delete()
+            }
         }
 
         override fun getItemCount(): Int {

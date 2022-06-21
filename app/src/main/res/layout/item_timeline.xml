@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -29,12 +30,23 @@
             android:textStyle="bold"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintLeft_toRightOf="@id/detailviewitem_profile_image"/>
+
+        <Button
+            android:id="@+id/delete_picture"
+            android:layout_width="60dp"
+            android:layout_height="35dp"
+            android:backgroundTint="@color/white"
+            android:text="삭제"
+            android:textColor="@color/black"
+            android:textSize="12dp"
+            tools:ignore="MissingConstraints"
+            app:layout_constraintRight_toRightOf="parent"/>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
-        <ImageView
+        <VideoView
             android:id="@+id/Diary_image"
             android:layout_width="0dp"
             android:layout_height="0dp"
@@ -87,7 +99,5 @@
         android:layout_marginStart="10dp"
         android:text="날짜"
         android:textSize="15sp"/>
-
-
 
 </LinearLayout>
