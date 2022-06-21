@@ -451,12 +451,6 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
                     }
                 }
             }
-
-            holder.itemView.playObject.setOnClickListener {
-                setCurrentObject(position)
-                val intent = Intent(context, MotionActivity::class.java)
-                intent.putExtra("pickedDate", pickedDate)
-            }
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
