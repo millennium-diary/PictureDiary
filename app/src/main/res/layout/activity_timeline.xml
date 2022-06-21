@@ -21,11 +21,11 @@
     </androidx.appcompat.widget.Toolbar>
 
     <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewtimeline"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/recyclerViewtimeline"
         android:layout_below="@+id/toolbar"
-        tools:listitem="@layout/item_timeline"/>
+        tools:listitem="@layout/item_timeline" />
 
     <android.widget.Button
         android:id="@+id/add_memeber"

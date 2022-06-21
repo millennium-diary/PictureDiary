@@ -24,6 +24,7 @@
         <entry key="..\:/AndroidStudio/PictureDiary/app/src/main/res/layout/activity_login.xml" value="0.22" />
         <entry key="..\:/AndroidStudio/PictureDiary/app/src/main/res/layout/activity_main.xml" value="0.22" />
         <entry key="..\:/AndroidStudio/PictureDiary/app/src/main/res/layout/activity_test.xml" value="0.1" />
+        <entry key="..\:/AndroidStudio/PictureDiary/app/src/main/res/layout/activity_timeline.xml" value="0.12916666666666668" />
         <entry key="..\:/AndroidStudio/PictureDiary/app/src/main/res/layout/activity_username.xml" value="0.16111111111111112" />
         <entry key="..\:/AndroidStudio/PictureDiary/app/src/main/res/layout/alertdialog.xml" value="0.1778115501519757" />
         <entry key="..\:/AndroidStudio/PictureDiary/app/src/main/res/layout/calendar.xml" value="0.1453804347826087" />
@@ -48,7 +49,7 @@
         <entry key="..\:/AndroidStudio/PictureDiary/app/src/main/res/layout/item_day.xml" value="0.16032608695652173" />
         <entry key="..\:/AndroidStudio/PictureDiary/app/src/main/res/layout/item_day_empty.xml" value="0.16032608695652173" />
         <entry key="..\:/AndroidStudio/PictureDiary/app/src/main/res/layout/item_recommended_object.xml" value="0.15534420289855072" />
-        <entry key="..\:/AndroidStudio/PictureDiary/app/src/main/res/layout/item_timeline.xml" value="0.5" />
+        <entry key="..\:/AndroidStudio/PictureDiary/app/src/main/res/layout/item_timeline.xml" value="0.25" />
         <entry key="..\:/AndroidStudio/PictureDiary/app/src/main/res/layout/item_userGroup.xml" value="0.1778115501519757" />
         <entry key="..\:/AndroidStudio/PictureDiary/app/src/main/res/layout/item_view.xml" value="0.16032608695652173" />
         <entry key="..\:/AndroidStudio/PictureDiary/app/src/main/res/layout/layout_date_cell.xml" value="0.1453804347826087" />
@@ -63,9 +64,9 @@
         <entry key="..\:/AndroidStudio/PictureDiary/app/src/main/res/layout/user_groups.xml" value="0.18" />
         <entry key="..\:/AndroidStudio/PictureDiary/app/src/main/res/menu/bottom_navigation_main.xml" value="0.20208333333333334" />
         <entry key="..\:/AndroidStudio/PictureDiary/app/src/main/res/menu/group_list.xml" value="0.30277777777777776" />
-        <entry key="..\:/Users/leeha/Documents/GitHub/PictureDiary/app/src/main/res/layout/activity_crop.xml" value="0.16666666666666666" />
-        <entry key="..\:/Users/leeha/Documents/GitHub/PictureDiary/app/src/main/res/layout/activity_motion.xml" value="0.17375886524822695" />
-        <entry key="..\:/Users/leeha/Documents/GitHub/PictureDiary/app/src/main/res/layout/custom_dialog.xml" value="0.16666666666666666" />
+        <entry key="..\:/Users/leeha/Documents/GitHub/PictureDiary/app/src/main/res/layout/activity_anim.xml" value="0.1" />
+        <entry key="..\:/Users/leeha/Documents/GitHub/PictureDiary/app/src/main/res/layout/activity_crop.xml" value="0.1" />
+        <entry key="..\:/Users/leeha/Documents/GitHub/PictureDiary/app/src/main/res/layout/activity_motion.xml" value="0.1" />
       </map>
     </option>
   </component>

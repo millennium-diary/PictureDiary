@@ -9,7 +9,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.picturediary.navigation.dao.DBHelper
 import kotlinx.android.synthetic.main.activity_crop.*
 import kotlinx.android.synthetic.main.activity_crop.view.*
-import kotlinx.android.synthetic.main.activity_drawing.*
 import kotlinx.coroutines.DelicateCoroutinesApi
 import java.io.ByteArrayOutputStream
 
@@ -53,7 +52,8 @@ class CropActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-        playAll.setOnClickListener { //모두재생 버튼
+        // 모두재생 버튼
+        playAll.setOnClickListener {
             val intent = Intent(this, MotionActivity::class.java)
             val stream = ByteArrayOutputStream()
             val picture = Utils().getBitmapFromView(crop_view)

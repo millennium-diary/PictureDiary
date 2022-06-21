@@ -264,7 +264,7 @@ class DBHelper(
         cv.put("objId", objId)
         cv.put("motion", motion)
 
-        return db.update("object", cv, "fullDraw = ? AND objId = ?", arrayOf(drawId)) > 0
+        return db.update("object", cv, "fullDraw = ? AND objId = ?", arrayOf(drawId, objId)) > 0
     }
 
     // 특정 객체 삭제
@@ -285,7 +285,6 @@ class DBHelper(
     fun insertObjectPath(fullDraw: String, objId: Int, pointX: Float, pointY: Float): Boolean {
         val db = writableDatabase
         val cv = ContentValues()
-//        cv.put("pathId", null)
         cv.put("fullDraw", fullDraw)
         cv.put("objId", objId)
         cv.put("pointX", pointX)

@@ -95,6 +95,14 @@ class Utils {
         return bitmapArrayList
     }
 
+    // 좌표의 배열을 Path 객체로 변경
+    fun getPath(points: ArrayList<Point>): Path {
+        val path = Path()
+        for (point in points)
+            path.lineTo(point.x, point.y)
+        return path
+    }
+
     fun createDBHelper(context: Context): DBHelper {
 //        context.deleteDatabase("pictureDiary.db")
         val dbName = "pictureDiary.db"
