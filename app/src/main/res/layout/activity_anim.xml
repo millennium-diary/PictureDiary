@@ -84,5 +84,12 @@
         android:layout_marginVertical="50dp"
         android:text="녹화"/>
 
+    <Button
+        android:id="@+id/showBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginVertical="10dp"
+        android:text="녹화된 영상 보기"/>
 
 </LinearLayout>

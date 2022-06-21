@@ -1,17 +1,36 @@
 package com.example.picturediary
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
+import android.util.Log
 import android.view.animation.AnimationUtils
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.FileProvider
 import androidx.core.graphics.drawable.toBitmap
 import dev.bmcreations.scrcast.ScrCast
+import io.ktor.http.ContentDisposition.Companion.File
 import kotlinx.android.synthetic.main.activity_anim.*
+import kotlinx.android.synthetic.main.activity_show.*
+import java.io.File
+import java.text.SimpleDateFormat
 
+public var videoUri : Uri? = null
 
 class AnimExamActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_anim)
+
+        var videoName = ""
+
+        // 불러올 때 사용할 파일명 생성
+        fun newVideoName() : String {
+            val sdf = SimpleDateFormat("MM_dd_yyyy_HHmmss")
+            val filename = sdf.format(System.currentTimeMillis())
+            return "${filename}.mp4"
+        }
 
         val recorder = ScrCast.use(this) // activity required for media projection
         recorder.apply {
@@ -44,13 +63,24 @@ class AnimExamActivity : AppCompatActivity() {
             if (recordBtn.text == "녹화") {
                 recordBtn.text = "정지"
                 recorder.record()
+                videoName = newVideoName()
             }
             else {
                 recordBtn.text = "정지"
                 recorder.stopRecording()
+
+                var videoDir = "/storage/emulated/0/Movies/scrcast/"
+                var videoFiles = File(videoDir).listFiles()
+                var videoPath = videoFiles[videoFiles.lastIndex].toString()
+                videoUri = Uri.parse(videoPath)
+                Log.println(Log.INFO, "비디오 경로", videoUri.toString())
             }
         }
 
+        showBtn.setOnClickListener {
+            val intent = Intent(this, ShowExamActivity::class.java)
+            startActivity(intent)
+        }
 
         btnRotate.setOnClickListener {
             val animation = AnimationUtils.loadAnimation(this, R.anim.rotate)
