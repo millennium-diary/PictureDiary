@@ -101,5 +101,18 @@ class AnimExamActivity : AppCompatActivity() {
             val animation = AnimationUtils.loadAnimation(this, R.anim.twist)
             imgView.startAnimation(animation)
         }
+
+        btnRun.setOnClickListener {
+            val animation = AnimationUtils.loadAnimation(this, R.anim.run)
+            imgView.startAnimation(animation)
+        }
+        btnCome.setOnClickListener {
+            val animation = AnimationUtils.loadAnimation(this, R.anim.comein)
+            imgView.startAnimation(animation)
+        }
+        btnGo.setOnClickListener {
+            val animation = AnimationUtils.loadAnimation(this, R.anim.goout)
+            imgView.startAnimation(animation)
+        }
     }
 }
