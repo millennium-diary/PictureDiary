@@ -3,9 +3,8 @@ package com.example.picturediary
 import android.content.*
 import android.graphics.*
 import android.net.Uri
-import android.net.wifi.WifiManager
-import android.os.Build
 import android.os.Bundle
+import android.provider.MediaStore
 import android.widget.Toast
 import androidx.appcompat.app.*
 import com.example.picturediary.navigation.model.*
@@ -19,7 +18,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.tasks.await
 import java.io.ByteArrayOutputStream
 import java.io.File
-import kotlin.collections.ArrayList
+
 
 class TextActivity  : AppCompatActivity() {
     val utils = Utils()
@@ -43,9 +42,9 @@ class TextActivity  : AppCompatActivity() {
 
         // 인텐트 설정
         val dbHelper = utils.createDBHelper(applicationContext)
-//        val videoUri = Uri.parse(intent.getStringExtra("videoUri"))
-        val videoUri = Uri.fromFile(File(intent.getStringExtra("videoUri")))
 
+        val isVideo = intent.getBooleanExtra("isVideo", false)
+        val intentUri = intent.getStringExtra("videoUri")
         pickedDate = intent.getStringExtra("pickedDate")
         val arr = dbHelper.readDrawing(pickedDate!!, username!!)!!.image
         picture = BitmapFactory.decodeByteArray(arr, 0, arr!!.size)
@@ -123,10 +122,15 @@ class TextActivity  : AppCompatActivity() {
                                     val storageRef = storage!!.reference
                                     val data = saveInDb(diaryStory)
 
+                                    if (isVideo) {
+                                        videoUri = Uri.fromFile(File(intentUri))
+                                    } else {
+                                        videoUri = data
+                                    }
+
                                     // 파이어스토어에 일기 업데이트
                                     storageRef.child("videos/$username-$groupID-$pickedDate")
-//                                        .putBytes(data)
-                                        .putFile(videoUri)
+                                        .putFile(videoUri!!)
                                         .addOnSuccessListener {
                                             val result = it.metadata!!.reference!!.downloadUrl
                                             result.addOnSuccessListener { uri ->
@@ -142,6 +146,7 @@ class TextActivity  : AppCompatActivity() {
                                                 contentDTO.timestamp = System.currentTimeMillis()
                                                 contentDTO.imageUrl = videoLink
                                                 contentDTO.diaryDate = pickedDate
+                                                contentDTO.isVideo = isVideo
 
                                                 firestore!!.collection("contents")
                                                     .document(contentId)
@@ -161,20 +166,33 @@ class TextActivity  : AppCompatActivity() {
         }
     }
 
-    // 확인 눌렀을 당시 내장 DB에 저장
-    private fun saveInDb(diaryStory: String): ByteArray {
-        val dbHelper = Utils().createDBHelper(applicationContext)
-        val baos = ByteArrayOutputStream()
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
-            picture!!.compress(Bitmap.CompressFormat.WEBP_LOSSLESS, 100, baos)
-        else
-            picture!!.compress(Bitmap.CompressFormat.PNG, 100, baos)
-        val data = baos.toByteArray()
+
+    // 확인 눌렀을 당시 내장 DB에 저장
+    private fun saveInDb(diaryStory: String): Uri? {
+        val dbHelper = Utils().createDBHelper(applicationContext)
+
+        val imageWithBG = Bitmap.createBitmap(picture!!.width, picture!!.height, picture!!.config)
+        imageWithBG.eraseColor(Color.WHITE)
+        val canvas = Canvas(imageWithBG)
+        canvas.drawBitmap(picture!!, 0f, 0f, null)
+
+        val path = MediaStore.Images.Media.insertImage(
+            applicationContext.contentResolver, imageWithBG, null, null
+        )
 
         // 내장 DB에 일기 업데이트
-        dbHelper.updateDrawing(pickedDate!!, username!!, diaryStory, data)
+        val pngBaos = ByteArrayOutputStream()
+        picture!!.compress(Bitmap.CompressFormat.PNG, 100, pngBaos)
+        val png = pngBaos.toByteArray()
+        dbHelper.updateDrawing(pickedDate!!, username!!, diaryStory, png)
 
-        return data
+//        // 파이어베이스에 업로드할 이미지
+//        val jpgBaos = ByteArrayOutputStream()
+//        picture!!.compress(Bitmap.CompressFormat.JPEG, 100, jpgBaos)
+//        val jpgStream = jpgBaos.toByteArray()
+//        val jpg = BitmapFactory.decodeStream(ByteArrayInputStream(jpgStream))
+
+        return Uri.parse(path)
     }
 }

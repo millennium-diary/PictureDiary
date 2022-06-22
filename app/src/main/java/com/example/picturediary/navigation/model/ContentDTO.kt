@@ -10,5 +10,6 @@ data class ContentDTO (
     var favoriteCount : Int = 0,
     var favorites : MutableMap<String, Boolean> = HashMap(),
     var uid: String? = null,
-    var diaryDate : String? = null
+    var diaryDate : String? = null,
+    var isVideo : Boolean? = null
 )

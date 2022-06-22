@@ -5,8 +5,8 @@ import android.content.res.Resources
 import android.graphics.*
 import android.net.Uri
 import android.os.Bundle
+import android.provider.MediaStore
 import android.util.Log
-import android.view.View
 import android.view.View.*
 import android.view.ViewGroup
 import android.view.animation.Animation
@@ -60,21 +60,26 @@ class MotionActivity : AppCompatActivity() {
                     storage { directoryName = "scrcast-sample" }
                     moveTaskToBack = false
                     startDelayMs = 0
+                    stopOnScreenOff = true
                 }
             }
 
             startRecord.visibility = VISIBLE
             skipRecord.visibility = VISIBLE
-            waitText.text = "'녹화 시작' 버튼을 눌러 원하는 부분을 녹화하세요"
+            waitText.text = " '녹화 시작' 버튼을 눌러 원하는 부분을 녹화하세요 "
 //            waitText.text = "  결과물을 저장하고 있습니다  \n잠시 기다려 주세요"
 //            val textBlink = AnimationUtils.loadAnimation(this, R.anim.text_blink)
+
+            skipRecord.setOnClickListener {
+                moveToTextActivity(false)
+            }
 
             startRecord.setOnClickListener {
                 // 녹화 시작
                 if (startRecord.text == "    녹화 시작    ") {
                     hideSystemUi()
                     skipRecord.visibility = GONE
-                    waitText.text = "'녹화 끝내기' 버튼을 눌러 결과물을 저장하세요"
+                    waitText.text = " '녹화 끝내기' 버튼을 눌러 결과물을 저장하세요 "
 
                     startRecord.text = "녹화 끝내기"
                     recorder.record()
@@ -87,10 +92,39 @@ class MotionActivity : AppCompatActivity() {
                     startRecord.text = "녹화 끝!"
                     recorder.stopRecording()
 
-                    moveToTextActivity()
+                    moveToTextActivity(true)
                 }
             }
         }
+    }
+
+    private fun getVideoUri(): Uri? {
+        val videoDir = "/storage/emulated/0/Movies/scrcast/"
+        val videoFiles = File(videoDir).listFiles()
+        val videoPath = videoFiles[videoFiles.lastIndex].toString()
+        videoUri = Uri.parse(videoPath)
+        Log.println(Log.INFO, "비디오 경로 2", videoUri.toString())
+        return videoUri
+    }
+
+    private fun hideSystemUi() {
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        WindowInsetsControllerCompat(window,
+            window.decorView.findViewById(android.R.id.content)).let { controller ->
+            controller.hide(WindowInsetsCompat.Type.systemBars())
+            controller.systemBarsBehavior =
+                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        }
+    }
+
+    private fun moveToTextActivity(isVideo: Boolean) {
+        val intent = Intent(this, TextActivity::class.java)
+        intent.putExtra("pickedDate", pickedDate)
+        if (isVideo)
+            intent.putExtra("videoUri", getVideoUri().toString())
+
+        intent.putExtra("isVideo", isVideo)
+        startActivity(intent)
     }
 
     private fun showAnimations() {
@@ -116,6 +150,12 @@ class MotionActivity : AppCompatActivity() {
             val rightX = objectDTO.right!!.toFloat()
             val topY = objectDTO.top!!.toFloat()
             val bottomY = objectDTO.bottom!!.toFloat()
+
+//            if (objectDTO.replaceDraw == null)
+//                val img = BitmapFactory.decodeByteArray(objectDTO.originalDraw!!, 0, objectDTO.originalDraw!!.size)
+//            else
+//                val img = BitmapFactory.decodeByteArray(objectDTO.replaceDraw!!, 0, objectDTO.replaceDraw!!.size)
+
             val img = BitmapFactory.decodeByteArray(objectDTO.drawObjWhole!!, 0, objectDTO.drawObjWhole!!.size)
             val motion = objectDTO.motion.toString()
 
@@ -145,31 +185,5 @@ class MotionActivity : AppCompatActivity() {
             }
         }
         whole.setImageBitmap(userDrawing)
-    }
-
-    private fun getVideoUri(): Uri? {
-        val videoDir = "/storage/emulated/0/Movies/scrcast/"
-        val videoFiles = File(videoDir).listFiles()
-        val videoPath = videoFiles[videoFiles.lastIndex].toString()
-        videoUri = Uri.parse(videoPath)
-        Log.println(Log.INFO, "비디오 경로 2", videoUri.toString())
-        return videoUri
-    }
-
-    private fun hideSystemUi() {
-        WindowCompat.setDecorFitsSystemWindows(window, false)
-        WindowInsetsControllerCompat(window,
-            window.decorView.findViewById(android.R.id.content)).let { controller ->
-            controller.hide(WindowInsetsCompat.Type.systemBars())
-            controller.systemBarsBehavior =
-                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-        }
-    }
-
-    private fun moveToTextActivity() {
-        val intent = Intent(this, TextActivity::class.java)
-        intent.putExtra("pickedDate", pickedDate)
-        intent.putExtra("videoUri", getVideoUri().toString())
-        startActivity(intent)
     }
 }
