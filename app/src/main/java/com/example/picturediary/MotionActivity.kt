@@ -151,11 +151,6 @@ class MotionActivity : AppCompatActivity() {
             val topY = objectDTO.top!!.toFloat()
             val bottomY = objectDTO.bottom!!.toFloat()
 
-//            if (objectDTO.replaceDraw == null)
-//                val img = BitmapFactory.decodeByteArray(objectDTO.originalDraw!!, 0, objectDTO.originalDraw!!.size)
-//            else
-//                val img = BitmapFactory.decodeByteArray(objectDTO.replaceDraw!!, 0, objectDTO.replaceDraw!!.size)
-
             val img = BitmapFactory.decodeByteArray(objectDTO.drawObjWhole!!, 0, objectDTO.drawObjWhole!!.size)
             val motion = objectDTO.motion.toString()
 
