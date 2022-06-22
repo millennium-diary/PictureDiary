@@ -177,4 +177,10 @@ class TextActivity  : AppCompatActivity() {
 
         return data
     }
+
+    public override fun onBackPressed() {
+        Toast.makeText(this, "확인 버튼을 통해 저장해주세요", Toast.LENGTH_SHORT).show();
+        //super.onBackPressed();
+
+    }
 }
