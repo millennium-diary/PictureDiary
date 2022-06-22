@@ -1,22 +1,22 @@
 package com.example.picturediary
 
-import android.content.Context
 import android.content.res.Resources
 import android.graphics.*
 import android.os.Bundle
-import android.view.Display
+import android.util.Log
 import android.view.ViewGroup
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.RelativeLayout
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.ktx.Firebase
-import com.google.firebase.storage.FirebaseStorage
-import kotlinx.android.synthetic.main.activity_anim.*
 import kotlinx.android.synthetic.main.activity_motion.*
+
 
 class MotionActivity : AppCompatActivity() {
     val utils = Utils()
@@ -64,7 +64,7 @@ class MotionActivity : AppCompatActivity() {
             val rightX = objectDTO.right!!.toFloat()
             val topY = objectDTO.top!!.toFloat()
             val bottomY = objectDTO.bottom!!.toFloat()
-            val img = BitmapFactory.decodeByteArray(objectDTO.drawObjWhole!!, 0, objectDTO.drawObjWhole!!.size)
+            val img = BitmapFactory.decodeByteArray(objectDTO.originalDraw!!, 0, objectDTO.originalDraw!!.size)
 
             // 애니메이션 넣은 부분 지우기 (해당 그림에 있는 모든 객체 지우기)
             val erase = Paint()
@@ -74,18 +74,34 @@ class MotionActivity : AppCompatActivity() {
             canvas.drawRect(leftX, topY, rightX, bottomY, erase)
 
             val iv: ImageView = ImageView(this)
-            iv.layoutParams = ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
+//            iv.layoutParams = ViewGroup.LayoutParams(
+//                ViewGroup.LayoutParams.WRAP_CONTENT,
+//                ViewGroup.LayoutParams.WRAP_CONTENT
+//            )
+
+//            val IVRelativeLayout = LinearLayout.LayoutParams(
+//                ViewGroup.LayoutParams.WRAP_CONTENT,
+//                ViewGroup.LayoutParams.WRAP_CONTENT
+//            )
             iv.setImageBitmap(img)
+//            val IVRelativeLayout = iv.layoutParams as? LinearLayout.LayoutParams
+//            IVRelativeLayout.topMargin = topY.toInt()
+//            IVRelativeLayout.leftMargin =leftX.toInt()
+//            iv.layoutParams = IVRelativeLayout
+            val IVRelativeLayout = iv.layoutParams as? RelativeLayout.LayoutParams
+            IVRelativeLayout!!.setMargins(leftX.toInt(), topY.toInt(), 0, 0)
+
+            iv.layoutParams = IVRelativeLayout
 
             iv.left=leftX.toInt()
             iv.top=topY.toInt()
-            iv.right=rightX.toInt()
-            iv.bottom=bottomY.toInt()
+//            iv.layoutParams.width=img.width
+//            iv.layoutParams.height=img.height
+            Log.d("size",iv.layoutParams.width.toString()+", " +iv.layoutParams.height.toString())
+            Log.d("size", "$leftX, $rightX, $topY, $bottomY")
+            iv.requestLayout()
 
-            M_layout.addView(iv)
+            M_layout.addView(iv, img.width, img.height)
 
 
             //모션넣기
@@ -108,3 +124,4 @@ class MotionActivity : AppCompatActivity() {
         whole.setImageBitmap(userDrawing)
     }
 }
+
