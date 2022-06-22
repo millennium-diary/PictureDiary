@@ -18,6 +18,7 @@ import kotlinx.android.synthetic.main.activity_text.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.tasks.await
 import java.io.ByteArrayOutputStream
+import java.io.File
 import kotlin.collections.ArrayList
 
 class TextActivity  : AppCompatActivity() {
@@ -42,7 +43,9 @@ class TextActivity  : AppCompatActivity() {
 
         // 인텐트 설정
         val dbHelper = utils.createDBHelper(applicationContext)
-        val videoUri = intent.getStringExtra("videoUri")
+//        val videoUri = Uri.parse(intent.getStringExtra("videoUri"))
+        val videoUri = Uri.fromFile(File(intent.getStringExtra("videoUri")))
+
         pickedDate = intent.getStringExtra("pickedDate")
         val arr = dbHelper.readDrawing(pickedDate!!, username!!)!!.image
         picture = BitmapFactory.decodeByteArray(arr, 0, arr!!.size)
@@ -123,7 +126,7 @@ class TextActivity  : AppCompatActivity() {
                                     // 파이어스토어에 일기 업데이트
                                     storageRef.child("videos/$username-$groupID-$pickedDate")
 //                                        .putBytes(data)
-                                        .putFile(Uri.parse(videoUri))
+                                        .putFile(videoUri)
                                         .addOnSuccessListener {
                                             val result = it.metadata!!.reference!!.downloadUrl
                                             result.addOnSuccessListener { uri ->

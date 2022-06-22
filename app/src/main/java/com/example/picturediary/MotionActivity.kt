@@ -7,6 +7,7 @@ import android.graphics.*
 import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.Animation
@@ -74,7 +75,7 @@ class MotionActivity : AppCompatActivity() {
 
             val intent = Intent(this, TextActivity::class.java)
             intent.putExtra("pickedDate", pickedDate)
-            intent.putExtra("videoUri", getVideoUri())
+            intent.putExtra("videoUri", getVideoUri().toString())
             startActivity(intent)
         }
 
@@ -137,11 +138,12 @@ class MotionActivity : AppCompatActivity() {
         whole.setImageBitmap(userDrawing)
     }
 
-    // 비디오 URI 가져오기 (어떻게 하는지 모르겠다)
-    // 파일명만으로 uri 가져오는 방법 한 번 써봐봐
     private fun getVideoUri(): Uri? {
-        val video: File = "?"
-        val uri = Uri.parse()
-        return uri
+        var videoDir = "/storage/emulated/0/Movies/scrcast/"
+        var videoFiles = File(videoDir).listFiles()
+        var videoPath = videoFiles[videoFiles.lastIndex].toString()
+        videoUri = Uri.parse(videoPath)
+        Log.println(Log.INFO, "비디오 경로 2", videoUri.toString())
+        return videoUri
     }
 }
