@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import com.bumptech.glide.Glide
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -22,6 +23,7 @@ import com.google.firebase.ktx.Firebase
 import dev.bmcreations.scrcast.ScrCast
 import java.io.File
 import kotlinx.android.synthetic.main.activity_motion.*
+import kotlinx.coroutines.*
 
 
 class MotionActivity : AppCompatActivity() {
@@ -29,6 +31,7 @@ class MotionActivity : AppCompatActivity() {
     var firestore: FirebaseFirestore? = null
     var auth: FirebaseAuth? = null
     var username: String? = null
+    var showAnimationDone = false
 
     private lateinit var pickedDate: String
     lateinit var arr: ByteArray
@@ -47,15 +50,17 @@ class MotionActivity : AppCompatActivity() {
         arr = intent.getByteArrayExtra("picture")!!
         picture = BitmapFactory.decodeByteArray(arr, 0, arr.size)
 
+        // 모션 보여주기
         showAnimations()
 
+        // 사용자가 완료를 눌렀을 경우
         if (record) {
             // 녹화 기능 설정
             val recorder = ScrCast.use(this)
             recorder.apply {
                 // configure options via DSL
                 options {
-                    video { maxLengthSecs = 60 }
+                    video { maxLengthSecs = 5 }
                     storage { directoryName = "scrcast-sample" }
                     moveTaskToBack = false
                     startDelayMs = 0
@@ -63,40 +68,20 @@ class MotionActivity : AppCompatActivity() {
                 }
             }
 
-            startRecord.visibility = VISIBLE
-            skipRecord.visibility = VISIBLE
-            waitText.text = " '녹화 시작' 버튼을 눌러 원하는 부분을 녹화하세요 "
-//            waitText.text = "  결과물을 저장하고 있습니다  \n잠시 기다려 주세요"
-//            val textBlink = AnimationUtils.loadAnimation(this, R.anim.text_blink)
+            hideSystemUi()
+            waitText.text = "  일기 만드는 중...  "
+            Glide.with(this).load(R.raw.bookflip).into(bookflip)
 
-            skipRecord.setOnClickListener {
-                moveToTextActivity(false)
-            }
-
-            startRecord.setOnClickListener {
-                // 녹화 시작
-                if (startRecord.text == "    녹화 시작    ") {
-                    hideSystemUi()
-                    skipRecord.visibility = GONE
-                    waitText.text = " '녹화 끝내기' 버튼을 눌러 결과물을 저장하세요 "
-
-                    startRecord.text = "녹화 끝내기"
-                    recorder.record()
-                }
-                // 녹화 중단
-                else if (startRecord.text == "녹화 끝내기") {
-                    skipRecord.visibility = GONE
-                    waitText.text = "  결과물을 저장하고 있습니다  \n잠시 기다려 주세요"
-
-                    startRecord.text = "녹화 끝!"
-                    recorder.stopRecording()
-
-                    moveToTextActivity(true)
-                }
+            recorder.record()
+            showAnimations()
+            recorder.stopRecording()
+            recorder.onRecordingComplete {
+                moveToTextActivity(true)
             }
         }
     }
 
+    // 영상 경로 --> URI 변환
     private fun getVideoUri(): Uri? {
         val videoDir = "/storage/emulated/0/Movies/scrcast/"
         val videoFiles = File(videoDir).listFiles()
@@ -106,6 +91,7 @@ class MotionActivity : AppCompatActivity() {
         return videoUri
     }
 
+    // 상태바, 네비게이션바 숨기기
     private fun hideSystemUi() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
         WindowInsetsControllerCompat(window,
@@ -116,16 +102,17 @@ class MotionActivity : AppCompatActivity() {
         }
     }
 
+    // 글 작성 페이지로 이동
     private fun moveToTextActivity(isVideo: Boolean) {
         val intent = Intent(this, TextActivity::class.java)
         intent.putExtra("pickedDate", pickedDate)
         if (isVideo)
             intent.putExtra("videoUri", getVideoUri().toString())
-
         intent.putExtra("isVideo", isVideo)
         startActivity(intent)
     }
 
+    // 모션 보여주기
     private fun showAnimations() {
         val aniRun: Animation = AnimationUtils.loadAnimation(this, R.anim.run)
         val aniBounce: Animation = AnimationUtils.loadAnimation(this, R.anim.bounce)
@@ -223,6 +210,7 @@ class MotionActivity : AppCompatActivity() {
             }
         }
         whole.setImageBitmap(userDrawing)
+        showAnimationDone = true
     }
 }
 
