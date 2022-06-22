@@ -1,30 +1,27 @@
 package com.example.picturediary
 
-import android.app.ProgressDialog
 import android.content.Intent
 import android.content.res.Resources
 import android.graphics.*
-import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.view.View.*
 import android.view.ViewGroup
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.widget.ImageView
-import android.widget.Toast
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.ktx.Firebase
-import com.google.firebase.storage.FirebaseStorage
-import com.google.firebase.storage.StorageReference
 import dev.bmcreations.scrcast.ScrCast
 import kotlinx.android.synthetic.main.activity_motion.*
-import kotlinx.android.synthetic.main.fragment_user.*
 import java.io.File
 
 
@@ -42,45 +39,57 @@ class MotionActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_motion)
 
-        val decorView = window.decorView
-        decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN
-
         firestore = FirebaseFirestore.getInstance()
         auth = Firebase.auth
         username = auth?.currentUser?.displayName.toString()
-//        ref = FirebaseStorage.getInstance().getReference("/images/$filename")
 
         val record = intent.getBooleanExtra("record", false)
         pickedDate = intent.getStringExtra("pickedDate")!!
         arr = intent.getByteArrayExtra("picture")!!
         picture = BitmapFactory.decodeByteArray(arr, 0, arr.size)
 
-        if (record) {
-            waitText.text = "  결과물을 저장하고 있습니다  \n잠시 기다려 주세요"
-//            val textBlink = AnimationUtils.loadAnimation(this, R.anim.text_blink)
+        showAnimations()
 
+        if (record) {
+            // 녹화 기능 설정
             val recorder = ScrCast.use(this)
             recorder.apply {
                 // configure options via DSL
                 options {
-                    video { maxLengthSecs = 5 }
+                    video { maxLengthSecs = 60 }
                     storage { directoryName = "scrcast-sample" }
                     moveTaskToBack = false
-                    startDelayMs = 5_000
+                    startDelayMs = 0
                 }
             }
-            recorder.record()
-            showAnimations()
-            recorder.stopRecording()
 
-            val intent = Intent(this, TextActivity::class.java)
-            intent.putExtra("pickedDate", pickedDate)
-            intent.putExtra("videoUri", getVideoUri().toString())
-            startActivity(intent)
-        }
+            startRecord.visibility = VISIBLE
+            skipRecord.visibility = VISIBLE
+            waitText.text = "'녹화 시작' 버튼을 눌러 원하는 부분을 녹화하세요"
+//            waitText.text = "  결과물을 저장하고 있습니다  \n잠시 기다려 주세요"
+//            val textBlink = AnimationUtils.loadAnimation(this, R.anim.text_blink)
 
-        else {
-            showAnimations()
+            startRecord.setOnClickListener {
+                // 녹화 시작
+                if (startRecord.text == "    녹화 시작    ") {
+                    hideSystemUi()
+                    skipRecord.visibility = GONE
+                    waitText.text = "'녹화 끝내기' 버튼을 눌러 결과물을 저장하세요"
+
+                    startRecord.text = "녹화 끝내기"
+                    recorder.record()
+                }
+                // 녹화 중단
+                else if (startRecord.text == "녹화 끝내기") {
+                    skipRecord.visibility = GONE
+                    waitText.text = "  결과물을 저장하고 있습니다  \n잠시 기다려 주세요"
+
+                    startRecord.text = "녹화 끝!"
+                    recorder.stopRecording()
+
+                    moveToTextActivity()
+                }
+            }
         }
     }
 
@@ -139,11 +148,28 @@ class MotionActivity : AppCompatActivity() {
     }
 
     private fun getVideoUri(): Uri? {
-        var videoDir = "/storage/emulated/0/Movies/scrcast/"
-        var videoFiles = File(videoDir).listFiles()
-        var videoPath = videoFiles[videoFiles.lastIndex].toString()
+        val videoDir = "/storage/emulated/0/Movies/scrcast/"
+        val videoFiles = File(videoDir).listFiles()
+        val videoPath = videoFiles[videoFiles.lastIndex].toString()
         videoUri = Uri.parse(videoPath)
         Log.println(Log.INFO, "비디오 경로 2", videoUri.toString())
         return videoUri
+    }
+
+    private fun hideSystemUi() {
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        WindowInsetsControllerCompat(window,
+            window.decorView.findViewById(android.R.id.content)).let { controller ->
+            controller.hide(WindowInsetsCompat.Type.systemBars())
+            controller.systemBarsBehavior =
+                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        }
+    }
+
+    private fun moveToTextActivity() {
+        val intent = Intent(this, TextActivity::class.java)
+        intent.putExtra("pickedDate", pickedDate)
+        intent.putExtra("videoUri", getVideoUri().toString())
+        startActivity(intent)
     }
 }

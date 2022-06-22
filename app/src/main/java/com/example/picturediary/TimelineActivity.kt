@@ -211,10 +211,9 @@ class TimelineActivity : AppCompatActivity() {
 //                .load(contentDTOs[p1].imageUrl)
 //                .into(viewHolder.videoView)
 
-            viewHolder.videoView.setOnClickListener {
-                videoView.setScaleType(TextureVideoView.ScaleType.CENTER_CROP)
-                videoView.setDataSource(contentDTOs[p1].imageUrl)
-//                viewHolder.videoView.setVideoPath(contentDTOs[p1].imageUrl)
+//            viewHolder.videoView.setOnClickListener {
+            viewHolder.videoView.setScaleType(TextureVideoView.ScaleType.CENTER_CROP)
+            viewHolder.videoView.setDataSource(contentDTOs[p1].imageUrl)
                 if (!videoPlaying) {
                     videoPlaying = true
                     viewHolder.videoView.setLooping(true)
@@ -223,9 +222,8 @@ class TimelineActivity : AppCompatActivity() {
                 else {
                     videoPlaying = false
                     viewHolder.videoView.stop()
-//                    viewHolder.videoView.stop()
                 }
-            }
+//            }
 
             // 좋아요 누르기
             viewHolder.favorite_imageview.setOnClickListener { favoriteEvent(p1) }
