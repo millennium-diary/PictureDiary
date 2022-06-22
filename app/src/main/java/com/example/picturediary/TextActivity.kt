@@ -119,7 +119,7 @@ class TextActivity  : AppCompatActivity() {
                                 if (checked) {
                                     val groupID = finalGroupsID[i]
                                     val storageRef = storage!!.reference
-                                    val data = saveInDb(diaryStory)
+                                    saveInDb(diaryStory)
 
                                     val videoUri = Uri.fromFile(File(intentUri))
 
@@ -166,30 +166,13 @@ class TextActivity  : AppCompatActivity() {
 
 
     // 확인 눌렀을 당시 내장 DB에 저장
-    private fun saveInDb(diaryStory: String): Uri? {
+    private fun saveInDb(diaryStory: String) {
         val dbHelper = Utils().createDBHelper(applicationContext)
-
-        val imageWithBG = Bitmap.createBitmap(picture!!.width, picture!!.height, picture!!.config)
-        imageWithBG.eraseColor(Color.WHITE)
-        val canvas = Canvas(imageWithBG)
-        canvas.drawBitmap(picture!!, 0f, 0f, null)
-
-        val path = MediaStore.Images.Media.insertImage(
-            applicationContext.contentResolver, imageWithBG, null, null
-        )
 
         // 내장 DB에 일기 업데이트
         val pngBaos = ByteArrayOutputStream()
         picture!!.compress(Bitmap.CompressFormat.PNG, 100, pngBaos)
         val png = pngBaos.toByteArray()
         dbHelper.updateDrawing(pickedDate!!, username!!, diaryStory, png)
-
-//        // 파이어베이스에 업로드할 이미지
-//        val jpgBaos = ByteArrayOutputStream()
-//        picture!!.compress(Bitmap.CompressFormat.JPEG, 100, jpgBaos)
-//        val jpgStream = jpgBaos.toByteArray()
-//        val jpg = BitmapFactory.decodeStream(ByteArrayInputStream(jpgStream))
-
-        return Uri.parse(path)
     }
 }
