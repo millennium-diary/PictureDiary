@@ -42,11 +42,10 @@ class TextActivity  : AppCompatActivity() {
 
         // 인텐트 설정
         val dbHelper = utils.createDBHelper(applicationContext)
-        val videoFile = File(intent.getStringExtra("videoUri"))
-        val videoUri = Uri.fromFile(videoFile)
 
         val isVideo = intent.getBooleanExtra("isVideo", false)
         val intentUri = intent.getStringExtra("videoUri")
+        val videoFile = File(intentUri)
         pickedDate = intent.getStringExtra("pickedDate")
         val arr = dbHelper.readDrawing(pickedDate!!, username!!)!!.image
         picture = BitmapFactory.decodeByteArray(arr, 0, arr!!.size)
@@ -124,10 +123,10 @@ class TextActivity  : AppCompatActivity() {
                                     val storageRef = storage!!.reference
                                     val data = saveInDb(diaryStory)
 
-                                    if (isVideo) {
-                                        videoUri = Uri.fromFile(File(intentUri))
+                                    val videoUri = if (isVideo) {
+                                        Uri.fromFile(File(intentUri))
                                     } else {
-                                        videoUri = data
+                                        data
                                     }
 
                                     // 파이어스토어에 일기 업데이트
