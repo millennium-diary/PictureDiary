@@ -80,33 +80,65 @@
             app:layout_constraintTop_toTopOf="parent"/>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <LinearLayout
+    <TableLayout
         android:id="@+id/motionLinearLayout"
+        android:columnCount="5"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:background="@color/blue"
+        android:layout_height="wrap_content"
+        android:stretchColumns="*"
+        android:background="#BDBDBD"
         android:visibility="invisible"
         app:layout_constraintTop_toBottomOf="@id/constraintLayout"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintHeight_percent="0.15">
-
+        <TableRow>
         <android.widget.Button
-            android:id="@+id/Abtn_bingle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="빙글"/>
+            android:id="@+id/Abtn_run"
+            android:background="#F2A6C8"
+            android:layout_margin="3dp"
+            android:text="달리기"/>
         <android.widget.Button
             android:id="@+id/Abtn_jump"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:background="#F4B7D3"
+            android:layout_margin="3dp"
             android:text="점프"/>
         <android.widget.Button
+            android:id="@+id/Abtn_come"
+            android:background="#F2A6C8"
+            android:layout_margin="3dp"
+            android:text="다가오기"/>
+        <android.widget.Button
+            android:id="@+id/Abtn_go"
+            android:background="#F4B7D3"
+            android:layout_margin="3dp"
+            android:text="멀어지기"/>
+        </TableRow>
+        <TableRow>
+        <android.widget.Button
             android:id="@+id/Abtn_shake"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:background="#F4B7D3"
+            android:layout_margin="3dp"
             android:text="흔들"/>
-    </LinearLayout>
+        <android.widget.Button
+            android:id="@+id/Abtn_fade"
+            android:background="#F2A6C8"
+            android:layout_margin="3dp"
+            android:text="스르륵"/>
+        <android.widget.Button
+            android:id="@+id/Abtn_roll"
+            android:background="#F4B7D3"
+            android:layout_margin="3dp"
+            android:text="데굴데굴"/>
+        <android.widget.Button
+            android:id="@+id/Abtn_spin"
+            android:background="#F2A6C8"
+            android:layout_margin="3dp"
+            android:text="휘릭"/>
+
+        </TableRow>
+    </TableLayout>
+
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recommendRecycler"

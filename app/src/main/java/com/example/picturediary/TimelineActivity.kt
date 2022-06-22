@@ -2,6 +2,7 @@ package com.example.picturediary
 
 
 import android.content.DialogInterface
+import android.media.MediaPlayer.OnPreparedListener
 import android.os.Bundle
 import android.text.InputType
 import android.view.LayoutInflater
