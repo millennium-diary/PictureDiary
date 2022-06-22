@@ -261,19 +261,19 @@ class TimelineActivity : AppCompatActivity() {
         // 좋아요 이벤트
         private fun favoriteEvent(position: Int) {
             val tsDoc = firestore.collection("contents")
-                .document(contentUidList[position])
+                .document(contentDTOs[position].contentId.toString())
             firestore.runTransaction { transaction ->
 
                 val uid = FirebaseAuth.getInstance().currentUser!!.uid
                 val contentDTO = transaction.get(tsDoc).toObject(ContentDTO::class.java)
 
-                // 좋아요를 취소할 경우 좋아요 수를 줄이고 유저 목록에서 삭제함
                 if (contentDTO!!.favorites.containsKey(uid)) {
+                    // Unstar the post and remove self from stars
                     contentDTO.favoriteCount = contentDTO.favoriteCount - 1
                     contentDTO.favorites.remove(uid)
-                    
-                // 좋아요를 누를 경우, 좋아요 수를 늘리고 유저 목록에 추가함
+
                 } else {
+                    // Star the post and add self to stars
                     contentDTO.favoriteCount = contentDTO.favoriteCount + 1
                     contentDTO.favorites[uid] = true
                 }
