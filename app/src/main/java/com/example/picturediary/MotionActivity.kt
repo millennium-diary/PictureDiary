@@ -76,7 +76,7 @@ class MotionActivity : AppCompatActivity() {
             showAnimations()
             recorder.stopRecording()
             recorder.onRecordingComplete {
-                moveToTextActivity(true)
+                moveToTextActivity()
             }
         }
     }
@@ -103,12 +103,10 @@ class MotionActivity : AppCompatActivity() {
     }
 
     // 글 작성 페이지로 이동
-    private fun moveToTextActivity(isVideo: Boolean) {
+    private fun moveToTextActivity() {
         val intent = Intent(this, TextActivity::class.java)
         intent.putExtra("pickedDate", pickedDate)
-        if (isVideo)
-            intent.putExtra("videoUri", getVideoUri().toString())
-        intent.putExtra("isVideo", isVideo)
+        intent.putExtra("videoUri", getVideoUri().toString())
         startActivity(intent)
     }
 

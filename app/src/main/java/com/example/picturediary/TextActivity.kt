@@ -33,17 +33,15 @@ class TextActivity  : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_text)
 
-        // 파이어스토어, 파이어베이스 설정
+        // 파이어스토어, 파이어베이스, 내장DB 설정
         firestore = FirebaseFirestore.getInstance()
         storage = FirebaseStorage.getInstance()
         auth = Firebase.auth
         username = auth?.currentUser?.displayName.toString()
         val uid = auth?.currentUser?.uid.toString()
-
-        // 인텐트 설정
         val dbHelper = utils.createDBHelper(applicationContext)
 
-        val isVideo = intent.getBooleanExtra("isVideo", false)
+        // 인텐트 설정
         val intentUri = intent.getStringExtra("videoUri")
         val videoFile = File(intentUri)
         pickedDate = intent.getStringExtra("pickedDate")
@@ -123,11 +121,7 @@ class TextActivity  : AppCompatActivity() {
                                     val storageRef = storage!!.reference
                                     val data = saveInDb(diaryStory)
 
-                                    val videoUri = if (isVideo) {
-                                        Uri.fromFile(File(intentUri))
-                                    } else {
-                                        data
-                                    }
+                                    val videoUri = Uri.fromFile(File(intentUri))
 
                                     // 파이어스토어에 일기 업데이트
                                     storageRef.child("videos/$username-$groupID-$pickedDate")
@@ -147,7 +141,6 @@ class TextActivity  : AppCompatActivity() {
                                                 contentDTO.timestamp = System.currentTimeMillis()
                                                 contentDTO.imageUrl = videoLink
                                                 contentDTO.diaryDate = pickedDate
-                                                contentDTO.isVideo = isVideo
 
                                                 firestore!!.collection("contents")
                                                     .document(contentId)
