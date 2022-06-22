@@ -10,6 +10,7 @@ import com.example.picturediary.navigation.dao.DBHelper
 import kotlinx.android.synthetic.main.activity_crop.*
 import kotlinx.android.synthetic.main.activity_crop.view.*
 import kotlinx.coroutines.DelicateCoroutinesApi
+import java.io.ByteArrayOutputStream
 
 @DelicateCoroutinesApi
 class CropActivity : AppCompatActivity() {
@@ -45,14 +46,24 @@ class CropActivity : AppCompatActivity() {
 
         // 완료 버튼
         completeBtn.setOnClickListener {
-            val intent = Intent(this, TextActivity::class.java)
+//            val intent = Intent(this, TextActivity::class.java)
+            val intent = Intent(this, MotionActivity::class.java)
+            intent.putExtra("record", true)
             intent.putExtra("picture", arr)
             intent.putExtra("pickedDate", pickedDate)
             startActivity(intent)
         }
 
-        playAll.setOnClickListener { //모두재생 버튼
-            val intent = Intent(this, CropActivity::class.java)
+        // 모두재생 버튼
+        playAll.setOnClickListener {
+            val intent = Intent(this, MotionActivity::class.java)
+            val stream = ByteArrayOutputStream()
+            val picture = Utils().getBitmapFromView(crop_view)
+            picture.compress(Bitmap.CompressFormat.PNG, 0, stream)
+            val byteArray = stream.toByteArray()
+            intent.putExtra("pickedDate", pickedDate)
+            intent.putExtra("picture", byteArray)
+            startActivity(intent)
         }
     }
 }

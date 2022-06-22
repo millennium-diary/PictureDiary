@@ -2,7 +2,6 @@ package com.example.picturediary
 
 
 import android.content.DialogInterface
-import android.media.MediaPlayer.OnPreparedListener
 import android.os.Bundle
 import android.text.InputType
 import android.view.LayoutInflater
@@ -22,7 +21,9 @@ import com.example.picturediary.navigation.model.UserDTO
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import kotlinx.android.synthetic.main.activity_timeline.*
+import kotlinx.android.synthetic.main.item_timeline.*
 import kotlinx.android.synthetic.main.item_timeline.view.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -46,9 +47,9 @@ class TimelineActivity : AppCompatActivity() {
         recyclerViewtimeline.adapter = RecyclerViewAdapter()
         recyclerViewtimeline.layoutManager = LinearLayoutManager(this)
 
-        add_memeber.setOnClickListener {
+        // 멤버 추가 버튼 클릭 시
+        add_member.setOnClickListener {
             var memberName: String
-
             // 팝업 설정
             val dlg = AlertDialog.Builder(this)
             val input = EditText(this)
@@ -134,10 +135,12 @@ class TimelineActivity : AppCompatActivity() {
             }
         }
 
+        // 파이어베이스에서 그룹에 맞는 contentDTO를 불러옴
         private fun getContents(shareWith: ArrayList<String>?) {
+            // 파이어베이스에서 가져온 컨텐츠들을 시간 내림차순으로 정렬함
             firestore.collection("contents")
-                .whereEqualTo("explain", "확인")
-//                .orderBy("timestamp", Query.Direction.DESCENDING)
+//                .whereEqualTo("contentId", "ulala-고등학교 친구들@ulala-2022.06.22")
+                .orderBy("timestamp", Query.Direction.DESCENDING)
                 .addSnapshotListener { querySnapshot, _ ->
                     // ArrayList 비워줌
                     contentDTOs.clear()
@@ -190,7 +193,7 @@ class TimelineActivity : AppCompatActivity() {
             viewHolder.profile_textview.text = contentDTOs[p1].username
             viewHolder.explain_textview.text = contentDTOs[p1].explain
 
-            //현재 사용자가 해당 일기 작성자라면, 삭제 버튼 표시
+            // 현재 사용자가 해당 일기 작성자라면, 삭제 버튼 표시
             firestore.collection("users")
                 .document(user?.uid!!)
                 .get()
@@ -206,21 +209,21 @@ class TimelineActivity : AppCompatActivity() {
 
 //            Glide.with(p0.itemView.context)
 //                .load(contentDTOs[p1].imageUrl)
-//                .into(viewHolder.Diary_image)
+//                .into(viewHolder.videoView)
 
-            viewHolder.Diary_image.setOnClickListener {
-                viewHolder.Diary_image.setVideoPath(contentDTOs[p1].imageUrl)
+//            viewHolder.videoView.setOnClickListener {
+            viewHolder.videoView.setScaleType(TextureVideoView.ScaleType.CENTER_CROP)
+            viewHolder.videoView.setDataSource(contentDTOs[p1].imageUrl)
                 if (!videoPlaying) {
                     videoPlaying = true
-                    viewHolder.Diary_image.setOnPreparedListener{ it.isLooping = true }
-                    viewHolder.Diary_image.start()
+                    viewHolder.videoView.setLooping(true)
+                    viewHolder.videoView.play()
                 }
                 else {
                     videoPlaying = false
-                    viewHolder.Diary_image.pause()
-                    viewHolder.Diary_image.stopPlayback()
+                    viewHolder.videoView.stop()
                 }
-            }
+//            }
 
             // 좋아요 누르기
             viewHolder.favorite_imageview.setOnClickListener { favoriteEvent(p1) }
@@ -258,7 +261,7 @@ class TimelineActivity : AppCompatActivity() {
         // 좋아요 이벤트
         private fun favoriteEvent(position: Int) {
             val tsDoc = firestore.collection("contents")
-                .document(contentUidList[position])
+                .document(contentDTOs[position].contentId.toString())
             firestore.runTransaction { transaction ->
 
                 val uid = FirebaseAuth.getInstance().currentUser!!.uid
