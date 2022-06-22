@@ -43,8 +43,8 @@ class TextActivity  : AppCompatActivity() {
 
         // 인텐트 설정
         val dbHelper = utils.createDBHelper(applicationContext)
-//        val videoUri = Uri.parse(intent.getStringExtra("videoUri"))
-        val videoUri = Uri.fromFile(File(intent.getStringExtra("videoUri")))
+        val videoFile = File(intent.getStringExtra("videoUri"))
+        val videoUri = Uri.fromFile(videoFile)
 
         pickedDate = intent.getStringExtra("pickedDate")
         val arr = dbHelper.readDrawing(pickedDate!!, username!!)!!.image
@@ -146,6 +146,9 @@ class TextActivity  : AppCompatActivity() {
                                                 firestore!!.collection("contents")
                                                     .document(contentId)
                                                     .set(contentDTO)
+                                                    .addOnSuccessListener {
+                                                        videoFile.delete()
+                                                    }
                                             }
                                                 .addOnFailureListener {
                                                     Toast.makeText(this@TextActivity, "처리하는 중 오류가 발생했습니다", Toast.LENGTH_SHORT).show()
