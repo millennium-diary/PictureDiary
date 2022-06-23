@@ -60,6 +60,33 @@
 ![image](https://user-images.githubusercontent.com/62047373/175224521-3ed4908e-2f39-42f1-b57a-30cd2f8ee113.png)
 <br><br>
 
+# 역할 분담
+* <a href="https://github.com/yeonsu10">김연수</a> (jenix1@tukorea.ac.kr)
+  - 조장: 팀 회의 주관
+  - SNS 방식의 공유 플랫폼 기능 및 UI 구현
+  - 파이어스토어 데이터베이스 구현
+  - 전체적인 세부사항 개선
+  
+* <a href="https://github.com/nhk1657">노현경</a> (nhk1657@tukorea.ac.kr)
+  - 그림판 UI 구현
+  - 그림판 크롭 기능 및 UI 구현 
+  - 캘린더 기능 구현
+  
+* <a href="https://github.com/ddubidubap">박성연</a> (2019150019@tukorea.ac.kr)
+  - 로그인 기능 구현
+  - 캘린더 기능 구현
+  - 전체 데이터베이스 구현
+  - 그림 인식 모델 구축
+  - 서버 - 클라이언트 소켓 프로그래밍
+  - 전체적인 흐름 관리
+  
+* <a href="https://github.com/LHY00y">이하영</a> (leeha0507@tukorea.ac.kr)
+  - 그림판 기능 및 UI 구현
+  - 모션 기능 구현
+  - 적용 가능한 모션 개발
+ 
+<br><br>
+
 ![Kotlin: Version](https://img.shields.io/badge/Kotlin-green)
 ![Python: Version](https://img.shields.io/badge/Python-blue)
 ![Firebase: Version](https://img.shields.io/badge/Firebase-orange)
