@@ -11,6 +11,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.View.OnTouchListener
 import android.view.ViewGroup
+import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.widget.ImageView
 import android.widget.Toast
@@ -60,9 +61,14 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
     private var objectArrayList = arrayListOf<ObjectDTO>()
     private var objectListAdapter: ObjectListAdapter? = null
 
-    private val ani_rotate = AnimationUtils.loadAnimation(context, R.anim.rotate)
+    private val ani_run = AnimationUtils.loadAnimation(context, R.anim.run)
     private val ani_bounce = AnimationUtils.loadAnimation(context, R.anim.bounce)
     private val ani_shake = AnimationUtils.loadAnimation(context, R.anim.shake)
+    private val ani_come : Animation = AnimationUtils.loadAnimation(context, R.anim.comein)
+    private val ani_go : Animation = AnimationUtils.loadAnimation(context, R.anim.goout)
+    private val ani_fade : Animation = AnimationUtils.loadAnimation(context, R.anim.fadeinout)
+    private val ani_roll : Animation = AnimationUtils.loadAnimation(context, R.anim.roll)
+    private val ani_spin : Animation = AnimationUtils.loadAnimation(context, R.anim.spin)
 
     init {
         initDrawing()
@@ -443,8 +449,9 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
 
     fun addMotion(objBitmap: Bitmap, drawId: String, objId: String) {
         val view = this.parent.parent as ConstraintLayout
-        view.Abtn_bingle.setOnClickListener {
-            makeDialog(objBitmap, drawId, objId, "bingle").startAnimation(ani_rotate)
+        view.Abtn_run.setOnClickListener {
+            dbHelper.updateObjectMotion(drawId, objId, "run")
+            makeDialog(objBitmap, drawId, objId, "run").startAnimation(ani_run)
         }
 
         view.Abtn_jump.setOnClickListener {
@@ -455,6 +462,31 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
         view.Abtn_shake.setOnClickListener {
             dbHelper.updateObjectMotion(drawId, objId, "shake")
             makeDialog(objBitmap, drawId, objId, "shake").startAnimation(ani_shake)
+        }
+
+        view.Abtn_come.setOnClickListener {
+            dbHelper.updateObjectMotion(drawId, objId, "come")
+            makeDialog(objBitmap, drawId, objId, "come").startAnimation(ani_come)
+        }
+
+        view.Abtn_go.setOnClickListener {
+            dbHelper.updateObjectMotion(drawId, objId, "go")
+            makeDialog(objBitmap, drawId, objId, "go").startAnimation(ani_go)
+        }
+
+        view.Abtn_fade.setOnClickListener {
+            dbHelper.updateObjectMotion(drawId, objId, "fade")
+            makeDialog(objBitmap, drawId, objId, "fade").startAnimation(ani_fade)
+        }
+
+        view.Abtn_roll.setOnClickListener {
+            dbHelper.updateObjectMotion(drawId, objId, "roll")
+            makeDialog(objBitmap, drawId, objId, "roll").startAnimation(ani_roll)
+        }
+
+        view.Abtn_spin.setOnClickListener {
+            dbHelper.updateObjectMotion(drawId, objId, "spin")
+            makeDialog(objBitmap, drawId, objId, "spin").startAnimation(ani_spin)
         }
     }
 

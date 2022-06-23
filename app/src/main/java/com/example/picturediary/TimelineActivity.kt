@@ -2,6 +2,7 @@ package com.example.picturediary
 
 
 import android.content.DialogInterface
+import android.media.MediaPlayer.OnPreparedListener
 import android.os.Bundle
 import android.text.InputType
 import android.view.LayoutInflater
@@ -29,6 +30,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.net.URL
+import java.net.URLConnection
 
 
 class TimelineActivity : AppCompatActivity() {
@@ -139,7 +142,6 @@ class TimelineActivity : AppCompatActivity() {
         private fun getContents(shareWith: ArrayList<String>?) {
             // 파이어베이스에서 가져온 컨텐츠들을 시간 내림차순으로 정렬함
             firestore.collection("contents")
-//                .whereEqualTo("contentId", "ulala-고등학교 친구들@ulala-2022.06.22")
                 .orderBy("timestamp", Query.Direction.DESCENDING)
                 .addSnapshotListener { querySnapshot, _ ->
                     // ArrayList 비워줌
@@ -171,9 +173,10 @@ class TimelineActivity : AppCompatActivity() {
 
         // onCreateViewHolder에서 만든 view와 실제 데이터를 연결
         override fun onBindViewHolder(p0: RecyclerView.ViewHolder, p1: Int) {
-            var videoPlaying = false
+//            var videoPlaying = false
             val viewHolder = (p0 as ViewHolder).itemView
 
+            // 사용자 프로필 사진
             firestore.collection("users")
                 .document(contentDTOs[p1].uid!!)
                 .get()
@@ -200,30 +203,34 @@ class TimelineActivity : AppCompatActivity() {
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
                         val userDTO = task.result.toObject(UserDTO::class.java)
-                        if (userDTO?.username ==contentDTOs[p1].username)
-                            viewHolder.delete_picture.visibility=View.VISIBLE
+                        if (userDTO?.username == contentDTOs[p1].username)
+                            viewHolder.delete_picture.visibility = View.VISIBLE
                         else
-                            viewHolder.delete_picture.visibility=View.INVISIBLE
+                            viewHolder.delete_picture.visibility = View.INVISIBLE
                     }
                 }
 
-//            Glide.with(p0.itemView.context)
-//                .load(contentDTOs[p1].imageUrl)
-//                .into(viewHolder.videoView)
+            if (contentDTOs[p1].isVideo == true) {
+                viewHolder.imageView.visibility = View.GONE
+                viewHolder.videoView.setScaleType(TextureVideoView.ScaleType.CENTER_CROP)
+                viewHolder.videoView.setDataSource(contentDTOs[p1].imageUrl)
+                viewHolder.videoView.setLooping(true)
+                viewHolder.videoView.play()
+            }
+            else {
+                viewHolder.imageView.visibility = View.VISIBLE
+                Glide.with(p0.itemView.context)
+                    .load(contentDTOs[p1].imageUrl)
+                    .into(viewHolder.imageView)
+            }
 
-//            viewHolder.videoView.setOnClickListener {
-            viewHolder.videoView.setScaleType(TextureVideoView.ScaleType.CENTER_CROP)
-            viewHolder.videoView.setDataSource(contentDTOs[p1].imageUrl)
-                if (!videoPlaying) {
-                    videoPlaying = true
-                    viewHolder.videoView.setLooping(true)
-                    viewHolder.videoView.play()
-                }
-                else {
-                    videoPlaying = false
-                    viewHolder.videoView.stop()
-                }
-//            }
+//                if (!videoPlaying) {
+//                    viewHolder.videoView.setLooping(true)
+//                    viewHolder.videoView.play()
+//                }
+//                else {
+//                    viewHolder.videoView.stop()
+//                }
 
             // 좋아요 누르기
             viewHolder.favorite_imageview.setOnClickListener { favoriteEvent(p1) }

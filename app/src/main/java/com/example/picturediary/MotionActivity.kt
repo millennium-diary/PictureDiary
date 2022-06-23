@@ -6,7 +6,6 @@ import android.graphics.*
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
-import android.view.View
 import android.view.View.*
 import android.view.ViewGroup
 import android.view.animation.Animation
@@ -16,13 +15,15 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import com.bumptech.glide.Glide
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.ktx.Firebase
 import dev.bmcreations.scrcast.ScrCast
-import kotlinx.android.synthetic.main.activity_motion.*
 import java.io.File
+import kotlinx.android.synthetic.main.activity_motion.*
+import kotlinx.coroutines.*
 
 
 class MotionActivity : AppCompatActivity() {
@@ -30,6 +31,7 @@ class MotionActivity : AppCompatActivity() {
     var firestore: FirebaseFirestore? = null
     var auth: FirebaseAuth? = null
     var username: String? = null
+    var showAnimationDone = false
 
     private lateinit var pickedDate: String
     lateinit var arr: ByteArray
@@ -48,55 +50,77 @@ class MotionActivity : AppCompatActivity() {
         arr = intent.getByteArrayExtra("picture")!!
         picture = BitmapFactory.decodeByteArray(arr, 0, arr.size)
 
+        // 모션 보여주기
         showAnimations()
 
+        // 사용자가 완료를 눌렀을 경우
         if (record) {
             // 녹화 기능 설정
             val recorder = ScrCast.use(this)
             recorder.apply {
                 // configure options via DSL
                 options {
-                    video { maxLengthSecs = 60 }
+                    video { maxLengthSecs = 5 }
                     storage { directoryName = "scrcast-sample" }
                     moveTaskToBack = false
                     startDelayMs = 0
+                    stopOnScreenOff = true
                 }
             }
 
-            startRecord.visibility = VISIBLE
-            skipRecord.visibility = VISIBLE
-            waitText.text = "'녹화 시작' 버튼을 눌러 원하는 부분을 녹화하세요"
-//            waitText.text = "  결과물을 저장하고 있습니다  \n잠시 기다려 주세요"
-//            val textBlink = AnimationUtils.loadAnimation(this, R.anim.text_blink)
+            hideSystemUi()
+            waitText.text = "  일기 만드는 중...  "
+            Glide.with(this).load(R.raw.bookflip).into(bookflip)
 
-            startRecord.setOnClickListener {
-                // 녹화 시작
-                if (startRecord.text == "    녹화 시작    ") {
-                    hideSystemUi()
-                    skipRecord.visibility = GONE
-                    waitText.text = "'녹화 끝내기' 버튼을 눌러 결과물을 저장하세요"
-
-                    startRecord.text = "녹화 끝내기"
-                    recorder.record()
-                }
-                // 녹화 중단
-                else if (startRecord.text == "녹화 끝내기") {
-                    skipRecord.visibility = GONE
-                    waitText.text = "  결과물을 저장하고 있습니다  \n잠시 기다려 주세요"
-
-                    startRecord.text = "녹화 끝!"
-                    recorder.stopRecording()
-
-                    moveToTextActivity()
-                }
+            recorder.record()
+            showAnimations()
+            recorder.stopRecording()
+            recorder.onRecordingComplete {
+                moveToTextActivity()
             }
         }
     }
 
+    // 영상 경로 --> URI 변환
+    private fun getVideoUri(): Uri? {
+        val videoDir = "/storage/emulated/0/Movies/scrcast/"
+        val videoFiles = File(videoDir).listFiles()
+        val videoPath = videoFiles[videoFiles.lastIndex].toString()
+        videoUri = Uri.parse(videoPath)
+        Log.println(Log.INFO, "비디오 경로 2", videoUri.toString())
+        return videoUri
+    }
+
+    // 상태바, 네비게이션바 숨기기
+    private fun hideSystemUi() {
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        WindowInsetsControllerCompat(window,
+            window.decorView.findViewById(android.R.id.content)).let { controller ->
+            controller.hide(WindowInsetsCompat.Type.systemBars())
+            controller.systemBarsBehavior =
+                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        }
+    }
+
+    // 글 작성 페이지로 이동
+    private fun moveToTextActivity() {
+        val intent = Intent(this, TextActivity::class.java)
+        intent.putExtra("pickedDate", pickedDate)
+        intent.putExtra("videoUri", getVideoUri().toString())
+        startActivity(intent)
+    }
+
+    // 모션 보여주기
     private fun showAnimations() {
-        val aniRotate: Animation = AnimationUtils.loadAnimation(this, R.anim.rotate)
+        val aniRun: Animation = AnimationUtils.loadAnimation(this, R.anim.run)
         val aniBounce: Animation = AnimationUtils.loadAnimation(this, R.anim.bounce)
-        val aniShake : Animation = AnimationUtils.loadAnimation(this, R.anim.shake)
+        val aniShake: Animation = AnimationUtils.loadAnimation(this, R.anim.shake)
+        val aniCome: Animation = AnimationUtils.loadAnimation(this, R.anim.comein)
+        val aniGo: Animation = AnimationUtils.loadAnimation(this, R.anim.goout)
+        val aniFade: Animation = AnimationUtils.loadAnimation(this, R.anim.fadeinout)
+        val aniRoll: Animation = AnimationUtils.loadAnimation(this, R.anim.roll)
+        val aniSpin: Animation = AnimationUtils.loadAnimation(this, R.anim.spin)
+
         val dbHelper = utils.createDBHelper(applicationContext)
 
         // 사용자 그림에 대한 캔버스 초기화
@@ -116,7 +140,10 @@ class MotionActivity : AppCompatActivity() {
             val rightX = objectDTO.right!!.toFloat()
             val topY = objectDTO.top!!.toFloat()
             val bottomY = objectDTO.bottom!!.toFloat()
-            val img = BitmapFactory.decodeByteArray(objectDTO.drawObjWhole!!, 0, objectDTO.drawObjWhole!!.size)
+
+            val img = BitmapFactory.decodeByteArray(
+                objectDTO.drawObjWhole!!, 0, objectDTO.drawObjWhole!!.size
+            )
             val motion = objectDTO.motion.toString()
 
             // 애니메이션 넣은 부분 지우기 (해당 그림에 있는 모든 객체 지우기)
@@ -125,6 +152,37 @@ class MotionActivity : AppCompatActivity() {
             erase.color = Color.WHITE
             erase.isAntiAlias = true
             canvas.drawRect(leftX, topY, rightX, bottomY, erase)
+
+//            // 선택된 객체는 해당 위치에 배치 - 하영
+//            val iv: ImageView = ImageView(this)
+////            iv.layoutParams = ViewGroup.LayoutParams(
+////                ViewGroup.LayoutParams.WRAP_CONTENT,
+////                ViewGroup.LayoutParams.WRAP_CONTENT
+////            )
+//
+////            val IVRelativeLayout = LinearLayout.LayoutParams(
+////                ViewGroup.LayoutParams.WRAP_CONTENT,
+////                ViewGroup.LayoutParams.WRAP_CONTENT
+////            )
+//            iv.setImageBitmap(img)
+////            val IVRelativeLayout = iv.layoutParams as? LinearLayout.LayoutParams
+////            IVRelativeLayout.topMargin = topY.toInt()
+////            IVRelativeLayout.leftMargin =leftX.toInt()
+////            iv.layoutParams = IVRelativeLayout
+//            val IVRelativeLayout = iv.layoutParams as? RelativeLayout.LayoutParams
+//            IVRelativeLayout!!.setMargins(leftX.toInt(), topY.toInt(), 0, 0)
+//
+//            iv.layoutParams = IVRelativeLayout
+//
+//            iv.left=leftX.toInt()
+//            iv.top=topY.toInt()
+////            iv.layoutParams.width=img.width
+////            iv.layoutParams.height=img.height
+//            Log.d("size",iv.layoutParams.width.toString()+", " +iv.layoutParams.height.toString())
+//            Log.d("size", "$leftX, $rightX, $topY, $bottomY")
+//            iv.requestLayout()
+//
+//            M_layout.addView(iv, img.width, img.height)
 
             // 선택된 객체는 해당 위치에 배치
             val iv = ImageView(this)
@@ -139,37 +197,19 @@ class MotionActivity : AppCompatActivity() {
 
             // 모션 적용
             when (motion) {
-                "bingle" -> iv.startAnimation(aniRotate)
+                "run" -> iv.startAnimation(aniRun)
                 "jump" -> iv.startAnimation(aniBounce)
                 "shake" -> iv.startAnimation(aniShake)
+                "come" -> iv.startAnimation(aniCome)
+                "go" -> iv.startAnimation(aniGo)
+                "fade" -> iv.startAnimation(aniFade)
+                "roll" -> iv.startAnimation(aniRoll)
+                "spin" -> iv.startAnimation(aniSpin)
             }
         }
         whole.setImageBitmap(userDrawing)
-    }
-
-    private fun getVideoUri(): Uri? {
-        val videoDir = "/storage/emulated/0/Movies/scrcast/"
-        val videoFiles = File(videoDir).listFiles()
-        val videoPath = videoFiles[videoFiles.lastIndex].toString()
-        videoUri = Uri.parse(videoPath)
-        Log.println(Log.INFO, "비디오 경로 2", videoUri.toString())
-        return videoUri
-    }
-
-    private fun hideSystemUi() {
-        WindowCompat.setDecorFitsSystemWindows(window, false)
-        WindowInsetsControllerCompat(window,
-            window.decorView.findViewById(android.R.id.content)).let { controller ->
-            controller.hide(WindowInsetsCompat.Type.systemBars())
-            controller.systemBarsBehavior =
-                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-        }
-    }
-
-    private fun moveToTextActivity() {
-        val intent = Intent(this, TextActivity::class.java)
-        intent.putExtra("pickedDate", pickedDate)
-        intent.putExtra("videoUri", getVideoUri().toString())
-        startActivity(intent)
+        showAnimationDone = true
     }
 }
+
+

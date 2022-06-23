@@ -3,9 +3,8 @@ package com.example.picturediary
 import android.content.*
 import android.graphics.*
 import android.net.Uri
-import android.net.wifi.WifiManager
-import android.os.Build
 import android.os.Bundle
+import android.provider.MediaStore
 import android.widget.Toast
 import androidx.appcompat.app.*
 import com.example.picturediary.navigation.model.*
@@ -19,7 +18,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.tasks.await
 import java.io.ByteArrayOutputStream
 import java.io.File
-import kotlin.collections.ArrayList
+
 
 class TextActivity  : AppCompatActivity() {
     val utils = Utils()
@@ -34,18 +33,17 @@ class TextActivity  : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_text)
 
-        // 파이어스토어, 파이어베이스 설정
+        // 파이어스토어, 파이어베이스, 내장DB 설정
         firestore = FirebaseFirestore.getInstance()
         storage = FirebaseStorage.getInstance()
         auth = Firebase.auth
         username = auth?.currentUser?.displayName.toString()
         val uid = auth?.currentUser?.uid.toString()
+        val dbHelper = utils.createDBHelper(applicationContext)
 
         // 인텐트 설정
-        val dbHelper = utils.createDBHelper(applicationContext)
-//        val videoUri = Uri.parse(intent.getStringExtra("videoUri"))
-        val videoUri = Uri.fromFile(File(intent.getStringExtra("videoUri")))
-
+        val intentUri = intent.getStringExtra("videoUri")
+        val videoFile = File(intentUri)
         pickedDate = intent.getStringExtra("pickedDate")
         val arr = dbHelper.readDrawing(pickedDate!!, username!!)!!.image
         picture = BitmapFactory.decodeByteArray(arr, 0, arr!!.size)
@@ -121,12 +119,13 @@ class TextActivity  : AppCompatActivity() {
                                 if (checked) {
                                     val groupID = finalGroupsID[i]
                                     val storageRef = storage!!.reference
-                                    val data = saveInDb(diaryStory)
+                                    saveInDb(diaryStory)
+
+                                    val videoUri = Uri.fromFile(File(intentUri))
 
                                     // 파이어스토어에 일기 업데이트
                                     storageRef.child("videos/$username-$groupID-$pickedDate")
-//                                        .putBytes(data)
-                                        .putFile(videoUri)
+                                        .putFile(videoUri!!)
                                         .addOnSuccessListener {
                                             val result = it.metadata!!.reference!!.downloadUrl
                                             result.addOnSuccessListener { uri ->
@@ -146,6 +145,9 @@ class TextActivity  : AppCompatActivity() {
                                                 firestore!!.collection("contents")
                                                     .document(contentId)
                                                     .set(contentDTO)
+                                                    .addOnSuccessListener {
+                                                        videoFile.delete()
+                                                    }
                                             }
                                                 .addOnFailureListener {
                                                     Toast.makeText(this@TextActivity, "처리하는 중 오류가 발생했습니다", Toast.LENGTH_SHORT).show()
@@ -161,21 +163,17 @@ class TextActivity  : AppCompatActivity() {
         }
     }
 
-    // 확인 눌렀을 당시 내장 DB에 저장
-    private fun saveInDb(diaryStory: String): ByteArray {
-        val dbHelper = Utils().createDBHelper(applicationContext)
-        val baos = ByteArrayOutputStream()
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
-            picture!!.compress(Bitmap.CompressFormat.WEBP_LOSSLESS, 100, baos)
-        else
-            picture!!.compress(Bitmap.CompressFormat.PNG, 100, baos)
-        val data = baos.toByteArray()
+
+    // 확인 눌렀을 당시 내장 DB에 저장
+    private fun saveInDb(diaryStory: String) {
+        val dbHelper = Utils().createDBHelper(applicationContext)
 
         // 내장 DB에 일기 업데이트
-        dbHelper.updateDrawing(pickedDate!!, username!!, diaryStory, data)
-
-        return data
+        val pngBaos = ByteArrayOutputStream()
+        picture!!.compress(Bitmap.CompressFormat.PNG, 100, pngBaos)
+        val png = pngBaos.toByteArray()
+        dbHelper.updateDrawing(pickedDate!!, username!!, diaryStory, png)
     }
 
     public override fun onBackPressed() {
