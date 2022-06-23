@@ -33,6 +33,13 @@ class DateManager {
         return currentMonth == format.format(date)
     }
 
+    //Check if it is this month
+    fun isToday(date: Date?): Boolean {
+        val format = SimpleDateFormat("yyyy년 MM월 dd일", Locale.KOREA)
+        val currentDate = format.format(mCalendar.time)
+        return currentDate == format.format(date)
+    }
+
     // Get the number of weeks
     val weeks: Int
         get() = mCalendar.getActualMaximum(Calendar.WEEK_OF_MONTH)

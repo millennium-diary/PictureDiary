@@ -79,6 +79,12 @@ class CalendarAdapter(context: Context): BaseAdapter() {
         if (!(mDateManager!!.isCurrentMonth(dateArray[position]))) {
             holder.dateText!!.alpha = 0.4f
         }
+
+        // 이번 달 아니면 텍스트 색 연하게
+        if ((mDateManager!!.isToday(dateArray[position]))) {
+            holder.dateImg
+        }
+
         return convertView
     }
 

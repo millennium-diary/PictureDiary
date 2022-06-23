@@ -54,7 +54,7 @@ class CropActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-        // 모두재생 버튼
+        // 모두 재생 버튼
         playAll.setOnClickListener {
             val intent = Intent(this, MotionActivity::class.java)
             val stream = ByteArrayOutputStream()
