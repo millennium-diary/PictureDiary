@@ -11,7 +11,8 @@ import java.net.InetSocketAddress
 
 
 class ClassifyClient {
-    private val hostname = "192.168.0.2"
+    private val hostname = "192.168.181.15"
+//    private val hostname = "192.168.0.2"
 //    private val hostname = "192.168.0.44"     // TUK 와이파이
 
     private var last = false
