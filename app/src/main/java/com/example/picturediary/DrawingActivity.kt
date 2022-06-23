@@ -3,35 +3,36 @@ package com.example.picturediary
 import android.app.Dialog
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.os.Bundle
-
-import androidx.appcompat.app.AppCompatActivity
-import kotlinx.android.synthetic.main.activity_drawing.*
 import android.view.View
 import android.widget.*
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.get
 import com.example.picturediary.navigation.dao.DBHelper
+import kotlinx.android.synthetic.main.activity_drawing.*
+import kotlinx.coroutines.DelicateCoroutinesApi
 import java.io.ByteArrayOutputStream
 
 
 class DrawingActivity : AppCompatActivity() {
     private val loggedInUser = PrefApplication.prefs.getString("loggedInUser", "")
     private val username = loggedInUser.split("★")[0]
-    private val dbName = "pictureDiary.db"
     lateinit var dbHelper: DBHelper
 
     private var drawingView: DrawingView? = null
     private var mImageButtonCurrentPaint: ImageButton? = null
 
 
+    @OptIn(DelicateCoroutinesApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_drawing)
 
-        dbHelper = DBHelper(this, dbName, null, 1)
+        dbHelper = Utils().createDBHelper(this)
         val pickedDate = intent.getStringExtra("pickedDate")
 
         drawingView = findViewById(R.id.drawing_view)
@@ -57,8 +58,8 @@ class DrawingActivity : AppCompatActivity() {
             val intent = Intent(this, CropActivity::class.java)
 
             val stream = ByteArrayOutputStream()
-            val picture = getBitmapFromView(drawing_view)
-            picture.compress(Bitmap.CompressFormat.PNG, 50, stream)
+            val picture = Utils().getBitmapFromView(drawing_view)
+            picture.compress(Bitmap.CompressFormat.PNG, 0, stream)
             val byteArray = stream.toByteArray()
 
             val fullDrawing = dbHelper.readDrawing(pickedDate!!, username)
@@ -68,8 +69,10 @@ class DrawingActivity : AppCompatActivity() {
             // 그림 존재 --> 그림 수정 --> 그림 업데이트 & 객체 삭제
             else {
                 val drawing = fullDrawing.image
-                if (!drawing.contentEquals(byteArray)) {
-                    dbHelper.updateDrawing(pickedDate, username, byteArray)
+                val bitmap = BitmapFactory.decodeByteArray(drawing, 0, drawing!!.size)
+
+                if (!bitmap.sameAs(picture)) {
+                    dbHelper.updateDrawing(pickedDate, username, fullDrawing.content!!, byteArray)
                     dbHelper.deleteAllObject(pickedDate, username)
                 }
             }
@@ -165,20 +168,6 @@ class DrawingActivity : AppCompatActivity() {
             //Current view is updated with selected view in the form of ImageButton.
             mImageButtonCurrentPaint = view
         }
-    }
-
-    private fun getBitmapFromView(view : View): Bitmap {
-        val returnedBitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(returnedBitmap)
-
-        val bgDrawable = view.background
-        if(bgDrawable != null) {
-            bgDrawable.draw(canvas)
-        } else {
-            canvas.drawColor(Color.TRANSPARENT)
-        }
-        view.draw(canvas)
-        return returnedBitmap
     }
 }
 

@@ -9,9 +9,12 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.picturediary.navigation.dao.DBHelper
 import kotlinx.android.synthetic.main.activity_crop.*
 import kotlinx.android.synthetic.main.activity_crop.view.*
+import kotlinx.coroutines.DelicateCoroutinesApi
+import java.io.ByteArrayOutputStream
 
-class CropActivity: AppCompatActivity() {
-    var picture : Bitmap? = null
+@DelicateCoroutinesApi
+class CropActivity : AppCompatActivity() {
+    var picture: Bitmap? = null
     var pickedDate: String? = null
     private var cropView: CropView? = null
     private val loggedInUser = PrefApplication.prefs.getString("loggedInUser", "")
@@ -27,29 +30,40 @@ class CropActivity: AppCompatActivity() {
         picture = BitmapFactory.decodeByteArray(arr, 0, arr!!.size)
 
         // 어댑터 띄우기
-        val dbName = "pictureDiary.db"
-        val dbHelper = DBHelper(applicationContext, dbName, null, 1)
-        val objectArrayList = dbHelper.readObject(pickedDate!!, username)
-        val objectListAdapter = ObjectListAdapter(objectArrayList)
-        objectRecycler.apply {
-            objectRecycler.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
-            objectRecycler.adapter = objectListAdapter
-        }
+        val dbHelper = Utils().createDBHelper(applicationContext)
+//        val objectArrayList = dbHelper.readObjects(pickedDate!!, username)
+//        val objectListAdapter = ObjectListAdapter(objectArrayList)
+//        objectRecycler.apply {
+//            objectRecycler.layoutManager =
+//                LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+//            objectRecycler.adapter = objectListAdapter
+//        }
 
         // CropView.kt에 작업 넘김
         cropView = findViewById(R.id.crop_view)
         cropView?.setDrawId(pickedDate!!)
         cropView?.setDrawing(picture!!)
 
-        completeBtn.setOnClickListener {//완료버튼
-            val intent = Intent(this, TextActivity::class.java)
+        // 완료 버튼
+        completeBtn.setOnClickListener {
+//            val intent = Intent(this, TextActivity::class.java)
+            val intent = Intent(this, MotionActivity::class.java)
+            intent.putExtra("record", true)
+            intent.putExtra("picture", arr)
+            intent.putExtra("pickedDate", pickedDate)
             startActivity(intent)
         }
 
-        playAll.setOnClickListener {//모두재생 버튼
-
+        // 모두재생 버튼
+        playAll.setOnClickListener {
+            val intent = Intent(this, MotionActivity::class.java)
+            val stream = ByteArrayOutputStream()
+            val picture = Utils().getBitmapFromView(crop_view)
+            picture.compress(Bitmap.CompressFormat.PNG, 0, stream)
+            val byteArray = stream.toByteArray()
+            intent.putExtra("pickedDate", pickedDate)
+            intent.putExtra("picture", byteArray)
+            startActivity(intent)
         }
-
-
     }
 }

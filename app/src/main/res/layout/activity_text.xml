@@ -9,7 +9,6 @@
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="35dp">
-
         <TextView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -19,7 +18,7 @@
     </androidx.appcompat.widget.Toolbar>
 
     <ImageView
-        android:id="@+id/imageView"
+        android:id="@+id/diaryImg"
         android:layout_width="150dp"
         android:layout_height="150dp"
         android:layout_gravity="center"
@@ -33,14 +32,14 @@
         android:background="@drawable/round_edittext"
         android:ems="10"
         android:gravity="start|top"
-        android:layout_margin="10dp"
+        android:layout_margin="30dp"
         android:inputType="textMultiLine" />
 
     <Button
         android:id="@+id/confirmText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="10dp"
+        android:layout_margin="30dp"
         android:backgroundTint="@color/black"
         android:text="확인" />
 

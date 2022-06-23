@@ -10,70 +10,124 @@
         android:layout_width="300dp"
         android:layout_height="300dp"
         android:src="@drawable/ic_launcher_foreground"
-        android:background="@drawable/ic_launcher_background"
-        />
+        android:background="@drawable/ic_launcher_background" />
+
     <HorizontalScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
-        <Button
-            android:id="@+id/btnRotate"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="20dp"
-            android:layout_marginTop="20dp"
-            android:padding="5dp"
-            android:text="빙글빙글"
-            android:background="@color/black"
-            android:textColor="@color/white"
-            android:textAlignment="center"
-            android:textSize="8pt"
-            />
-        <Button
-            android:id="@+id/btnBounce"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="10dp"
-            android:layout_marginTop="20dp"
-            android:padding="5dp"
-            android:text="띠용띠용"
-            android:background="@color/black"
-            android:textColor="@color/white"
-            android:textAlignment="center"
-            android:textSize="8pt"
-            />
-        <Button
-            android:id="@+id/btnFade"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="10dp"
-            android:layout_marginTop="20dp"
-            android:padding="5dp"
-            android:text="스르륵"
-            android:background="@color/black"
-            android:textColor="@color/white"
-            android:textAlignment="center"
-            android:textSize="8pt"
-            />
-        <Button
-            android:id="@+id/btnTwist"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="10dp"
-            android:layout_marginRight="20dp"
-            android:layout_marginTop="20dp"
-            android:padding="5dp"
-            android:text="부들부들"
-            android:background="@color/black"
-            android:textColor="@color/white"
-            android:textAlignment="center"
-            android:textSize="8pt"
-            />
+            <Button
+                android:id="@+id/btnRun"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="20dp"
+                android:layout_marginTop="20dp"
+                android:padding="5dp"
+                android:text="달리기"
+                android:background="@color/black"
+                android:textColor="@color/white"
+                android:textAlignment="center"
+                android:textSize="8pt"/>
+            <Button
+                android:id="@+id/btnCome"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="20dp"
+                android:layout_marginTop="20dp"
+                android:padding="5dp"
+                android:text="다가오기"
+                android:background="@color/black"
+                android:textColor="@color/white"
+                android:textAlignment="center"
+                android:textSize="8pt"/>
+            <Button
+                android:id="@+id/btnGo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="20dp"
+                android:layout_marginTop="20dp"
+                android:padding="5dp"
+                android:text="멀어지기"
+                android:background="@color/black"
+                android:textColor="@color/white"
+                android:textAlignment="center"
+                android:textSize="8pt"/>
+            <Button
+                android:id="@+id/btnRotate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="20dp"
+                android:layout_marginTop="20dp"
+                android:padding="5dp"
+                android:text="빙글빙글"
+                android:background="@color/black"
+                android:textColor="@color/white"
+                android:textAlignment="center"
+                android:textSize="8pt"/>
+
+            <Button
+                android:id="@+id/btnBounce"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="20dp"
+                android:padding="5dp"
+                android:text="띠용띠용"
+                android:background="@color/black"
+                android:textColor="@color/white"
+                android:textAlignment="center"
+                android:textSize="8pt"/>
+
+            <Button
+                android:id="@+id/btnFade"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="20dp"
+                android:padding="5dp"
+                android:text="스르륵"
+                android:background="@color/black"
+                android:textColor="@color/white"
+                android:textAlignment="center"
+                android:textSize="8pt"/>
+
+            <Button
+                android:id="@+id/btnTwist"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="20dp"
+                android:layout_marginTop="20dp"
+                android:padding="5dp"
+                android:text="부들부들"
+                android:background="@color/black"
+                android:textColor="@color/white"
+                android:textAlignment="center"
+                android:textSize="8pt"/>
         </LinearLayout>
     </HorizontalScrollView>
+
+    <Button
+        android:id="@+id/recordBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginVertical="50dp"
+        android:text="녹화"/>
+
+    <Button
+        android:id="@+id/showBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="영상 확인"/>
 
 
 </LinearLayout>
