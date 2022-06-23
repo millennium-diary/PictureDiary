@@ -210,19 +210,19 @@ class TimelineActivity : AppCompatActivity() {
                     }
                 }
 
-            if (contentDTOs[p1].isVideo == true) {
+//            if (contentDTOs[p1].isVideo == true) {
                 viewHolder.imageView.visibility = View.GONE
                 viewHolder.videoView.setScaleType(TextureVideoView.ScaleType.CENTER_CROP)
                 viewHolder.videoView.setDataSource(contentDTOs[p1].imageUrl)
                 viewHolder.videoView.setLooping(true)
                 viewHolder.videoView.play()
-            }
-            else {
-                viewHolder.imageView.visibility = View.VISIBLE
-                Glide.with(p0.itemView.context)
-                    .load(contentDTOs[p1].imageUrl)
-                    .into(viewHolder.imageView)
-            }
+//            }
+//            else {
+//                viewHolder.imageView.visibility = View.VISIBLE
+//                Glide.with(p0.itemView.context)
+//                    .load(contentDTOs[p1].imageUrl)
+//                    .into(viewHolder.imageView)
+//            }
 
 //                if (!videoPlaying) {
 //                    viewHolder.videoView.setLooping(true)
@@ -248,17 +248,27 @@ class TimelineActivity : AppCompatActivity() {
             }
 
             viewHolder.like_number.text = "좋아요 " + contentDTOs[p1].favoriteCount + "개"
+
             viewHolder.delete_picture.setOnClickListener {
                 deleteDiary(contentDTOs[p1].contentId)
             }
         }
 
+        //일기 삭제
         private fun deleteDiary(ContentID: String?) {
-            if (ContentID != null) {
-                firestore.collection("contents")
-                    .document(ContentID)
-                    .delete()
-            }
+            val builder = AlertDialog.Builder(this@TimelineActivity)
+            builder.setTitle("알림")
+                .setMessage("일기를 그룹에서 삭제하시겠습니까?")
+                .setPositiveButton("삭제", DialogInterface.OnClickListener{dialog, id ->
+                    if (ContentID != null) {
+                        firestore.collection("contents")
+                            .document(ContentID)
+                            .delete()
+                    }
+                })
+                .setNegativeButton("취소",DialogInterface.OnClickListener { dialog, id ->})
+            builder.show()
+
         }
 
         override fun getItemCount(): Int {

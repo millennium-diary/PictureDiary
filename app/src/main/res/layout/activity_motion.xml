@@ -31,6 +31,8 @@
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <LinearLayout
+        android:id="@+id/waitLayout"
+        android:visibility="gone"
         android:layout_width="wrap_content"
         android:layout_height="50dp"
         android:background="#67D493"
@@ -44,7 +46,6 @@
             android:id="@+id/waitText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text=" 일기 만드는 중..."
             android:textColor="@color/white"
             android:textSize="30sp"
             android:textAlignment="center"
@@ -54,8 +55,7 @@
             android:id="@+id/bookflip"
             android:layout_width="50dp"
             android:layout_height="50dp"
-            android:scaleType="centerCrop"
-            android:src="@raw/bookflip"/>
+            android:scaleType="centerCrop"/>
 
     </LinearLayout>
 

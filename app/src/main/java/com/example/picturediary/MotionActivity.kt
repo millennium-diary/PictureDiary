@@ -69,6 +69,7 @@ class MotionActivity : AppCompatActivity() {
             }
 
             hideSystemUi()
+            waitLayout.visibility = VISIBLE
             waitText.text = "  일기 만드는 중...  "
             Glide.with(this).load(R.raw.bookflip).into(bookflip)
 
