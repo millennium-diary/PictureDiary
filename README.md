@@ -48,11 +48,11 @@
 <br><br>
 
 # 시스템 구성도
-![image](https://user-images.githubusercontent.com/62047373/175225441-029889a8-8d19-4ed4-9e9d-6e23001af031.png)
+![image](https://user-images.githubusercontent.com/62047373/175225616-55651129-b3cc-48d1-a316-2835d03bf9e8.png)
 <br><br>
 
 # 시스템 흐름도
-![image](https://user-images.githubusercontent.com/62047373/175225488-6d31def0-6346-42f1-8b02-f8fcb68279d2.png)
+![image](https://user-images.githubusercontent.com/62047373/175225709-7b53910a-dbb1-45ca-8330-81c41f5a3a32.png)
 <br><br>
 
 # 실행 화면
