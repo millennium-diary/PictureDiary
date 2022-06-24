@@ -48,6 +48,7 @@ class TextActivity  : AppCompatActivity() {
         val arr = dbHelper.readDrawing(pickedDate!!, username!!)!!.image
         picture = BitmapFactory.decodeByteArray(arr, 0, arr!!.size)
         val intent = Intent(this, MainActivity::class.java)
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
 
         val drawingDTO = dbHelper.readDrawing(pickedDate!!, username!!)
         if (drawingDTO != null)
@@ -176,9 +177,4 @@ class TextActivity  : AppCompatActivity() {
         dbHelper.updateDrawing(pickedDate!!, username!!, diaryStory, png)
     }
 
-    public override fun onBackPressed() {
-        Toast.makeText(this, "확인 버튼을 통해 저장해주세요", Toast.LENGTH_SHORT).show();
-        //super.onBackPressed();
-
-    }
 }
