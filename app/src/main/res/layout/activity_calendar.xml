@@ -22,9 +22,9 @@
             android:text="0000년 00월"
             android:textSize="20sp" />
 
-        <Button
-            style="@style/Widget.AppCompat.Button.Borderless"
+        <android.widget.Button
             android:id="@+id/prevButton"
+            style="@style/Widget.AppCompat.Button.Borderless"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_alignParentStart="true"
@@ -34,9 +34,9 @@
             android:text="&lt;"
             android:textSize="30dp" />
 
-        <Button
-            style="@style/Widget.AppCompat.Button.Borderless"
+        <android.widget.Button
             android:id="@+id/nextButton"
+            style="@style/Widget.AppCompat.Button.Borderless"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_alignParentEnd="true"
