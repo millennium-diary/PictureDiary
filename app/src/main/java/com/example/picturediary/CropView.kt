@@ -398,11 +398,13 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
                 canvas.drawBitmap(bitmap!!, 0f, 0f, null)
 
                 val erase = Paint()
-                erase.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_OUT)
-                erase.color = Color.WHITE
+                erase.xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR)
+//                erase.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_OUT)
+//                erase.color = Color.WHITE
+                erase.alpha = 0xFF
                 erase.isAntiAlias = true
-//                canvas.drawPath(objPath!!, erase)
-                canvas.drawRect(objLeft!!, objTop!!, objRight!!, objBottom!!, erase)
+                canvas.drawPath(objPath!!, erase)
+//                canvas.drawRect(objLeft!!, objTop!!, objRight!!, objBottom!!, erase)
 
                 bitmap = utils.overlay(userDrawing, wholeBitmap)
                 val drawingStream = ByteArrayOutputStream()
