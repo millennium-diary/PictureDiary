@@ -331,19 +331,17 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
 
     // 인식된 객체의 다른 이미지 보기 어댑터
     @SuppressLint("NotifyDataSetChanged")
-//    private fun setRecommendAdapter(classifiedResult: String, drawingId: String, objId: String) {
     private fun setRecommendAdapter(urls: ArrayList<String>, drawingId: String, objId: String) {
+        // 서버에게 받은 이미지 링크를 비트맵으로 변환
         val crawlingArrayList = arrayListOf<Bitmap>()
         val job = GlobalScope.launch(Dispatchers.IO) {
             for (url in urls) {
                 val crawledImage = urlToBitmap(url)
                 if (crawledImage != null) crawlingArrayList.add(crawledImage)
             }
-            println("라라 $crawlingArrayList")
         }
-        runBlocking {
-            job.join()
-        }
+        // 해당 작업이 끝날 때까지 대기
+        runBlocking { job.join() }
 
         var drawId = drawingId
         if (!drawId.contains("@")) drawId = "$username@$drawId"
@@ -358,30 +356,6 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
         val recommendListAdapter: RecommendListAdapter?
         val recommendArrayList = arrayListOf<Bitmap>(originalDraw)
         recommendArrayList.addAll(crawlingArrayList)
-
-//        val planeArrayList = utils.getBitmapFromDrawable(context, arrayListOf(R.drawable.airplane1, R.drawable.airplane2, R.drawable.airplane3))
-//        val busArrayList = utils.getBitmapFromDrawable(context, arrayListOf(R.drawable.bus1, R.drawable.bus2, R.drawable.bus3))
-//        val cakeArrayList = utils.getBitmapFromDrawable(context, arrayListOf(R.drawable.cake1, R.drawable.cake2, R.drawable.cake3))
-//        val carArrayList = utils.getBitmapFromDrawable(context, arrayListOf(R.drawable.car1, R.drawable.car2, R.drawable.car3))
-//        val catArrayList = utils.getBitmapFromDrawable(context, arrayListOf(R.drawable.cat1, R.drawable.cat2, R.drawable.cat3))
-//        val dogArrayList = utils.getBitmapFromDrawable(context, arrayListOf(R.drawable.dog1, R.drawable.dog2, R.drawable.dog3))
-//        val grassArrayList = utils.getBitmapFromDrawable(context, arrayListOf(R.drawable.grass1, R.drawable.grass2, R.drawable.grass3))
-//        val houseArrayList = utils.getBitmapFromDrawable(context, arrayListOf(R.drawable.house1, R.drawable.house2, R.drawable.house3))
-//        val rainbowArrayList = utils.getBitmapFromDrawable(context, arrayListOf(R.drawable.rainbow1, R.drawable.rainbow2, R.drawable.rainbow3))
-//        val snowmanArrayList = utils.getBitmapFromDrawable(context, arrayListOf(R.drawable.snowman1, R.drawable.snowman2, R.drawable.snowman3))
-//
-//        when (classifiedResult) {
-//            "airplane" -> recommendArrayList.addAll(planeArrayList)
-//            "bus" -> recommendArrayList.addAll(busArrayList)
-//            "cake" -> recommendArrayList.addAll(cakeArrayList)
-//            "car" -> recommendArrayList.addAll(carArrayList)
-//            "cat" -> recommendArrayList.addAll(catArrayList)
-//            "dog" -> recommendArrayList.addAll(dogArrayList)
-//            "grass" -> recommendArrayList.addAll(grassArrayList)
-//            "house" -> recommendArrayList.addAll(houseArrayList)
-//            "rainbow" -> recommendArrayList.addAll(rainbowArrayList)
-//            "snowman" -> recommendArrayList.addAll(snowmanArrayList)
-//        }
 
         // 어댑터 설정
         recommendListAdapter = RecommendListAdapter(recommendArrayList)
@@ -442,8 +416,6 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
 
                 val erase = Paint()
                 erase.xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR)
-//                erase.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_OUT)
-//                erase.color = Color.WHITE
                 erase.alpha = 0xFF
                 erase.isAntiAlias = true
 //                canvas.drawPath(objPath!!, erase)
