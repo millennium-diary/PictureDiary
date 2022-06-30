@@ -88,7 +88,6 @@ class MotionActivity : AppCompatActivity() {
         val videoFiles = File(videoDir).listFiles()
         val videoPath = videoFiles[videoFiles.lastIndex].toString()
         videoUri = Uri.parse(videoPath)
-        Log.println(Log.INFO, "비디오 경로 2", videoUri.toString())
         return videoUri
     }
 

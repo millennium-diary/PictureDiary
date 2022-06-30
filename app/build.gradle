@@ -16,7 +16,7 @@ android {
     defaultConfig {
         applicationId "com.example.picturediary"
         minSdk 27
-        targetSdk 32
+        targetSdk 27
         versionCode 1
         versionName "1.0"
 

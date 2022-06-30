@@ -66,12 +66,14 @@
         <entry key="..\:/AndroidStudio/PictureDiary/app/src/main/res/layout/user_groups.xml" value="0.18" />
         <entry key="..\:/AndroidStudio/PictureDiary/app/src/main/res/menu/bottom_navigation_main.xml" value="0.20208333333333334" />
         <entry key="..\:/AndroidStudio/PictureDiary/app/src/main/res/menu/group_list.xml" value="0.30277777777777776" />
+        <entry key="..\:/Users/FGB/Downloads/PictureDiary/app/src/main/res/layout/activity_calendar.xml" value="0.17806484295845998" />
         <entry key="..\:/Users/FGB/Downloads/PictureDiary/app/src/main/res/layout/activity_drawing.xml" value="0.17806484295845998" />
         <entry key="..\:/Users/FGB/Downloads/PictureDiary/app/src/main/res/layout/activity_login.xml" value="0.18" />
         <entry key="..\:/Users/FGB/Downloads/PictureDiary/app/src/main/res/layout/activity_main.xml" value="0.25" />
         <entry key="..\:/Users/FGB/Downloads/PictureDiary/app/src/main/res/layout/community.xml" value="0.17806484295845998" />
         <entry key="..\:/Users/FGB/Downloads/PictureDiary/app/src/main/res/layout/fragment_detail.xml" value="0.17806484295845998" />
-        <entry key="..\:/Users/FGB/Downloads/PictureDiary/app/src/main/res/layout/fragment_user.xml" value="0.2" />
+        <entry key="..\:/Users/FGB/Downloads/PictureDiary/app/src/main/res/layout/fragment_user.xml" value="0.25" />
+        <entry key="..\:/Users/FGB/Downloads/PictureDiary/app/src/main/res/layout/item_calendar.xml" value="0.21557971014492755" />
       </map>
     </option>
   </component>
