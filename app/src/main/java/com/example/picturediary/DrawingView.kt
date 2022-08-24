@@ -121,8 +121,10 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context, attrs) 
     fun setColor(newColor: String) {
         if (newColor == "eraser") {
             eraserMode = true
-            color = Color.WHITE
-            mDrawPaint?.color = color
+            mDrawPaint?.alpha = 0xFF
+            mDrawPaint?.xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR)
+//            color = Color.WHITE
+//            mDrawPaint?.color = color
         }
         else {
             eraserMode = false

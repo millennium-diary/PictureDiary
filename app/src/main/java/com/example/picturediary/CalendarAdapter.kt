@@ -25,6 +25,7 @@ class CalendarAdapter(context: Context): BaseAdapter() {
     private class ViewHolder {
         var dateText: TextView? = null
         var dateImg: ImageView? = null
+//        var todayColor: LinearLayout? = null
     }
 
     override fun getCount(): Int {
@@ -59,11 +60,20 @@ class CalendarAdapter(context: Context): BaseAdapter() {
 
         val datetime = SimpleDateFormat("yyyy.MM.dd").format(dateArray[position])
         fullDrawing = dbHelper.readDrawing(datetime, username)
+
         // 해당 날짜에 저장된 그림이 있으면 해당 그림 띄우기
         if (fullDrawing != null) {
             val bitmap = BitmapFactory.decodeByteArray(fullDrawing!!.image, 0, fullDrawing!!.image!!.size)
             holder.dateImg!!.setImageBitmap(bitmap!!)
         }
+
+        // 해당 날짜가 오늘의 날짜와 일치하면 칸 색칠하기
+        val today = mDateManager!!.getToday()
+        if (today == datetime)
+            convertView.setBackgroundColor(Color.parseColor("#FAF4C0"))
+        else
+            convertView.setBackgroundColor(Color.WHITE)
+
 
         // 일요일 --> 빨강, 토요일 --> 파랑
         val colorId: Int = when (mDateManager!!.getDayOfWeek(dateArray[position])) {
@@ -72,17 +82,12 @@ class CalendarAdapter(context: Context): BaseAdapter() {
             else -> Color.parseColor("#8C8C8C")
         }
         holder.dateText!!.setTextColor(colorId)
-        convertView.setBackgroundColor(Color.WHITE)
+//        convertView.setBackgroundColor(Color.WHITE)
 
         // 이번 달 아니면 텍스트 색 연하게
         holder.dateText!!.alpha = 1f
         if (!(mDateManager!!.isCurrentMonth(dateArray[position]))) {
             holder.dateText!!.alpha = 0.4f
-        }
-
-        // 이번 달 아니면 텍스트 색 연하게
-        if ((mDateManager!!.isToday(dateArray[position]))) {
-            holder.dateImg
         }
 
         return convertView

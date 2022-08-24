@@ -33,23 +33,22 @@ class TextActivity  : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_text)
 
-        // 파이어스토어, 파이어베이스 설정
+        // 파이어스토어, 파이어베이스, 내장DB 설정
         firestore = FirebaseFirestore.getInstance()
         storage = FirebaseStorage.getInstance()
         auth = Firebase.auth
         username = auth?.currentUser?.displayName.toString()
         val uid = auth?.currentUser?.uid.toString()
-
-        // 인텐트 설정
         val dbHelper = utils.createDBHelper(applicationContext)
 
-        val isVideo = intent.getBooleanExtra("isVideo", false)
+        // 인텐트 설정
         val intentUri = intent.getStringExtra("videoUri")
         val videoFile = File(intentUri)
         pickedDate = intent.getStringExtra("pickedDate")
         val arr = dbHelper.readDrawing(pickedDate!!, username!!)!!.image
         picture = BitmapFactory.decodeByteArray(arr, 0, arr!!.size)
         val intent = Intent(this, MainActivity::class.java)
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
 
         val drawingDTO = dbHelper.readDrawing(pickedDate!!, username!!)
         if (drawingDTO != null)
@@ -121,13 +120,9 @@ class TextActivity  : AppCompatActivity() {
                                 if (checked) {
                                     val groupID = finalGroupsID[i]
                                     val storageRef = storage!!.reference
-                                    val data = saveInDb(diaryStory)
+                                    saveInDb(diaryStory)
 
-                                    val videoUri = if (isVideo) {
-                                        Uri.fromFile(File(intentUri))
-                                    } else {
-                                        data
-                                    }
+                                    val videoUri = Uri.fromFile(File(intentUri))
 
                                     // 파이어스토어에 일기 업데이트
                                     storageRef.child("videos/$username-$groupID-$pickedDate")
@@ -147,7 +142,6 @@ class TextActivity  : AppCompatActivity() {
                                                 contentDTO.timestamp = System.currentTimeMillis()
                                                 contentDTO.imageUrl = videoLink
                                                 contentDTO.diaryDate = pickedDate
-                                                contentDTO.isVideo = isVideo
 
                                                 firestore!!.collection("contents")
                                                     .document(contentId)
@@ -173,30 +167,15 @@ class TextActivity  : AppCompatActivity() {
 
 
     // 확인 눌렀을 당시 내장 DB에 저장
-    private fun saveInDb(diaryStory: String): Uri? {
+    private fun saveInDb(diaryStory: String) {
         val dbHelper = Utils().createDBHelper(applicationContext)
-
-        val imageWithBG = Bitmap.createBitmap(picture!!.width, picture!!.height, picture!!.config)
-        imageWithBG.eraseColor(Color.WHITE)
-        val canvas = Canvas(imageWithBG)
-        canvas.drawBitmap(picture!!, 0f, 0f, null)
-
-        val path = MediaStore.Images.Media.insertImage(
-            applicationContext.contentResolver, imageWithBG, null, null
-        )
 
         // 내장 DB에 일기 업데이트
         val pngBaos = ByteArrayOutputStream()
         picture!!.compress(Bitmap.CompressFormat.PNG, 100, pngBaos)
         val png = pngBaos.toByteArray()
         dbHelper.updateDrawing(pickedDate!!, username!!, diaryStory, png)
-
-//        // 파이어베이스에 업로드할 이미지
-//        val jpgBaos = ByteArrayOutputStream()
-//        picture!!.compress(Bitmap.CompressFormat.JPEG, 100, jpgBaos)
-//        val jpgStream = jpgBaos.toByteArray()
-//        val jpg = BitmapFactory.decodeStream(ByteArrayInputStream(jpgStream))
-
-        return Uri.parse(path)
     }
+
+
 }

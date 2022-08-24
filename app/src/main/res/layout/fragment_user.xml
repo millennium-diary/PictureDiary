@@ -121,65 +121,89 @@
 
     <android.widget.Button
         android:id="@+id/info_update"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="30dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginHorizontal="20dp"
         android:visibility="visible"
         android:text="정보 수정"
+        android:textSize="18sp"
+        app:layout_constraintHeight_percent="0.1"
+        app:layout_constraintWidth_percent="0.8"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/info_user_out"/>
+        app:layout_constraintTop_toBottomOf="@id/speech_bubble"
+        app:layout_constraintBottom_toTopOf="@id/info_user_out"
+        app:layout_constraintBaseline_toBaselineOf="@id/info_user_out"/>
 
     <android.widget.Button
         android:id="@+id/info_update_complete"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="30dp"
-        android:layout_marginBottom="30dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginHorizontal="20dp"
         android:visibility="gone"
         android:text="수정 완료"
+        android:textSize="18sp"
+        app:layout_constraintHeight_percent="0.1"
+        app:layout_constraintWidth_percent="0.8"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintBottom_toTopOf="@id/info_user_out"/>
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/info_user_out"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         android:layout_marginBottom="30dp"
-        android:paddingHorizontal="20dp"
+        android:layout_marginHorizontal="20dp"
         android:gravity="center"
         android:orientation="horizontal"
-        app:layout_constraintBottom_toBottomOf="parent">
+        app:layout_constraintTop_toBottomOf="@id/info_update"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintHeight_percent="0.1"
+        app:layout_constraintWidth_percent="0.8">
 
         <android.widget.Button
             android:id="@+id/delete_account"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="10dp"
-            android:layout_gravity="center"
-            android:layout_weight="1"
-            android:text="계정 삭제"/>
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:text="계정 삭제"
+            android:textSize="18sp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toLeftOf="@id/change_password"
+            app:layout_constraintHeight_percent="1.0"
+            app:layout_constraintWidth_percent="0.33"/>
 
         <android.widget.Button
             android:id="@+id/change_password"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="10dp"
-            android:layout_gravity="center"
-            android:layout_weight="1"
-            android:text="비밀번호 변경"/>
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:text="비밀번호 변경"
+            android:textSize="18sp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toRightOf="@id/delete_account"
+            app:layout_constraintRight_toLeftOf="@id/logout"
+            app:layout_constraintHeight_percent="1.0"
+            app:layout_constraintWidth_percent="0.33"/>
 
         <android.widget.Button
             android:id="@+id/logout"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="10dp"
-            android:layout_gravity="center"
-            android:layout_weight="1"
-            android:text="로그아웃"/>
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:text="로그아웃"
+            android:textSize="18sp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toRightOf="@id/change_password"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintHeight_percent="1.0"
+            app:layout_constraintWidth_percent="0.33"/>
 
-    </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
