@@ -56,8 +56,14 @@
 <br><br>
 
 # 실행 화면
-![image](https://user-images.githubusercontent.com/62047373/175224502-8c29c818-9851-4ba0-ab37-e16625e6c7a7.png)
-![image](https://user-images.githubusercontent.com/62047373/175224521-3ed4908e-2f39-42f1-b57a-30cd2f8ee113.png)
+![image](https://user-images.githubusercontent.com/61930770/187321541-5feaf08f-90b4-47df-b2e5-93d142d6e03e.png)
+![image](https://user-images.githubusercontent.com/61930770/187321635-42122c3d-f2c3-4a0c-9f81-bb72a6ae76e9.png)
+![image](https://user-images.githubusercontent.com/61930770/187321656-15d97824-14d1-4496-a7f5-eefb1777bdeb.png)
+![image](https://user-images.githubusercontent.com/61930770/187321782-5e4d1d5f-4d9c-486a-8bcf-d79fdceeb2ae.png)
+![image](https://user-images.githubusercontent.com/61930770/187321959-938ac9e4-ae4b-4496-979f-6310948404cf.png)
+
+<!--![image](https://user-images.githubusercontent.com/62047373/175224502-8c29c818-9851-4ba0-ab37-e16625e6c7a7.png)-->
+<!--![image](https://user-images.githubusercontent.com/62047373/175224521-3ed4908e-2f39-42f1-b57a-30cd2f8ee113.png)-->
 <br><br>
 
 # 역할 분담
