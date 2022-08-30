@@ -550,6 +550,7 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
 
                             // 인식 결과 보여주기
                             imageLinks = socket.client()
+//                            println("얍 $imageLinks")
                             withContext(Dispatchers.Main) {
 //                                Toast.makeText(context, classifiedResult, Toast.LENGTH_SHORT).show()
                                 setRecommendAdapter(imageLinks!!, drawId, objId)
