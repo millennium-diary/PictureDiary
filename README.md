@@ -48,7 +48,7 @@
 <br><br>
 
 # 시스템 구성도
-![image](https://user-images.githubusercontent.com/62047373/175225616-55651129-b3cc-48d1-a316-2835d03bf9e8.png)
+![image](https://user-images.githubusercontent.com/61930770/187325866-85fcff46-c980-4d94-90fd-123196f36f9d.png)
 <br><br>
 
 # 시스템 흐름도
