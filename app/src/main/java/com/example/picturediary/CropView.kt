@@ -1,8 +1,8 @@
 package com.example.picturediary
 
 import android.annotation.SuppressLint
-import android.content.Context
 import android.app.AlertDialog
+import android.content.Context
 import android.content.DialogInterface
 import android.graphics.*
 import android.util.AttributeSet
@@ -22,11 +22,17 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.picturediary.databinding.ItemChosenObjectBinding
 import com.example.picturediary.navigation.model.ObjectDTO
 import com.example.picturediary.navigation.model.ObjectFeatures
+import io.ktor.utils.io.*
 import kotlinx.android.synthetic.main.activity_crop.view.*
 import kotlinx.android.synthetic.main.item_chosen_object.view.*
 import kotlinx.coroutines.*
 import java.io.ByteArrayOutputStream
+import java.io.IOException
+import java.lang.Exception
 import java.net.ConnectException
+import java.net.HttpURLConnection
+import java.net.MalformedURLException
+import java.net.URL
 import kotlin.math.ceil
 import kotlin.math.floor
 
@@ -53,7 +59,8 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
 
     val utils = Utils()
     val dbHelper = utils.createDBHelper(context)
-    private var classifiedResult: String? = null
+//    private var classifiedResult: String? = null
+    private var imageLinks: ArrayList<String>? = null
     private var pickedDate: String? = null
     private val loggedInUser = PrefApplication.prefs.getString("loggedInUser", "")
     private val username = loggedInUser.split("★")[0]
@@ -300,9 +307,42 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
         view.motionLinearLayout.visibility = INVISIBLE
     }
 
+    private fun urlToBitmap(link: String): Bitmap? {
+//        val url = URL(link)
+//        val connection = url.openConnection() as HttpURLConnection
+//        connection.doInput = true
+//        connection.connect()
+//        val input = connection.inputStream
+//        val returnImage = BitmapFactory.decodeStream(input)
+//
+//        return returnImage
+
+        return try {
+            val url = URL(link)
+            val connection = url.openConnection() as HttpURLConnection
+            connection.doInput = true
+            connection.connect()
+            val input = connection.inputStream
+            BitmapFactory.decodeStream(input)
+        } catch (e: MalformedURLException) {
+            null
+        }
+    }
+
     // 인식된 객체의 다른 이미지 보기 어댑터
     @SuppressLint("NotifyDataSetChanged")
-    private fun setRecommendAdapter(classifiedResult: String, drawingId: String, objId: String) {
+    private fun setRecommendAdapter(urls: ArrayList<String>, drawingId: String, objId: String) {
+        // 서버에게 받은 이미지 링크를 비트맵으로 변환
+        val crawlingArrayList = arrayListOf<Bitmap>()
+        val job = GlobalScope.launch(Dispatchers.IO) {
+            for (url in urls) {
+                val crawledImage = urlToBitmap(url)
+                if (crawledImage != null) crawlingArrayList.add(crawledImage)
+            }
+        }
+        // 해당 작업이 끝날 때까지 대기
+        runBlocking { job.join() }
+
         var drawId = drawingId
         if (!drawId.contains("@")) drawId = "$username@$drawId"
 
@@ -314,31 +354,8 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
         val originalArray = objectDTO.originalDraw
         val originalDraw = BitmapFactory.decodeByteArray(originalArray, 0, originalArray!!.size)
         val recommendListAdapter: RecommendListAdapter?
-        val recommendArrayList = arrayListOf(originalDraw)
-
-        val planeArrayList = utils.getBitmapFromDrawable(context, arrayListOf(R.drawable.airplane1, R.drawable.airplane2, R.drawable.airplane3))
-        val busArrayList = utils.getBitmapFromDrawable(context, arrayListOf(R.drawable.bus1, R.drawable.bus2, R.drawable.bus3))
-        val cakeArrayList = utils.getBitmapFromDrawable(context, arrayListOf(R.drawable.cake1, R.drawable.cake2, R.drawable.cake3))
-        val carArrayList = utils.getBitmapFromDrawable(context, arrayListOf(R.drawable.car1, R.drawable.car2, R.drawable.car3))
-        val catArrayList = utils.getBitmapFromDrawable(context, arrayListOf(R.drawable.cat1, R.drawable.cat2, R.drawable.cat3))
-        val dogArrayList = utils.getBitmapFromDrawable(context, arrayListOf(R.drawable.dog1, R.drawable.dog2, R.drawable.dog3))
-        val grassArrayList = utils.getBitmapFromDrawable(context, arrayListOf(R.drawable.grass1, R.drawable.grass2, R.drawable.grass3))
-        val houseArrayList = utils.getBitmapFromDrawable(context, arrayListOf(R.drawable.house1, R.drawable.house2, R.drawable.house3))
-        val rainbowArrayList = utils.getBitmapFromDrawable(context, arrayListOf(R.drawable.rainbow1, R.drawable.rainbow2, R.drawable.rainbow3))
-        val snowmanArrayList = utils.getBitmapFromDrawable(context, arrayListOf(R.drawable.snowman1, R.drawable.snowman2, R.drawable.snowman3))
-
-        when (classifiedResult) {
-            "airplane" -> recommendArrayList.addAll(planeArrayList)
-            "bus" -> recommendArrayList.addAll(busArrayList)
-            "cake" -> recommendArrayList.addAll(cakeArrayList)
-            "car" -> recommendArrayList.addAll(carArrayList)
-            "cat" -> recommendArrayList.addAll(catArrayList)
-            "dog" -> recommendArrayList.addAll(dogArrayList)
-            "grass" -> recommendArrayList.addAll(grassArrayList)
-            "house" -> recommendArrayList.addAll(houseArrayList)
-            "rainbow" -> recommendArrayList.addAll(rainbowArrayList)
-            "snowman" -> recommendArrayList.addAll(snowmanArrayList)
-        }
+        val recommendArrayList = arrayListOf<Bitmap>(originalDraw)
+        recommendArrayList.addAll(crawlingArrayList)
 
         // 어댑터 설정
         recommendListAdapter = RecommendListAdapter(recommendArrayList)
@@ -398,8 +415,8 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
                 canvas.drawBitmap(bitmap!!, 0f, 0f, null)
 
                 val erase = Paint()
-                erase.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_OUT)
-                erase.color = Color.WHITE
+                erase.xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR)
+                erase.alpha = 0xFF
                 erase.isAntiAlias = true
 //                canvas.drawPath(objPath!!, erase)
                 canvas.drawRect(objLeft!!, objTop!!, objRight!!, objBottom!!, erase)
@@ -527,14 +544,16 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
                         // 서버가 정상 작동할 경우
                         try {
                             // ClassifyClient 객체
-                            val socket = ClassifyClient()
+//                            val socket = ClassifyClient()
+                            val socket = ClassifyClientTest()
                             socket.setClassifyImage(resizedBitmap)
 
                             // 인식 결과 보여주기
-                            classifiedResult = socket.client()
+                            imageLinks = socket.client()
+//                            println("얍 $imageLinks")
                             withContext(Dispatchers.Main) {
-                                Toast.makeText(context, classifiedResult, Toast.LENGTH_SHORT).show()
-                                setRecommendAdapter(classifiedResult!!, drawId, objId)
+//                                Toast.makeText(context, classifiedResult, Toast.LENGTH_SHORT).show()
+                                setRecommendAdapter(imageLinks!!, drawId, objId)
                                 showRecommendRecycler()
                             }
                         }
@@ -543,7 +562,7 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
                         catch (e: ConnectException) {
                             withContext(Dispatchers.Main) {
                                 Toast.makeText(context, "현재 그림 인식은 할 수 없습니다", Toast.LENGTH_SHORT).show()
-                                setRecommendAdapter("", drawId, objId)
+                                setRecommendAdapter(arrayListOf(), drawId, objId)
                                 showRecommendRecycler()
                             }
                         }

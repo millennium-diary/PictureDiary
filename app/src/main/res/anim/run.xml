@@ -8,8 +8,7 @@
         android:fromXDelta="0%"
         android:toXDelta="700"
         android:interpolator="@android:anim/accelerate_interpolator"
-
-        >
+        android:repeatCount="infinite">
     </translate>
 
 </set>

@@ -73,7 +73,6 @@ class AnimExamActivity : AppCompatActivity() {
                 var videoFiles = File(videoDir).listFiles()
                 var videoPath = videoFiles[videoFiles.lastIndex].toString()
                 videoUri = Uri.parse(videoPath)
-                Log.println(Log.INFO, "비디오 경로", videoUri.toString())
             }
         }
 

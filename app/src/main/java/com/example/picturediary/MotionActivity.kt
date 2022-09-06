@@ -88,7 +88,6 @@ class MotionActivity : AppCompatActivity() {
         val videoFiles = File(videoDir).listFiles()
         val videoPath = videoFiles[videoFiles.lastIndex].toString()
         videoUri = Uri.parse(videoPath)
-        Log.println(Log.INFO, "비디오 경로 2", videoUri.toString())
         return videoUri
     }
 
@@ -136,7 +135,7 @@ class MotionActivity : AppCompatActivity() {
             val drawId = object_.fullDraw.toString()
             val objId = object_.objId.toString()
             val objectDTO = dbHelper.readSingleObject(drawId, objId)
-//            val objPath = utils.getPath(dbHelper.readObjectPath(drawId, objId))
+            val objPath = utils.getPath(dbHelper.readObjectPath(drawId, objId))
             val leftX = objectDTO.left!!.toFloat()
             val rightX = objectDTO.right!!.toFloat()
             val topY = objectDTO.top!!.toFloat()
@@ -149,9 +148,12 @@ class MotionActivity : AppCompatActivity() {
 
             // 애니메이션 넣은 부분 지우기 (해당 그림에 있는 모든 객체 지우기)
             val erase = Paint()
-            erase.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_OUT)
-            erase.color = Color.WHITE
+            erase.xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR)
+            erase.alpha = 0xFF
+//            erase.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_OUT)
+//            erase.color = Color.WHITE
             erase.isAntiAlias = true
+//            canvas.drawPath(objPath, erase)
             canvas.drawRect(leftX, topY, rightX, bottomY, erase)
 
 //            // 선택된 객체는 해당 위치에 배치 - 하영

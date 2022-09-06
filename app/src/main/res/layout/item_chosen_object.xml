@@ -89,9 +89,9 @@
 
     <android.widget.Button
         android:id="@+id/playObject"
+        android:background="@color/transparent"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="재생"
         app:flow_verticalAlign="center"
         app:layout_constraintTop_toBottomOf="@id/objectViewOnly"
         app:layout_constraintLeft_toLeftOf="parent"

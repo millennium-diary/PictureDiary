@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
     <ImageButton
         android:id="@+id/ib_brush_size1"
@@ -10,10 +11,10 @@
         android:layout_height="wrap_content"
         android:contentDescription="image"
         android:src="@drawable/brush_size1"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/ib_brush_size4"/>
+        android:background="@color/white"
+        android:layout_marginVertical="10dp"
+        android:layout_marginHorizontal="20dp"
+        android:layout_gravity="center"/>
 
     <ImageButton
         android:id="@+id/ib_brush_size2"
@@ -21,10 +22,10 @@
         android:layout_height="wrap_content"
         android:contentDescription="image"
         android:src="@drawable/brush_size2"
-        app:layout_constraintTop_toBottomOf="@id/ib_brush_size1"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/ib_brush_size3"/>
+        android:background="@color/white"
+        android:layout_marginVertical="10dp"
+        android:layout_marginHorizontal="20dp"
+        android:layout_gravity="center"/>
 
     <ImageButton
         android:id="@+id/ib_brush_size3"
@@ -32,10 +33,10 @@
         android:layout_height="wrap_content"
         android:contentDescription="image"
         android:src="@drawable/brush_size3"
-        app:layout_constraintTop_toBottomOf="@id/ib_brush_size2"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/ib_brush_size4"/>
+        android:background="@color/white"
+        android:layout_marginVertical="10dp"
+        android:layout_marginHorizontal="20dp"
+        android:layout_gravity="center"/>
 
     <ImageButton
         android:id="@+id/ib_brush_size4"
@@ -43,10 +44,10 @@
         android:layout_height="wrap_content"
         android:contentDescription="image"
         android:src="@drawable/brush_size4"
-        app:layout_constraintTop_toBottomOf="@id/ib_brush_size3"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/ib_brush_size5"/>
+        android:background="@color/white"
+        android:layout_marginVertical="10dp"
+        android:layout_marginHorizontal="20dp"
+        android:layout_gravity="center"/>
 
     <ImageButton
         android:id="@+id/ib_brush_size5"
@@ -54,8 +55,8 @@
         android:layout_height="wrap_content"
         android:contentDescription="image"
         android:src="@drawable/brush_size5"
-        app:layout_constraintTop_toBottomOf="@id/ib_brush_size4"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"/>
-</androidx.constraintlayout.widget.ConstraintLayout>
+        android:background="@color/white"
+        android:layout_marginVertical="10dp"
+        android:layout_marginHorizontal="20dp"
+        android:layout_gravity="center"/>
+</LinearLayout>
