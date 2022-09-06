@@ -46,7 +46,9 @@ class CropActivity : AppCompatActivity() {
 
         // 완료 버튼
         completeBtn.setOnClickListener {
-            val intent = Intent(this, TextActivity::class.java)
+//            val intent = Intent(this, TextActivity::class.java)
+            val intent = Intent(this, MotionActivity::class.java)
+            intent.putExtra("record", true)
             intent.putExtra("picture", arr)
             intent.putExtra("pickedDate", pickedDate)
             startActivity(intent)

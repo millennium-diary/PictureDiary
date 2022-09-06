@@ -28,7 +28,7 @@
         tools:listitem="@layout/item_timeline" />
 
     <android.widget.Button
-        android:id="@+id/add_memeber"
+        android:id="@+id/add_member"
         android:backgroundTint="#3DB7CC"
         android:background="@drawable/roundbutton"
         android:layout_width="64dp"
@@ -41,8 +41,4 @@
         android:textSize="25sp"
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"/>
-
-
-
-
 </RelativeLayout>

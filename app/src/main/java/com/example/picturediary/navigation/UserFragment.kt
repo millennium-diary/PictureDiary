@@ -321,7 +321,6 @@ class UserFragment: Fragment() {
             if (progressDialog.isShowing)
                 progressDialog.dismiss()
         }
-
     }
 
     private fun changeMessage(message: String) {

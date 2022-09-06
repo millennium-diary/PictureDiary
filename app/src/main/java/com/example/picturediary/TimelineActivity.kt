@@ -22,12 +22,16 @@ import com.example.picturediary.navigation.model.UserDTO
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import kotlinx.android.synthetic.main.activity_timeline.*
+import kotlinx.android.synthetic.main.item_timeline.*
 import kotlinx.android.synthetic.main.item_timeline.view.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.net.URL
+import java.net.URLConnection
 
 
 class TimelineActivity : AppCompatActivity() {
@@ -46,9 +50,9 @@ class TimelineActivity : AppCompatActivity() {
         recyclerViewtimeline.adapter = RecyclerViewAdapter()
         recyclerViewtimeline.layoutManager = LinearLayoutManager(this)
 
-        add_memeber.setOnClickListener {
+        // 멤버 추가 버튼 클릭 시
+        add_member.setOnClickListener {
             var memberName: String
-
             // 팝업 설정
             val dlg = AlertDialog.Builder(this)
             val input = EditText(this)
@@ -134,10 +138,11 @@ class TimelineActivity : AppCompatActivity() {
             }
         }
 
+        // 파이어베이스에서 그룹에 맞는 contentDTO를 불러옴
         private fun getContents(shareWith: ArrayList<String>?) {
+            // 파이어베이스에서 가져온 컨텐츠들을 시간 내림차순으로 정렬함
             firestore.collection("contents")
-                .whereEqualTo("explain", "확인")
-//                .orderBy("timestamp", Query.Direction.DESCENDING)
+                .orderBy("timestamp", Query.Direction.DESCENDING)
                 .addSnapshotListener { querySnapshot, _ ->
                     // ArrayList 비워줌
                     contentDTOs.clear()
@@ -168,9 +173,10 @@ class TimelineActivity : AppCompatActivity() {
 
         // onCreateViewHolder에서 만든 view와 실제 데이터를 연결
         override fun onBindViewHolder(p0: RecyclerView.ViewHolder, p1: Int) {
-            var videoPlaying = false
+//            var videoPlaying = false
             val viewHolder = (p0 as ViewHolder).itemView
 
+            // 사용자 프로필 사진
             firestore.collection("users")
                 .document(contentDTOs[p1].uid!!)
                 .get()
@@ -190,37 +196,41 @@ class TimelineActivity : AppCompatActivity() {
             viewHolder.profile_textview.text = contentDTOs[p1].username
             viewHolder.explain_textview.text = contentDTOs[p1].explain
 
-            //현재 사용자가 해당 일기 작성자라면, 삭제 버튼 표시
+            // 현재 사용자가 해당 일기 작성자라면, 삭제 버튼 표시
             firestore.collection("users")
                 .document(user?.uid!!)
                 .get()
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
                         val userDTO = task.result.toObject(UserDTO::class.java)
-                        if (userDTO?.username ==contentDTOs[p1].username)
-                            viewHolder.delete_picture.visibility=View.VISIBLE
+                        if (userDTO?.username == contentDTOs[p1].username)
+                            viewHolder.delete_picture.visibility = View.VISIBLE
                         else
-                            viewHolder.delete_picture.visibility=View.INVISIBLE
+                            viewHolder.delete_picture.visibility = View.INVISIBLE
                     }
                 }
 
-//            Glide.with(p0.itemView.context)
-//                .load(contentDTOs[p1].imageUrl)
-//                .into(viewHolder.Diary_image)
+//            if (contentDTOs[p1].isVideo == true) {
+                viewHolder.imageView.visibility = View.GONE
+                viewHolder.videoView.setScaleType(TextureVideoView.ScaleType.CENTER_CROP)
+                viewHolder.videoView.setDataSource(contentDTOs[p1].imageUrl)
+                viewHolder.videoView.setLooping(true)
+                viewHolder.videoView.play()
+//            }
+//            else {
+//                viewHolder.imageView.visibility = View.VISIBLE
+//                Glide.with(p0.itemView.context)
+//                    .load(contentDTOs[p1].imageUrl)
+//                    .into(viewHolder.imageView)
+//            }
 
-            viewHolder.Diary_image.setOnClickListener {
-                viewHolder.Diary_image.setVideoPath(contentDTOs[p1].imageUrl)
-                if (!videoPlaying) {
-                    videoPlaying = true
-                    viewHolder.Diary_image.setOnPreparedListener{ it.isLooping = true }
-                    viewHolder.Diary_image.start()
-                }
-                else {
-                    videoPlaying = false
-                    viewHolder.Diary_image.pause()
-                    viewHolder.Diary_image.stopPlayback()
-                }
-            }
+//                if (!videoPlaying) {
+//                    viewHolder.videoView.setLooping(true)
+//                    viewHolder.videoView.play()
+//                }
+//                else {
+//                    viewHolder.videoView.stop()
+//                }
 
             // 좋아요 누르기
             viewHolder.favorite_imageview.setOnClickListener { favoriteEvent(p1) }
@@ -238,17 +248,27 @@ class TimelineActivity : AppCompatActivity() {
             }
 
             viewHolder.like_number.text = "좋아요 " + contentDTOs[p1].favoriteCount + "개"
+
             viewHolder.delete_picture.setOnClickListener {
                 deleteDiary(contentDTOs[p1].contentId)
             }
         }
 
+        //일기 삭제
         private fun deleteDiary(ContentID: String?) {
-            if (ContentID != null) {
-                firestore.collection("contents")
-                    .document(ContentID)
-                    .delete()
-            }
+            val builder = AlertDialog.Builder(this@TimelineActivity)
+            builder.setTitle("알림")
+                .setMessage("일기를 그룹에서 삭제하시겠습니까?")
+                .setPositiveButton("삭제", DialogInterface.OnClickListener{dialog, id ->
+                    if (ContentID != null) {
+                        firestore.collection("contents")
+                            .document(ContentID)
+                            .delete()
+                    }
+                })
+                .setNegativeButton("취소",DialogInterface.OnClickListener { dialog, id ->})
+            builder.show()
+
         }
 
         override fun getItemCount(): Int {
@@ -258,7 +278,7 @@ class TimelineActivity : AppCompatActivity() {
         // 좋아요 이벤트
         private fun favoriteEvent(position: Int) {
             val tsDoc = firestore.collection("contents")
-                .document(contentUidList[position])
+                .document(contentDTOs[position].contentId.toString())
             firestore.runTransaction { transaction ->
 
                 val uid = FirebaseAuth.getInstance().currentUser!!.uid
