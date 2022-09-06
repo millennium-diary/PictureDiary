@@ -3,6 +3,6 @@ https://stackoverflow.com/questions/62967427/android-bottom-navigation-bar-color
 -->
 
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <style name="Theme.PictureDiary" parent="Theme.MaterialComponents.Light.NoActionBar">
+    <style name="Theme.PictureDiary" parent="Theme.MaterialComponents.DayNight.NoActionBar">
     </style>
 </resources>

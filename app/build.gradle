@@ -16,7 +16,7 @@ android {
     defaultConfig {
         applicationId "com.example.picturediary"
         minSdk 27
-        targetSdk 32
+        targetSdk 27
         versionCode 1
         versionName "1.0"
 
@@ -88,6 +88,8 @@ dependencies {
 
     implementation 'io.ktor:ktor-server-netty:1.6.0'
     implementation 'io.ktor:ktor-network:1.6.0'
+
+    implementation 'com.github.dhaval2404:colorpicker:2.0'
 
     testImplementation 'junit:junit:'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
