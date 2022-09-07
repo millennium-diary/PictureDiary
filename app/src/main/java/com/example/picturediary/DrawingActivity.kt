@@ -13,6 +13,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.get
 import com.example.picturediary.navigation.dao.DBHelper
+import com.github.dhaval2404.colorpicker.ColorPickerDialog
 import kotlinx.android.synthetic.main.activity_drawing.*
 import kotlinx.coroutines.DelicateCoroutinesApi
 import java.io.ByteArrayOutputStream
@@ -43,14 +44,6 @@ class DrawingActivity : AppCompatActivity() {
             showBrushSizeChooserDialog()
         }
 
-        val linearLayoutPaintColors = findViewById<LinearLayout>(R.id.ll_paint_colors)
-        mImageButtonCurrentPaint = linearLayoutPaintColors[1] as ImageButton
-        mImageButtonCurrentPaint?.setImageDrawable(
-            ContextCompat.getDrawable(
-                this,
-                R.drawable.pallet_pressed
-            )
-        )
 
         val ibMotion: Button = findViewById(R.id.ib_motion)
         ibMotion.setOnClickListener {
@@ -147,27 +140,9 @@ class DrawingActivity : AppCompatActivity() {
         brushDialog.show()
     }
 
-    fun paintClicked(view: View?) {
-        if (view !== mImageButtonCurrentPaint) {
-            // Update the color
-            val imageButton = view as ImageButton
-            // Here the tag is used for swapping the current color with previous color.
-            // The tag stores the selected view
-            val colorTag = imageButton.tag.toString()
-            // The color is set as per the selected tag here.
-            drawingView?.setColor(colorTag)
-            // Swap the backgrounds for last active and currently active image button.
-            imageButton.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.pallet_pressed))
-            mImageButtonCurrentPaint?.setImageDrawable(
-                ContextCompat.getDrawable(
-                    this,
-                    R.drawable.pallet_normal
-                )
-            )
-
-            //Current view is updated with selected view in the form of ImageButton.
-            mImageButtonCurrentPaint = view
-        }
+    fun colorPicker(view: View?){
+        drawingView?.showColorPicker(view)
     }
+
 }
 

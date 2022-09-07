@@ -2,6 +2,7 @@ package com.example.picturediary
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.DialogInterface
 import android.graphics.*
 import android.util.AttributeSet
 import android.util.TypedValue
@@ -9,6 +10,8 @@ import android.view.MotionEvent
 import android.view.View
 import com.example.picturediary.navigation.dao.DBHelper
 import com.example.picturediary.navigation.model.DrawingDTO
+import com.github.dhaval2404.colorpicker.ColorPickerDialog
+import com.github.dhaval2404.colorpicker.model.ColorShape
 
 class DrawingView(context: Context, attrs: AttributeSet) : View(context, attrs) {
     private var eraserMode = false
@@ -130,6 +133,29 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context, attrs) 
             mDrawPaint?.color = color
         }
     }
+
+    fun colorIntToHex(color : Int) : String {
+        val hexColor= "#" + Integer.toHexString(color)
+        return hexColor
+    }
+    fun showColorPicker(view: View?) {
+        ColorPickerDialog
+            .Builder(context)
+            .setDefaultColor(colorIntToHex(color))
+            .setColorShape(ColorShape.CIRCLE)
+            .setColorListener{color, colorHex->
+                setColor(colorHex)
+            }
+
+            .show()
+        @Override
+        fun onOK(dialog: ColorPickerDialog, color:Int) {
+            mDrawPaint?.color = color
+        }
+    }
+
+
+
 
     fun onClickUndo() {
         if (mPaths.size > 0) {
