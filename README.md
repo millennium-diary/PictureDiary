@@ -48,16 +48,22 @@
 <br><br>
 
 # 시스템 구성도
-![image](https://user-images.githubusercontent.com/62047373/175225616-55651129-b3cc-48d1-a316-2835d03bf9e8.png)
+![image](https://user-images.githubusercontent.com/61930770/187326046-e1492a30-1b6b-4703-911c-61407f185a28.png)
 <br><br>
 
 # 시스템 흐름도
-![image](https://user-images.githubusercontent.com/62047373/175225709-7b53910a-dbb1-45ca-8330-81c41f5a3a32.png)
+![image](https://user-images.githubusercontent.com/61930770/187326128-cbc0961c-586a-4351-9fe7-b3393a094e5d.png)
 <br><br>
 
 # 실행 화면
-![image](https://user-images.githubusercontent.com/62047373/175224502-8c29c818-9851-4ba0-ab37-e16625e6c7a7.png)
-![image](https://user-images.githubusercontent.com/62047373/175224521-3ed4908e-2f39-42f1-b57a-30cd2f8ee113.png)
+![image](https://user-images.githubusercontent.com/61930770/187321541-5feaf08f-90b4-47df-b2e5-93d142d6e03e.png)
+![image](https://user-images.githubusercontent.com/61930770/187321635-42122c3d-f2c3-4a0c-9f81-bb72a6ae76e9.png)
+![image](https://user-images.githubusercontent.com/61930770/187321656-15d97824-14d1-4496-a7f5-eefb1777bdeb.png)
+![image](https://user-images.githubusercontent.com/61930770/187321782-5e4d1d5f-4d9c-486a-8bcf-d79fdceeb2ae.png)
+![image](https://user-images.githubusercontent.com/61930770/187321959-938ac9e4-ae4b-4496-979f-6310948404cf.png)
+
+<!--![image](https://user-images.githubusercontent.com/62047373/175224502-8c29c818-9851-4ba0-ab37-e16625e6c7a7.png)-->
+<!--![image](https://user-images.githubusercontent.com/62047373/175224521-3ed4908e-2f39-42f1-b57a-30cd2f8ee113.png)-->
 <br><br>
 
 # 역할 분담
@@ -77,6 +83,7 @@
   - 캘린더 기능 구현
   - 전체 데이터베이스 구현
   - 그림 인식 모델 구축
+  - 이미지 크롤링
   - 서버 - 클라이언트 소켓 프로그래밍
   - 전체적인 흐름 관리
   
