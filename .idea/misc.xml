@@ -20,7 +20,7 @@
         <entry key="..\:/AndroidStudio/PictureDiary/app/src/main/res/drawable/ic_undo.xml" value="0.104" />
         <entry key="..\:/AndroidStudio/PictureDiary/app/src/main/res/drawable/roundbutton.xml" value="0.148" />
         <entry key="..\:/AndroidStudio/PictureDiary/app/src/main/res/layout/activity_anim.xml" value="0.17028985507246377" />
-        <entry key="..\:/AndroidStudio/PictureDiary/app/src/main/res/layout/activity_crop.xml" value="0.2" />
+        <entry key="..\:/AndroidStudio/PictureDiary/app/src/main/res/layout/activity_crop.xml" value="0.22" />
         <entry key="..\:/AndroidStudio/PictureDiary/app/src/main/res/layout/activity_drawing.xml" value="0.18" />
         <entry key="..\:/AndroidStudio/PictureDiary/app/src/main/res/layout/activity_login.xml" value="0.22" />
         <entry key="..\:/AndroidStudio/PictureDiary/app/src/main/res/layout/activity_main.xml" value="0.22" />
@@ -37,6 +37,7 @@
         <entry key="..\:/AndroidStudio/PictureDiary/app/src/main/res/layout/clean_border.xml" value="0.1778115501519757" />
         <entry key="..\:/AndroidStudio/PictureDiary/app/src/main/res/layout/community.xml" value="0.2" />
         <entry key="..\:/AndroidStudio/PictureDiary/app/src/main/res/layout/control_calendar.xml" value="0.14990942028985507" />
+        <entry key="..\:/AndroidStudio/PictureDiary/app/src/main/res/layout/custom_dialog.xml" value="0.1" />
         <entry key="..\:/AndroidStudio/PictureDiary/app/src/main/res/layout/dialog_brush_size.xml" value="0.14945652173913043" />
         <entry key="..\:/AndroidStudio/PictureDiary/app/src/main/res/layout/diary_text.xml" value="0.1778115501519757" />
         <entry key="..\:/AndroidStudio/PictureDiary/app/src/main/res/layout/drawing_activity.xml" value="0.19067028985507245" />
