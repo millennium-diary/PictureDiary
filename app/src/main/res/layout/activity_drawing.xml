@@ -149,7 +149,7 @@
                 android:layout_weight="1"
                 android:onClick="colorPicker"
                 android:tooltipText="색상"
-                android:textSize="12sp"
+                android:textSize="15sp"
                 android:text="색"/>
             <android.widget.Button
                 android:id="@+id/ib_brush"
@@ -157,7 +157,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:tooltipText="브러쉬"
-                android:textSize="12sp"
+                android:textSize="15sp"
                 android:text="펜 크기"/>
             <android.widget.Button
                 android:id="@+id/ib_eraser"
@@ -165,7 +165,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:tag="eraser"
-                android:textSize="11dp"
+                android:textSize="15sp"
                 android:text="지우개"/>
             <ImageButton
                 android:id="@+id/ib_reset"
@@ -195,7 +195,7 @@
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:textSize="12sp"
+                android:textSize="15sp"
                 android:text="완료"/>
         </TableRow>
 
