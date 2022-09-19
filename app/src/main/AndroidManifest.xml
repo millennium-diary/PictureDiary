@@ -31,8 +31,6 @@
         <activity android:name=".CropActivity" />
         <activity android:name=".TextActivity" />
         <activity android:name=".TimelineActivity"/>
-        <activity android:name=".AnimExamActivity"/>
-        <activity android:name=".ShowExamActivity"/>
         <activity android:name=".MotionActivity"/>
         <provider
             android:authorities="com.example.paint.fileprovider"

@@ -27,8 +27,6 @@ import kotlinx.android.synthetic.main.activity_crop.view.*
 import kotlinx.android.synthetic.main.item_chosen_object.view.*
 import kotlinx.coroutines.*
 import java.io.ByteArrayOutputStream
-import java.io.IOException
-import java.lang.Exception
 import java.net.ConnectException
 import java.net.HttpURLConnection
 import java.net.MalformedURLException
@@ -68,13 +66,16 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
     private var objectArrayList = arrayListOf<ObjectDTO>()
     private var objectListAdapter: ObjectListAdapter? = null
 
-    private val ani_run = AnimationUtils.loadAnimation(context, R.anim.run)
+    private val ani_run_right = AnimationUtils.loadAnimation(context, R.anim.run_right)
+    private val ani_run_left = AnimationUtils.loadAnimation(context, R.anim.run_left)
     private val ani_bounce = AnimationUtils.loadAnimation(context, R.anim.bounce)
     private val ani_shake = AnimationUtils.loadAnimation(context, R.anim.shake)
     private val ani_come : Animation = AnimationUtils.loadAnimation(context, R.anim.comein)
     private val ani_go : Animation = AnimationUtils.loadAnimation(context, R.anim.goout)
     private val ani_fade : Animation = AnimationUtils.loadAnimation(context, R.anim.fadeinout)
-    private val ani_roll : Animation = AnimationUtils.loadAnimation(context, R.anim.roll)
+    private val ani_blink : Animation = AnimationUtils.loadAnimation(context, R.anim.blink)
+    private val ani_roll_right : Animation = AnimationUtils.loadAnimation(context, R.anim.roll_right)
+    private val ani_roll_left : Animation = AnimationUtils.loadAnimation(context, R.anim.roll_left)
     private val ani_spin : Animation = AnimationUtils.loadAnimation(context, R.anim.spin)
 
     init {
@@ -308,15 +309,6 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
     }
 
     private fun urlToBitmap(link: String): Bitmap? {
-//        val url = URL(link)
-//        val connection = url.openConnection() as HttpURLConnection
-//        connection.doInput = true
-//        connection.connect()
-//        val input = connection.inputStream
-//        val returnImage = BitmapFactory.decodeStream(input)
-//
-//        return returnImage
-
         return try {
             val url = URL(link)
             val connection = url.openConnection() as HttpURLConnection
@@ -466,9 +458,14 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
 
     fun addMotion(objBitmap: Bitmap, drawId: String, objId: String) {
         val view = this.parent.parent as ConstraintLayout
-        view.Abtn_run.setOnClickListener {
-            dbHelper.updateObjectMotion(drawId, objId, "run")
-            makeDialog(objBitmap, drawId, objId, "run").startAnimation(ani_run)
+        view.Abtn_run_right.setOnClickListener {
+            dbHelper.updateObjectMotion(drawId, objId, "run_right")
+            makeDialog(objBitmap, drawId, objId, "run_right").startAnimation(ani_run_right)
+        }
+
+        view.Abtn_run_left.setOnClickListener {
+            dbHelper.updateObjectMotion(drawId, objId, "run_left")
+            makeDialog(objBitmap, drawId, objId, "run_left").startAnimation(ani_run_left)
         }
 
         view.Abtn_jump.setOnClickListener {
@@ -496,9 +493,19 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
             makeDialog(objBitmap, drawId, objId, "fade").startAnimation(ani_fade)
         }
 
-        view.Abtn_roll.setOnClickListener {
-            dbHelper.updateObjectMotion(drawId, objId, "roll")
-            makeDialog(objBitmap, drawId, objId, "roll").startAnimation(ani_roll)
+        view.Abtn_blink.setOnClickListener {
+            dbHelper.updateObjectMotion(drawId, objId, "blink")
+            makeDialog(objBitmap, drawId, objId, "blink").startAnimation(ani_blink)
+        }
+
+        view.Abtn_roll_right.setOnClickListener {
+            dbHelper.updateObjectMotion(drawId, objId, "roll_right")
+            makeDialog(objBitmap, drawId, objId, "roll_right").startAnimation(ani_roll_right)
+        }
+
+        view.Abtn_roll_left.setOnClickListener {
+            dbHelper.updateObjectMotion(drawId, objId, "roll_left")
+            makeDialog(objBitmap, drawId, objId, "roll_left").startAnimation(ani_roll_left)
         }
 
         view.Abtn_spin.setOnClickListener {
@@ -550,7 +557,6 @@ class CropView(context: Context, attrs: AttributeSet) : View(context, attrs), On
 
                             // 인식 결과 보여주기
                             imageLinks = socket.client()
-//                            println("얍 $imageLinks")
                             withContext(Dispatchers.Main) {
 //                                Toast.makeText(context, classifiedResult, Toast.LENGTH_SHORT).show()
                                 setRecommendAdapter(imageLinks!!, drawId, objId)
