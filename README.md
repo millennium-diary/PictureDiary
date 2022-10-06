@@ -1,4 +1,5 @@
 ### ※ <b>Python Classification Server</b> ※: https://github.com/millennium-diary/PictureDiary-Classification-Server
+#### 영상 : <a>https://www.youtube.com/watch?v=5qGULJ2fv1A&t=5s</a>
 <br>
 
 # Picture Diary
