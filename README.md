@@ -38,7 +38,7 @@
     <td>Kotlin</td>
   </tr>
   <tr>
-    <td>프레임워크</td>
+    <td>IDE</td>
     <td>Android Studio 4.1.2</td>
   </tr>
   <tr>
